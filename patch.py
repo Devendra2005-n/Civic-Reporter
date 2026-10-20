@@ -1,0 +1,1 @@
+import sys; c = open('ml_service/app.py', 'r').read(); c = c.replace('image_url = data.get(\"imageUrl\")', 'image_url = data.get(\"imageUrl\")\n    if image_url.startswith(\"http://localhost:\"):\n        image_url = image_url.replace(\"http://localhost:\", \"http://127.0.0.1:\")'); open('ml_service/app.py', 'w').write(c)

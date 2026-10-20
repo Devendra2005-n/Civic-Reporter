@@ -1,0 +1,1 @@
+AI avatar will be saved to public folder
