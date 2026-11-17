@@ -150,7 +150,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center lg:items-end relative overflow-hidden px-6 lg:pr-24 xl:pr-32 pt-28 pb-8 text-slate-100">
+    <div className="min-h-screen flex flex-col justify-center items-center lg:items-end relative overflow-hidden px-4 lg:pr-24 xl:pr-32 pt-20 sm:pt-28 pb-8 text-slate-100">
       {/* Video Background */}
       <VideoBackground src="sc4.mp4" />
 

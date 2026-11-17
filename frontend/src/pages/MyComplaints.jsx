@@ -122,7 +122,7 @@ const MyComplaints = () => {
   };
 
   return (
-    <div className="min-h-screen pt-36 px-6 max-w-7xl mx-auto pb-24">
+    <div className="min-h-screen pt-24 sm:pt-36 px-3 sm:px-6 max-w-7xl mx-auto pb-24">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
         <div className="flex items-center space-x-4">
@@ -130,7 +130,7 @@ const MyComplaints = () => {
             <FileText className="w-8 h-8 text-purple-400" />
           </div>
           <div>
-            <h1 className="text-4xl font-extrabold tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
               My <span className="text-gradient">Complaints</span>
             </h1>
             <p className="text-gray-400 mt-1">
@@ -153,7 +153,7 @@ const MyComplaints = () => {
 
       {/* Search Bar */}
       <div className="mb-8">
-        <div className="relative max-w-md">
+        <div className="relative max-w-md w-full">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="w-5 h-5 text-gray-400" />
           </div>

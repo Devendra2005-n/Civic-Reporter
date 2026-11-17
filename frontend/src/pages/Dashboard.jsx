@@ -135,7 +135,7 @@ const Dashboard = () => {
   }, [filtered]);
 
   return (
-    <div className="min-h-screen pt-36 px-6 max-w-7xl mx-auto pb-12">
+    <div className="min-h-screen pt-24 sm:pt-36 px-3 sm:px-6 max-w-7xl mx-auto pb-12">
       {/* Header with Animation */}
       <motion.div 
         className="flex flex-col md:flex-row md:items-end justify-between mb-8 space-y-4 md:space-y-0"
@@ -158,7 +158,7 @@ const Dashboard = () => {
               Real-time updates
             </span>
           </motion.div>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
             City <span className="text-gradient">Dashboard</span>
           </h1>
           <p className="text-gray-400 mt-2">Live view of civic issues reported in your area.</p>
@@ -166,7 +166,7 @@ const Dashboard = () => {
         
         {/* Filter Pills with Animation */}
         <motion.div 
-          className="flex flex-wrap gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/10"
+          className="flex flex-wrap gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/10 w-full sm:w-auto"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
@@ -333,7 +333,7 @@ const Dashboard = () => {
               </div>
             </div>
             
-            <div className="h-[400px] lg:h-[500px] rounded-2xl overflow-hidden shadow-inner border border-white/5 relative" style={darkMapFilterStyle}>
+            <div className="h-[300px] sm:h-[400px] lg:h-[500px] rounded-2xl overflow-hidden shadow-inner border border-white/5 relative" style={darkMapFilterStyle}>
               {!isLoaded ? (
                 <div className="w-full h-full flex items-center justify-center bg-slate-800/50">
                   <motion.div

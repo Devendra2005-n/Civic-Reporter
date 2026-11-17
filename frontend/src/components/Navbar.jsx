@@ -75,7 +75,7 @@ const Navbar = () => {
     <nav className="absolute top-4 w-full z-50 bg-transparent px-[var(--spacing-4)] py-[var(--spacing-3)] transition-all duration-300">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <NavLink to="/" className="flex items-center space-x-2" onClick={closeMobile}>
-          <span className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)] hidden sm:block">
+          <span className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
             Smart Civic Reporter
           </span>
         </NavLink>
@@ -161,7 +161,7 @@ const Navbar = () => {
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-3 w-80 glass-panel border border-white/10 shadow-2xl rounded-2xl overflow-hidden py-2 z-50 origin-top-right"
+                      className="absolute right-0 mt-3 w-80 max-w-[calc(100vw-2rem)] glass-panel border border-white/10 shadow-2xl rounded-2xl overflow-hidden py-2 z-50 origin-top-right"
                     >
                       <div className="px-4 py-3 border-b border-white/10 bg-white/5 flex justify-between items-center">
                         <h3 className="font-bold text-sm text-white">Notifications</h3>
@@ -250,7 +250,7 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden mt-4 border-t border-white/10 pt-4 space-y-2"
+            className="md:hidden mt-4 border-t border-white/10 pt-4 space-y-2 bg-[var(--color-surface-base)]/95 backdrop-blur-md px-2 pb-4 rounded-b-2xl"
           >
             <NavLink to="/" end className={navLinkClass} onClick={closeMobile}>
               <Home className="w-4 h-4" /><span>Home</span>

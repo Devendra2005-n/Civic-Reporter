@@ -181,7 +181,7 @@ const AIChatbot = () => {
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-8 right-8 z-40 group"
+            className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 z-40 group"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
@@ -233,7 +233,7 @@ const AIChatbot = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="fixed bottom-8 right-8 w-[380px] h-[550px] z-50"
+            className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 w-[calc(100vw-2rem)] sm:w-[380px] h-[520px] sm:h-[550px] z-50"
           >
             <div className="relative w-full h-full glass-premium rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col">
               {/* Background glow */}
