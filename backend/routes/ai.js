@@ -115,8 +115,9 @@ router.post("/analyze", async (req, res) => {
     // ===================================================
     let parsed;
     try {
-      console.log("Sending image to local PyTorch Microservice at http://127.0.0.1:5001/predict");
-      const mlResponse = await fetch("http://127.0.0.1:5001/predict", {
+      const ML_URL = (process.env.ML_SERVICE_URL || "http://127.0.0.1:5001") + "/predict";
+      console.log("Sending image to PyTorch Microservice at", ML_URL);
+      const mlResponse = await fetch(ML_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageUrl: imageUrl })
