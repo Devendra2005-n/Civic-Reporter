@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { Readable } from "stream";
+import "../config/cloudinary.js"; // Ensure cloudinary is configured (sets cloud_name, api_key, api_secret)
 
 const router = express.Router();
 

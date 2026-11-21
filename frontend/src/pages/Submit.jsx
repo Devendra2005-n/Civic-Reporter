@@ -20,7 +20,7 @@ import TiltCard from '../components/TiltCard';
 import { copyToClipboard } from '../utils/clipboard';
 import { formatComplaintId } from '../utils/formatters';
 
-const mapContainerStyle = { width: '100%', height: '300px', borderRadius: '1rem' };
+const mapContainerStyle = { width: '100%', height: '300px', borderRadius: '1rem', position: 'relative' };
 const defaultCenter = { lat: 28.6139, lng: 77.2090 }; // Delhi as fallback
 
 // Supported Indian languages for translation

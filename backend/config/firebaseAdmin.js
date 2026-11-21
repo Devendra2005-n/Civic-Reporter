@@ -6,6 +6,12 @@ import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Fix gRPC TLS verification issues in local/dev environments
+// (Firestore Admin SDK uses gRPC which doesn't respect NODE_TLS_REJECT_UNAUTHORIZED)
+if (process.env.NODE_ENV !== 'production') {
+  process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA:HIGH+RSA:HIGH+DSS';
+}
+
 // Try to load either from an env variable (JSON string) or the downloaded file
 let serviceAccount;
 
@@ -23,9 +29,9 @@ try {
   }
 
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(serviceAccount),
   });
-  
+
   console.log("Firebase Admin SDK initialized ✅");
 } catch (error) {
   console.error("Firebase Admin SDK initialization failed ❌");

@@ -1,4 +1,6 @@
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+// Fix gRPC TLS issues for Firebase Admin SDK on local dev (Firestore uses gRPC, not http)
+process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA:HIGH+RSA:HIGH+DSS';
 import 'dotenv/config';
 import express from "express";
 import cors from "cors";

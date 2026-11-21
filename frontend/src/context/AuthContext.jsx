@@ -18,14 +18,17 @@ export const AuthProvider = ({ children }) => {
   const [userData, setUserData] = useState(null); // Firestore user doc { name, email, role, uid }
   const [loading, setLoading] = useState(true);
 
-  // Fetch Firestore user doc
-  const fetchUserData = async (firebaseUser) => {
+  // Fetch Firestore user doc — with retry to handle token propagation delay
+  const fetchUserData = async (firebaseUser, retryCount = 0) => {
+    const adminEmails = ['admin@civicreporter.com'];
+    const forceAdmin = adminEmails.includes(firebaseUser.email.toLowerCase());
+
+    // Ensure the Firebase ID token is fresh before hitting Firestore rules
+    try { await firebaseUser.getIdToken(true); } catch (_) {}
+
     try {
       const docRef = doc(db, 'users', firebaseUser.uid);
       const docSnap = await getDoc(docRef);
-      
-      const adminEmails = ['admin@civicreporter.com'];
-      const forceAdmin = adminEmails.includes(firebaseUser.email.toLowerCase());
 
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -33,7 +36,7 @@ export const AuthProvider = ({ children }) => {
            data.role = 'admin';
            try { await setDoc(docRef, { role: 'admin' }, { merge: true }); } catch (e) {}
         } else if (!forceAdmin && data.role === 'admin') {
-           data.role = 'citizen'; // Strip the admin role if they are no longer in the list
+           data.role = 'citizen';
            try { await setDoc(docRef, { role: 'citizen' }, { merge: true }); } catch (e) {}
         }
         setUserData(data);
@@ -42,20 +45,24 @@ export const AuthProvider = ({ children }) => {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
           name: firebaseUser.displayName || 'User',
-          role: forceAdmin ? 'admin' : 'user',
+          role: forceAdmin ? 'admin' : 'citizen',
         };
         try { await setDoc(docRef, fallbackData); } catch(e) {}
         setUserData(fallbackData);
       }
     } catch (err) {
-      console.error('Error fetching user data:', err);
-      const adminEmails = ['admin@civicreporter.com'];
-      const forceAdmin = adminEmails.includes(firebaseUser.email.toLowerCase());
+      // Retry up to 2 times on permission errors (token may not have propagated yet)
+      if (err.code === 'permission-denied' && retryCount < 2) {
+        await new Promise(r => setTimeout(r, 1000 * (retryCount + 1)));
+        return fetchUserData(firebaseUser, retryCount + 1);
+      }
+      console.error('Error fetching user data:', err.code || err.message);
+      // Fallback: use auth-only data so app still works
       setUserData({
         uid: firebaseUser.uid,
         email: firebaseUser.email,
         name: firebaseUser.displayName || 'User',
-        role: forceAdmin ? 'admin' : 'user',
+        role: forceAdmin ? 'admin' : 'citizen',
       });
     }
   };
