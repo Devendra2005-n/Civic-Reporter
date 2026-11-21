@@ -22,6 +22,13 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Python / Virtual Environments
+venv/
+.venv/
+backend/venv/
+__pycache__/
+*.pyc
+
 # Secrets
 serviceAccountKey.json
 
