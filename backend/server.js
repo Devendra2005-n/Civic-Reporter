@@ -30,15 +30,23 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-app.use("/api/ai", aiRoutes);
-app.use("/api/complaints", complaintRoutes);
-app.use("/api/upload", uploadRoutes);
-app.use("/api/authority", authorityRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/otp", otpRoutes);
-app.use("/api/location", locationRoutes);
-app.use("/api/duplicates", duplicateRoutes);
+// Mount routes on both /api/<path> and /<path> for full client compatibility
+const routes = [
+  { path: "ai", handler: aiRoutes },
+  { path: "complaints", handler: complaintRoutes },
+  { path: "upload", handler: uploadRoutes },
+  { path: "authority", handler: authorityRoutes },
+  { path: "users", handler: userRoutes },
+  { path: "notifications", handler: notificationRoutes },
+  { path: "otp", handler: otpRoutes },
+  { path: "location", handler: locationRoutes },
+  { path: "duplicates", handler: duplicateRoutes },
+];
+
+routes.forEach(({ path, handler }) => {
+  app.use(`/api/${path}`, handler);
+  app.use(`/${path}`, handler);
+});
 
 app.get("/", (req, res) => {
   res.send("🚀 Backend is running...");

@@ -1,8 +1,21 @@
 import axios from 'axios';
 import { auth } from '../config/firebase'; // needed to get the token directly in the interceptor
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 
-  ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:5000/api' : 'https://civic-reporter-1-5et3.onrender.com/api');
+const getBaseUrl = () => {
+  let url = (import.meta.env.VITE_API_URL || '').trim();
+  if (!url) {
+    url = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+      ? 'http://localhost:5000/api'
+      : 'https://civic-reporter-1-5et3.onrender.com/api';
+  }
+  url = url.replace(/\/+$/, '');
+  if (!url.endsWith('/api')) {
+    url += '/api';
+  }
+  return url;
+};
+
+const API_BASE_URL = getBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL, 

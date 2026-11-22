@@ -56,7 +56,11 @@ export const AuthProvider = ({ children }) => {
         await new Promise(r => setTimeout(r, 1000 * (retryCount + 1)));
         return fetchUserData(firebaseUser, retryCount + 1);
       }
-      console.error('Error fetching user data:', err.code || err.message);
+      if (err.code === 'permission-denied') {
+        console.warn('⚠️ Firestore permission denied. Using Firebase Auth profile fallback. (Ensure firestore.rules are published in Firebase Console).');
+      } else {
+        console.error('Error fetching user data:', err.code || err.message);
+      }
       // Fallback: use auth-only data so app still works
       setUserData({
         uid: firebaseUser.uid,
