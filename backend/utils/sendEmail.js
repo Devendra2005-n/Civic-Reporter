@@ -83,20 +83,18 @@ const sendEmail = async (to, subject, html) => {
     }
   }
 
-  // 4. Fallback to Direct Nodemailer SMTP with fast 3500ms timeout
-  const createTransporter = (port, secure) => nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port,
-    secure,
+  // 4. Nodemailer SMTP (Port 465 SSL preferred first, then Port 587)
+  const createTransporter = (config) => nodemailer.createTransport({
+    ...config,
     auth: {
       user: emailUser,
       pass: emailPass,
     },
-    connectionTimeout: 3500,
-    greetingTimeout: 3500,
-    socketTimeout: 3500,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
     tls: {
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
     },
   });
 
@@ -107,21 +105,29 @@ const sendEmail = async (to, subject, html) => {
     html,
   };
 
+  // Attempt Port 465 direct SSL first
   try {
-    const transporter = createTransporter(587, false);
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent to ${recipient} via port 587: ${info.messageId}`);
+    const transporter465 = createTransporter({
+      service: 'gmail',
+      secure: true,
+    });
+    const info = await transporter465.sendMail(mailOptions);
+    console.log(`✅ Email sent to ${recipient} via Gmail SSL: ${info.messageId}`);
     return info;
-  } catch (primaryError) {
-    console.warn(`⚠️ Port 587 send failed (${primaryError.message}), attempting Port 465 SSL fallback...`);
+  } catch (sslError) {
+    console.warn(`⚠️ Gmail SSL send failed (${sslError.message}), trying Port 587 fallback...`);
     try {
-      const fallbackTransporter = createTransporter(465, true);
-      const info = await fallbackTransporter.sendMail(mailOptions);
-      console.log(`✅ Email sent to ${recipient} via port 465: ${info.messageId}`);
+      const transporter587 = createTransporter({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+      });
+      const info = await transporter587.sendMail(mailOptions);
+      console.log(`✅ Email sent to ${recipient} via port 587: ${info.messageId}`);
       return info;
     } catch (fallbackError) {
-      console.error(`❌ SMTP direct connection failed on both ports (${fallbackError.message}). Note: Render Free Tier blocks outbound SMTP ports 25, 465, and 587.`);
-      throw new Error(`Email delivery timed out. Note: Render free tier blocks outbound SMTP ports (25, 465, 587).`);
+      console.error(`❌ SMTP delivery failed on all ports (${fallbackError.message}).`);
+      throw new Error(`Email delivery failed: ${fallbackError.message}. Note: Render Free Tier blocks outbound SMTP (ports 25, 465, 587). Use BREVO_API_KEY or EMAIL_WEBHOOK_URL for HTTPS delivery.`);
     }
   }
 };

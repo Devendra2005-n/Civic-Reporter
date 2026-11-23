@@ -104,7 +104,6 @@ const Signup = () => {
   // OTP states
   const [step, setStep] = useState(1); // 1 = form, 2 = OTP verify
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [fallbackOtpCode, setFallbackOtpCode] = useState(null);
   const [otpSending, setOtpSending] = useState(false);
   const [otpVerifying, setOtpVerifying] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -133,16 +132,7 @@ const Signup = () => {
       setStep(2);
       setCountdown(300); // 5 min
       setTimeout(() => otpRefs.current[0]?.focus(), 300);
-
-      if (res.data?.fallbackOtp) {
-        setFallbackOtpCode(res.data.fallbackOtp);
-        toast(`Verification code: ${res.data.fallbackOtp}`, {
-          icon: '🔑',
-          duration: 15000,
-        });
-      } else {
-        toast.success(`OTP sent to ${cleanEmail}! 📧`);
-      }
+      toast.success(`Verification code sent to ${cleanEmail}! Please check your Gmail. 📧`);
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to send OTP.');
     } finally {
@@ -215,15 +205,10 @@ const Signup = () => {
     const cleanEmail = email.trim();
     const cleanName = name.trim();
     try {
-      const res = await sendOTP(cleanEmail, cleanName);
+      await sendOTP(cleanEmail, cleanName);
       setCountdown(300);
       setOtp(['', '', '', '', '', '']);
-      if (res.data?.fallbackOtp) {
-        setFallbackOtpCode(res.data.fallbackOtp);
-        toast(`New code: ${res.data.fallbackOtp}`, { icon: '🔑', duration: 15000 });
-      } else {
-        toast.success(`New OTP sent to ${cleanEmail}! 📧`);
-      }
+      toast.success(`New OTP sent to ${cleanEmail}! 📧`);
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to resend OTP.');
     } finally {
@@ -344,31 +329,6 @@ const Signup = () => {
                     </motion.div>
                   )}
                 </AnimatePresence>
-
-                {/* Fallback OTP display if platform firewall restricted outbound SMTP */}
-                {fallbackOtpCode && (
-                  <div className="mb-5 p-3.5 bg-purple-500/10 border border-purple-500/30 rounded-xl text-xs text-purple-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-purple-300">Your Verification Code:</span>
-                      <span className="font-mono text-base font-extrabold text-white bg-purple-900/50 px-2.5 py-0.5 rounded tracking-widest border border-purple-500/40">
-                        {fallbackOtpCode}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] text-gray-400">
-                      <span>Cloud SMTP port restricted</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setOtp(fallbackOtpCode.split(''));
-                          setTimeout(() => otpRefs.current[5]?.focus(), 50);
-                        }}
-                        className="text-purple-400 hover:text-purple-300 underline font-semibold cursor-pointer"
-                      >
-                        Auto-fill code
-                      </button>
-                    </div>
-                  </div>
-                )}
 
                 {/* OTP Input Grid */}
                 <div className="flex justify-center gap-3 mb-6" onPaste={handleOtpPaste}>

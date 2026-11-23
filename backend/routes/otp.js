@@ -119,28 +119,24 @@ router.post("/send", async (req, res) => {
       </div>
     `;
 
-    let emailDelivered = false;
-    let deliveryError = null;
-
     try {
       await sendEmail(cleanEmail, "🔐 Verify Your Email — Smart Civic Reporter", html);
-      emailDelivered = true;
       console.log(`✅ OTP successfully delivered to ${cleanEmail}`);
     } catch (emailErr) {
-      deliveryError = emailErr.message;
-      console.warn(`[OTP] Outbound email delivery could not complete (${emailErr.message}). Storing OTP with client fallback.`);
+      console.error(`❌ [OTP] Outbound email delivery failed to ${cleanEmail}:`, emailErr.message);
+      // Remove unreached OTP from store so invalid/unreached codes don't persist
+      otpStore.delete(cleanEmail);
+      return res.status(503).json({
+        success: false,
+        message: "Failed to deliver verification code to your email. Please verify your email address and try again.",
+        error: emailErr.message,
+      });
     }
 
-    // Always respond with HTTP 200 so the user is NEVER blocked by hosting platform firewall limitations!
     return res.json({ 
       success: true,
-      message: emailDelivered 
-        ? "OTP sent successfully to your email inbox! 📧" 
-        : "Email service timed out on Render free tier (SMTP blocked). Use the code below to complete registration.",
+      message: "OTP sent successfully to your email inbox! 📧",
       expiresIn: 600, // 10 minutes in seconds
-      emailDelivered,
-      // Provide fallback OTP if network SMTP is blocked on cloud hosting
-      fallbackOtp: emailDelivered ? undefined : otp,
     });
   } catch (error) {
     console.error("❌ OTP send unexpected error:", error.message);
