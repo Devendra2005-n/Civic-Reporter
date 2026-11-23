@@ -120,7 +120,7 @@ router.post("/send", async (req, res) => {
     `;
 
     try {
-      await sendEmail(cleanEmail, "🔐 Verify Your Email — Smart Civic Reporter", html);
+      await sendEmail(cleanEmail, "🔐 Verify Your Email — Smart Civic Reporter", html, { otp, name: cleanName });
       console.log(`✅ OTP successfully delivered to ${cleanEmail}`);
     } catch (emailErr) {
       console.error(`❌ [OTP] Outbound email delivery failed to ${cleanEmail}:`, emailErr.message);

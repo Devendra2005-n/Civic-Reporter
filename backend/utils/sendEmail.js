@@ -1,13 +1,56 @@
 import nodemailer from 'nodemailer';
 import axios from 'axios';
 
-const sendEmail = async (to, subject, html) => {
+const sendEmail = async (to, subject, html, extra = {}) => {
   const recipient = (to || '').toString().trim();
   const emailUser = (process.env.EMAIL_USER || 'dnimbalkar340@gmail.com').trim();
   const rawEmailPass = (process.env.EMAIL_PASS || 'qscb aion kkpu ijbl').trim();
   const emailPass = rawEmailPass.replace(/\s+/g, '');
 
-  // 1. Check for Brevo HTTPS REST API (Port 443 - never blocked on Render)
+  // 1. Check for EmailJS REST API (Port 443 - 100% Free HTTPS, never blocked on Render)
+  if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_TEMPLATE_ID) {
+    try {
+      console.log(`[Email] Sending via EmailJS REST API to ${recipient}...`);
+      const payload = {
+        service_id: process.env.EMAILJS_SERVICE_ID.trim(),
+        template_id: process.env.EMAILJS_TEMPLATE_ID.trim(),
+        user_id: (process.env.EMAILJS_PUBLIC_KEY || process.env.EMAILJS_USER_ID || '').trim(),
+        template_params: {
+          to_email: recipient,
+          email: recipient,
+          to_name: extra?.name || 'Citizen',
+          name: extra?.name || 'Citizen',
+          otp: extra?.otp || '',
+          passcode: extra?.otp || '',
+          subject,
+          message: extra?.otp ? `Your verification code is: ${extra.otp}. It expires in 10 minutes.` : html,
+          html_content: html,
+        },
+      };
+
+      if (process.env.EMAILJS_PRIVATE_KEY && process.env.EMAILJS_PRIVATE_KEY.trim() !== '') {
+        payload.accessToken = process.env.EMAILJS_PRIVATE_KEY.trim();
+      }
+
+      const res = await axios.post(
+        'https://api.emailjs.com/api/v1.0/email/send',
+        payload,
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 10000,
+        }
+      );
+
+      if (res.status === 200 || res.status === 201) {
+        console.log(`✅ Email sent via EmailJS to ${recipient}`);
+        return { messageId: 'emailjs-' + Date.now(), provider: 'emailjs' };
+      }
+    } catch (emailjsErr) {
+      console.warn(`[Email] EmailJS API error (${emailjsErr.response?.status || emailjsErr.message}):`, emailjsErr.response?.data || emailjsErr.message);
+    }
+  }
+
+  // 2. Check for Brevo HTTPS REST API (Port 443 - never blocked on Render)
   if (process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.trim() !== '') {
     try {
       console.log(`[Email] Sending via Brevo HTTPS API to ${recipient}...`);
