@@ -24,31 +24,53 @@ const generateOTP = () => {
 // 🧪 Email Diagnostics endpoint (open in browser to test email config)
 router.get("/test-email", async (req, res) => {
   const targetEmail = req.query.to || "dnimbalkar340@gmail.com";
+  const testType = req.query.type === 'resolved' ? 'resolved' : 'otp';
   const emailjsConfigured = Boolean(
-    (process.env.EMAILJS_SERVICE_ID || process.env.SERVICE_ID) &&
-    (process.env.EMAILJS_TEMPLATE_ID || process.env.TEMPLATE_ID)
+    (process.env.EMAILJS_OTP_SERVICE_ID || process.env.EMAILJS_RESOLVED_SERVICE_ID || process.env.EMAILJS_SERVICE_ID || process.env.SERVICE_ID) &&
+    (process.env.EMAILJS_OTP_TEMPLATE_ID || process.env.EMAILJS_RESOLVED_TEMPLATE_ID || process.env.EMAILJS_TEMPLATE_ID || process.env.TEMPLATE_ID)
   );
 
   try {
+    const isResolved = testType === 'resolved';
     const result = await sendEmail(
       targetEmail,
-      "🧪 Civic Reporter Email Test",
-      "<h2>Email System is Working! 🚀</h2><p>This is a test email sent from Smart Civic Reporter.</p>",
-      { otp: "123456", name: "Tester" }
+      isResolved ? "✅ Complaint Resolved - Civic Reporter" : "🔐 Verify Your Email — Smart Civic Reporter",
+      isResolved
+        ? "<h2>Complaint Resolved</h2><p>Your reported issue has been successfully resolved.</p>"
+        : "<h2>Email Verification</h2><p>Your verification code is: 123456</p>",
+      isResolved
+        ? {
+            type: 'resolved',
+            name: "Dev",
+            problemType: "pothole",
+            location: "Shahu Market Yard, Kolhapur",
+            submittedDate: "Saturday, November 21, 2026",
+            status: "Resolved",
+            beforeImage: "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=600",
+            afterImage: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600",
+            adminMessage: "The pothole has been permanently patched and resurfaced.",
+          }
+        : {
+            type: 'otp',
+            otp: "867431",
+            name: "Citizen",
+          }
     );
     return res.json({
       success: true,
-      message: `Test email successfully sent to ${targetEmail}!`,
+      message: `Test ${testType} email successfully sent to ${targetEmail}!`,
       provider: result.provider || 'smtp',
       emailjsConfigured,
+      testType,
       result,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Test email failed to send.",
+      message: `Test ${testType} email failed to send.`,
       error: error.message,
       emailjsConfigured,
+      testType,
       targetEmail,
     });
   }

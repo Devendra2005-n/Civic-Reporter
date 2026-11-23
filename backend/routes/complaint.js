@@ -467,7 +467,22 @@ router.patch("/:id", authMiddleware, adminMiddleware, async (req, res) => {
             </body>
             </html>
           `;
-          await sendEmail(complaint.userEmail, "✅ Complaint Resolved Successfully - Civic Reporter", emailHtml);
+          await sendEmail(
+            complaint.userEmail,
+            "✅ Complaint Resolved Successfully - Civic Reporter",
+            emailHtml,
+            {
+              type: 'resolved',
+              name: complaint.userName,
+              complaintId: complaint._id,
+              problemType: complaint.problemType,
+              location: complaint.location?.address || 'Not specified',
+              submittedDate: new Date(complaint.createdAt).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+              status: 'Resolved',
+              beforeImage: complaint.imageUrl || '',
+              afterImage: complaint.afterImageUrl || '',
+            }
+          );
           console.log(`✅ Resolution email sent to ${complaint.userEmail}`);
         } catch (emailError) {
           console.error("❌ Failed to send resolution email:", emailError.message);
@@ -758,7 +773,23 @@ router.post("/:id/send-email", authMiddleware, adminMiddleware, async (req, res)
       `;
     }
 
-    await sendEmail(emailToSend, subject, emailHtml);
+    await sendEmail(
+      emailToSend,
+      subject,
+      emailHtml,
+      {
+        type: emailType === 'resolved' ? 'resolved' : 'status_update',
+        name: complaint.userName,
+        complaintId: complaint._id,
+        problemType: complaint.problemType,
+        location: complaint.location?.address || 'Not specified',
+        submittedDate: new Date(complaint.createdAt).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+        status: complaint.status,
+        beforeImage: complaint.imageUrl || '',
+        afterImage: complaint.afterImageUrl || '',
+        adminMessage: customMessage || '',
+      }
+    );
     
     res.json({ 
       success: true, 

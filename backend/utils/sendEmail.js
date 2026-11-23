@@ -10,15 +10,26 @@ const sendEmail = async (to, subject, html, extra = {}) => {
   const rawEmailPass = (process.env.EMAIL_PASS || 'qscb aion kkpu ijbl').trim();
   const emailPass = rawEmailPass.replace(/\s+/g, '');
 
+  // Determine email category
+  const isOtp = extra?.type === 'otp' || Boolean(extra?.otp);
+
   // 1. Check for EmailJS REST API (Port 443 - 100% Free HTTPS, never blocked on Render)
-  const emailjsServiceId = (process.env.EMAILJS_SERVICE_ID || process.env.SERVICE_ID || process.env.VITE_EMAILJS_SERVICE_ID || '').trim();
-  const emailjsTemplateId = (process.env.EMAILJS_TEMPLATE_ID || process.env.TEMPLATE_ID || process.env.VITE_EMAILJS_TEMPLATE_ID || '').trim();
+  // Dynamic Service ID based on email type (supports separate OTP & Resolved services or unified service)
+  const emailjsServiceId = isOtp
+    ? (process.env.EMAILJS_OTP_SERVICE_ID || process.env.EMAILJS_SERVICE_ID || process.env.SERVICE_ID || '').trim()
+    : (process.env.EMAILJS_RESOLVED_SERVICE_ID || process.env.EMAILJS_SERVICE_ID || process.env.SERVICE_ID || '').trim();
+
+  // Dynamic Template ID based on email type (supports separate OTP & Resolved templates)
+  const emailjsTemplateId = isOtp
+    ? (process.env.EMAILJS_OTP_TEMPLATE_ID || process.env.EMAILJS_TEMPLATE_ID || process.env.TEMPLATE_ID || '').trim()
+    : (process.env.EMAILJS_RESOLVED_TEMPLATE_ID || process.env.EMAILJS_STATUS_TEMPLATE_ID || process.env.EMAILJS_TEMPLATE_ID || process.env.TEMPLATE_ID || '').trim();
+
   const emailjsPublicKey = (process.env.EMAILJS_PUBLIC_KEY || process.env.PUBLIC_KEY || process.env.EMAILJS_USER_ID || process.env.USER_ID || process.env.VITE_EMAILJS_PUBLIC_KEY || '').trim();
   const emailjsPrivateKey = (process.env.EMAILJS_PRIVATE_KEY || process.env.PRIVATE_KEY || process.env.EMAILJS_ACCESS_TOKEN || process.env.ACCESS_TOKEN || '').trim();
 
   if (emailjsServiceId && emailjsTemplateId) {
     try {
-      console.log(`[Email] Sending via EmailJS REST API to ${recipient}... (service: ${emailjsServiceId}, template: ${emailjsTemplateId})`);
+      console.log(`[Email] Sending via EmailJS REST API to ${recipient}... (type: ${isOtp ? 'otp' : 'resolved/status'}, service: ${emailjsServiceId}, template: ${emailjsTemplateId})`);
       const payload = {
         service_id: emailjsServiceId,
         template_id: emailjsTemplateId,
@@ -37,6 +48,16 @@ const sendEmail = async (to, subject, html, extra = {}) => {
           code: extra?.otp || '',
           verification_code: extra?.otp || '',
           subject,
+          issue_type: extra?.problemType || '',
+          problem_type: extra?.problemType || '',
+          location: extra?.location || '',
+          submitted_date: extra?.submittedDate || '',
+          status: extra?.status || '',
+          admin_message: extra?.adminMessage || '',
+          custom_message: extra?.adminMessage || '',
+          before_image: extra?.beforeImage || '',
+          after_image: extra?.afterImage || '',
+          complaint_id: extra?.complaintId ? `#${String(extra.complaintId).slice(-6).toUpperCase()}` : '',
           message: extra?.otp ? `Your verification code is: ${extra.otp}. It expires in 10 minutes.` : html,
           html_content: html,
           reply_to: emailUser,
