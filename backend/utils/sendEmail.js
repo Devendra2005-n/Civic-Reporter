@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import axios from 'axios';
 
 const sendEmail = async (to, subject, html) => {
   const recipient = (to || '').toString().trim();
@@ -6,80 +7,82 @@ const sendEmail = async (to, subject, html) => {
   const rawEmailPass = (process.env.EMAIL_PASS || 'qscb aion kkpu ijbl').trim();
   const emailPass = rawEmailPass.replace(/\s+/g, '');
 
-  // 1. Check for Resend HTTPS REST API (Port 443 - never blocked on Render)
-  if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY.trim() !== '') {
-    try {
-      console.log(`[Email] Sending via Resend HTTPS API to ${recipient}...`);
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY.trim()}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: process.env.RESEND_FROM || 'Smart Civic Reporter <onboarding@resend.dev>',
-          to: [recipient],
-          subject,
-          html,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        console.log(`✅ Email sent via Resend to ${recipient}: ${data.id}`);
-        return { messageId: data.id, provider: 'resend' };
-      }
-      const errText = await res.text();
-      console.warn(`[Email] Resend API returned ${res.status}: ${errText}`);
-    } catch (resendErr) {
-      console.warn(`[Email] Resend API failed: ${resendErr.message}`);
-    }
-  }
-
-  // 2. Check for Brevo HTTPS REST API (Port 443 - never blocked on Render)
+  // 1. Check for Brevo HTTPS REST API (Port 443 - never blocked on Render)
   if (process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.trim() !== '') {
     try {
       console.log(`[Email] Sending via Brevo HTTPS API to ${recipient}...`);
-      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'api-key': process.env.BREVO_API_KEY.trim(),
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
+      const res = await axios.post(
+        'https://api.brevo.com/v3/smtp/email',
+        {
           sender: { name: 'Smart Civic Reporter', email: emailUser },
           to: [{ email: recipient }],
           subject,
           htmlContent: html,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        console.log(`✅ Email sent via Brevo to ${recipient}: ${data.messageId}`);
-        return { messageId: data.messageId, provider: 'brevo' };
+        },
+        {
+          headers: {
+            'api-key': process.env.BREVO_API_KEY.trim(),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          timeout: 10000,
+        }
+      );
+      if (res.data?.messageId) {
+        console.log(`✅ Email sent via Brevo to ${recipient}: ${res.data.messageId}`);
+        return { messageId: res.data.messageId, provider: 'brevo' };
       }
-      const errText = await res.text();
-      console.warn(`[Email] Brevo API returned ${res.status}: ${errText}`);
     } catch (brevoErr) {
-      console.warn(`[Email] Brevo API failed: ${brevoErr.message}`);
+      console.warn(`[Email] Brevo API error (${brevoErr.response?.status || brevoErr.message}):`, brevoErr.response?.data || brevoErr.message);
     }
   }
 
-  // 3. Check for Generic HTTPS Webhook / Google Script Relay
+  // 2. Check for Generic HTTPS Webhook / Google Apps Script Relay (Port 443 - never blocked on Render)
   if (process.env.EMAIL_WEBHOOK_URL && process.env.EMAIL_WEBHOOK_URL.trim() !== '') {
     try {
       console.log(`[Email] Sending via HTTPS Webhook Relay to ${recipient}...`);
-      const res = await fetch(process.env.EMAIL_WEBHOOK_URL.trim(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: recipient, subject, html }),
-      });
-      if (res.ok) {
-        console.log(`✅ Email sent via Webhook Relay to ${recipient}`);
-        return { messageId: 'webhook-' + Date.now(), provider: 'webhook' };
-      }
+      const res = await axios.post(
+        process.env.EMAIL_WEBHOOK_URL.trim(),
+        { to: recipient, subject, html },
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 15000,
+          maxRedirects: 5,
+        }
+      );
+      console.log(`✅ Email sent via Webhook Relay to ${recipient}`);
+      return { messageId: 'webhook-' + Date.now(), provider: 'webhook' };
     } catch (webhookErr) {
       console.warn(`[Email] Webhook Relay failed: ${webhookErr.message}`);
+    }
+  }
+
+  // 3. Check for Resend HTTPS REST API (Port 443)
+  if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY.trim() !== '') {
+    try {
+      console.log(`[Email] Sending via Resend HTTPS API to ${recipient}...`);
+      const res = await axios.post(
+        'https://api.resend.com/emails',
+        {
+          from: process.env.RESEND_FROM || 'Smart Civic Reporter <onboarding@resend.dev>',
+          to: [recipient],
+          subject,
+          html,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000,
+        }
+      );
+      if (res.data?.id) {
+        console.log(`✅ Email sent via Resend to ${recipient}: ${res.data.id}`);
+        return { messageId: res.data.id, provider: 'resend' };
+      }
+    } catch (resendErr) {
+      console.warn(`[Email] Resend API error (${resendErr.response?.status || resendErr.message}):`, resendErr.response?.data || resendErr.message);
     }
   }
 
