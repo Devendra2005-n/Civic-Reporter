@@ -142,9 +142,9 @@ export async function runOnnxInference(imageBytes) {
   };
 }
 
-export async function predictImage(imageUrl) {
-  // 1. If ML_SERVICE_URL is set, try calling the external microservice first
-  if (process.env.ML_SERVICE_URL && process.env.ML_SERVICE_URL.trim() !== '') {
+export async function predictImage(imageInput) {
+  // 1. If ML_SERVICE_URL is set and imageInput is a URL string, try external microservice
+  if (typeof imageInput === 'string' && process.env.ML_SERVICE_URL && process.env.ML_SERVICE_URL.trim() !== '') {
     try {
       const mlUrl = process.env.ML_SERVICE_URL.replace(/\/+$/, '') + '/predict';
       console.log(`[ML] Trying external ML microservice at ${mlUrl}...`);
@@ -153,7 +153,7 @@ export async function predictImage(imageUrl) {
       const resp = await fetch(mlUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl }),
+        body: JSON.stringify({ imageUrl: imageInput }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
@@ -178,17 +178,24 @@ export async function predictImage(imageUrl) {
   }
 
   // 2. Run built-in ONNX runtime in Node.js
-  console.log(`[ML] Running built-in ONNX model for image: ${imageUrl}`);
   let imageBytes;
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    const imgResp = await fetch(imageUrl);
-    if (!imgResp.ok) {
-      throw new Error(`Failed to fetch image from URL: ${imgResp.statusText}`);
+  if (Buffer.isBuffer(imageInput)) {
+    console.log(`[ML] Running built-in ONNX model on in-memory image buffer (${imageInput.length} bytes)...`);
+    imageBytes = imageInput;
+  } else if (typeof imageInput === 'string') {
+    console.log(`[ML] Running built-in ONNX model for image: ${imageInput}`);
+    if (imageInput.startsWith('http://') || imageInput.startsWith('https://')) {
+      const imgResp = await fetch(imageInput);
+      if (!imgResp.ok) {
+        throw new Error(`Failed to fetch image from URL: ${imgResp.statusText}`);
+      }
+      const arrayBuffer = await imgResp.arrayBuffer();
+      imageBytes = Buffer.from(arrayBuffer);
+    } else {
+      imageBytes = fs.readFileSync(imageInput);
     }
-    const arrayBuffer = await imgResp.arrayBuffer();
-    imageBytes = Buffer.from(arrayBuffer);
   } else {
-    imageBytes = fs.readFileSync(imageUrl);
+    throw new Error('Invalid image input: expected file path string, URL string, or Buffer');
   }
 
   const prediction = await runOnnxInference(imageBytes);
