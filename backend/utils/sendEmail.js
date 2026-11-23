@@ -26,13 +26,20 @@ const sendEmail = async (to, subject, html, extra = {}) => {
         template_params: {
           to_email: recipient,
           email: recipient,
+          user_email: recipient,
+          recipient: recipient,
+          to: recipient,
           to_name: extra?.name || 'Citizen',
           name: extra?.name || 'Citizen',
+          user_name: extra?.name || 'Citizen',
           otp: extra?.otp || '',
           passcode: extra?.otp || '',
+          code: extra?.otp || '',
+          verification_code: extra?.otp || '',
           subject,
           message: extra?.otp ? `Your verification code is: ${extra.otp}. It expires in 10 minutes.` : html,
           html_content: html,
+          reply_to: emailUser,
         },
       };
 
