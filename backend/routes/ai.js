@@ -5,13 +5,17 @@ import translate from "google-translate-api-x";
 import Complaint from "../models/Complaint.js";
 import { supportedLanguages } from "../data/authorityData.js";
 import { generateLetterTemplate } from "../utils/localization.js";
+import { predictImage } from "../services/mlService.js";
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const router = express.Router();
 
-// Google Gemini client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Google Gemini client (optional fallback)
+let genAI = null;
+if (process.env.GEMINI_API_KEY) {
+  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+}
 
 // Safety settings shared by all models
 const safetySettings = [
@@ -23,7 +27,7 @@ const safetySettings = [
 
 // Model configuration for JSON outputs (analyze, validate-category)
 const jsonModelConfig = {
-  model: "gemini-2.5-flash",
+  model: "gemini-1.5-flash",
   generationConfig: {
     temperature: 0.2,
     maxOutputTokens: 2048,
@@ -34,7 +38,7 @@ const jsonModelConfig = {
 
 // Model configuration for plain text outputs (translation)
 const textModelConfig = {
-  model: "gemini-2.5-flash",
+  model: "gemini-1.5-flash",
   generationConfig: {
     temperature: 0.2,
     maxOutputTokens: 4096,
@@ -43,13 +47,15 @@ const textModelConfig = {
 };
 
 let visionModel, textModel, translationModel;
-try {
-  visionModel = genAI.getGenerativeModel(jsonModelConfig);
-  textModel = genAI.getGenerativeModel(jsonModelConfig);
-  translationModel = genAI.getGenerativeModel(textModelConfig);
-  console.log("✅ Gemini models initialized (JSON + Text)");
-} catch (err) {
-  console.error("❌ Failed to initialize Gemini models:", err.message);
+if (genAI) {
+  try {
+    visionModel = genAI.getGenerativeModel(jsonModelConfig);
+    textModel = genAI.getGenerativeModel(jsonModelConfig);
+    translationModel = genAI.getGenerativeModel(textModelConfig);
+    console.log("✅ Gemini models initialized (JSON + Text)");
+  } catch (err) {
+    console.error("❌ Failed to initialize Gemini models:", err.message);
+  }
 }
 
 // ===================================================
@@ -88,19 +94,6 @@ router.post("/analyze", async (req, res) => {
       return res.status(400).json({ message: "Image URL required" });
     }
 
-    // Fallback if AI model not initialized
-    if (!visionModel) {
-      console.log("⚠️ AI model not available, returning fallback response");
-      return res.json({
-        problemType: "other",
-        severity: "Medium",
-        confidence: 50,
-        description: "AI analysis temporarily unavailable. Please verify the issue details manually.",
-        imageValidation: { isValid: true, reason: "AI unavailable — skipped validation", detectedContent: "unknown" },
-        formalLetter: `To,\nThe Municipal Commissioner,\nMunicipal Corporation\n\nSubject: Complaint regarding civic issue\n\nRespected Sir/Madam,\n\nI am writing to bring to your attention a civic issue that requires immediate attention. Please review the attached image and details.\n\nThank you for your prompt action.\n\nYours faithfully,\n${userName || "Anonymous Citizen"}`
-      });
-    }
-
     // Build dynamic prompt inserts
     const nameInsert = userName
       ? `The complainant's name is "${userName}".`
@@ -109,46 +102,76 @@ router.post("/analyze", async (req, res) => {
       ? `The location of the issue is "${locationAddress}".`
       : "";
 
-    
     // ===================================================
-    // CALL LOCAL PYTORCH MICROSERVICE
+    // CALL ML SERVICE (Trained ONNX / Microservice)
     // ===================================================
     let parsed;
     try {
-      const ML_URL = (process.env.ML_SERVICE_URL || "http://127.0.0.1:5001") + "/predict";
-      console.log("Sending image to PyTorch Microservice at", ML_URL);
-      const mlResponse = await fetch(ML_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl: imageUrl })
-      });
-      
-      if (!mlResponse.ok) {
-        throw new Error("ML Service returned status " + mlResponse.status);
-      }
-      
-      parsed = await mlResponse.json();
-      console.log("PyTorch Prediction:", parsed);
-      
+      parsed = await predictImage(imageUrl);
+      console.log("ML Prediction:", parsed);
+
       // Ensure expected fields exist
       parsed.confidence = parsed.confidence || 0.5;
       parsed.problemType = parsed.problemType || "other";
       parsed.severity = parsed.severity || "Medium";
-      parsed.description = parsed.description || `Detected ${parsed.problemType} with ${Math.round(parsed.confidence * 100)}% confidence using custom PyTorch model.`;
-      
-    } catch (err) {
-      console.error("? Failed to reach PyTorch Microservice:", err.message);
-      throw err; // Trigger fallback
+      parsed.description = parsed.description || `Detected ${parsed.problemType} with ${Math.round(parsed.confidence * 100)}% confidence using custom trained ML model.`;
+    } catch (mlErr) {
+      console.warn("⚠️ Local ML inference failed:", mlErr.message);
+
+      // Secondary fallback to Gemini Vision if configured
+      if (visionModel) {
+        try {
+          console.log("Attempting Gemini Vision fallback...");
+          const imgResponse = await fetch(imageUrl);
+          const arrayBuffer = await imgResponse.arrayBuffer();
+          const base64Image = Buffer.from(arrayBuffer).toString("base64");
+          const mimeType = imgResponse.headers.get("content-type") || "image/jpeg";
+
+          const prompt = `You are a civic issue detection AI. Analyze this image and respond with JSON matching this schema:
+{
+  "problemType": "pothole" | "garbage" | "streetlight" | "drainage" | "other",
+  "severity": "Low" | "Medium" | "High",
+  "confidence": 0.85,
+  "description": "brief description",
+  "imageValidation": { "isValid": true, "reason": "reason", "detectedContent": "description" }
+}`;
+
+          const result = await visionModel.generateContent({
+            contents: [{
+              role: "user",
+              parts: [
+                { inlineData: { mimeType, data: base64Image } },
+                { text: prompt }
+              ]
+            }]
+          });
+
+          const raw = result.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+          const jsonStart = raw.indexOf("{");
+          const jsonEnd = raw.lastIndexOf("}") + 1;
+          parsed = JSON.parse(raw.substring(jsonStart, jsonEnd));
+        } catch (geminiErr) {
+          console.error("Gemini fallback also failed:", geminiErr.message);
+          throw mlErr; // Proceed to template fallback
+        }
+      } else {
+        throw mlErr;
+      }
     }
 
     // Extract image validation result
-    const imageValidation = parsed.imageValidation || { isValid: true, reason: "", detectedContent: "" };
+    const imageValidation = parsed.imageValidation || {
+      isValid: parsed.problemType !== "other",
+      reason: `Detected ${parsed.problemType} with ${Math.round(parsed.confidence * 100)}% confidence`,
+      detectedContent: `ML Classification: ${parsed.problemType}`
+    };
 
     // Priority calculation
-    let severityScore = 0;
-    if (parsed.severity === "high") severityScore = 3;
-    if (parsed.severity === "medium") severityScore = 2;
-    if (parsed.severity === "low") severityScore = 1;
+    const sev = (parsed.severity || "medium").toLowerCase();
+    let severityScore = 2;
+    if (sev === "high") severityScore = 3;
+    if (sev === "medium") severityScore = 2;
+    if (sev === "low") severityScore = 1;
 
     const priority = severityScore * 10;
 
@@ -187,9 +210,9 @@ router.post("/analyze", async (req, res) => {
       imageUrl,
       problemType: parsed.problemType,
       severity:
-        parsed.severity === "low"
+        sev === "low"
           ? "Low"
-          : parsed.severity === "high"
+          : sev === "high"
           ? "High"
           : "Medium",
       description: parsed.description,
@@ -197,12 +220,13 @@ router.post("/analyze", async (req, res) => {
       priority,
       confidence: parsed.confidence,
       imageValidation,
+      aiFallback: false,
     };
 
     console.log("FINAL RESPONSE:", previewData);
     res.json(previewData);
   } catch (error) {
-    console.error("Gemini AI Error:", error.message);
+    console.error("AI Analysis Error:", error.message);
     
     // Build a proper fallback letter so the UI still shows something useful
     const userName = req.body.userName || "Concerned Citizen";
@@ -236,6 +260,18 @@ router.post("/validate-category", async (req, res) => {
     const { imageUrl, selectedCategory } = req.body;
     if (!imageUrl || !selectedCategory) {
       return res.status(400).json({ message: "imageUrl and selectedCategory required" });
+    }
+
+    try {
+      const mlResult = await predictImage(imageUrl);
+      const imageCategory = mlResult.problemType || "";
+      const confidence = Math.round((mlResult.confidence || 0) * 100);
+      const matches = selectedCategory.toLowerCase().includes(imageCategory.toLowerCase()) ||
+                      imageCategory.toLowerCase().includes(selectedCategory.toLowerCase());
+      const reason = `ML model classified image as ${imageCategory} (${confidence}% confidence)`;
+      return res.json({ matches, imageCategory, selectedCategory, confidence, reason });
+    } catch (mlErr) {
+      console.warn("ML category validation fallback:", mlErr.message);
     }
 
     if (!visionModel) {
