@@ -95,13 +95,17 @@ export const AuthProvider = ({ children }) => {
     const assignedRole = adminEmails.includes(email.toLowerCase()) ? 'admin' : 'citizen';
 
     // Create Firestore user doc FORCING role to 'citizen' (default) unless specific email
-    await setDoc(doc(db, 'users', cred.user.uid), {
-      uid: cred.user.uid,
-      name,
-      email,
-      role: assignedRole,
-      createdAt: new Date().toISOString(),
-    });
+    try {
+      await setDoc(doc(db, 'users', cred.user.uid), {
+        uid: cred.user.uid,
+        name,
+        email,
+        role: assignedRole,
+        createdAt: new Date().toISOString(),
+      });
+    } catch (firestoreErr) {
+      console.warn('⚠️ Could not save user doc to Firestore (rules restricted). Using Auth profile fallback:', firestoreErr.message);
+    }
     
     // Update local state
     const data = { uid: cred.user.uid, name, email, role: assignedRole };

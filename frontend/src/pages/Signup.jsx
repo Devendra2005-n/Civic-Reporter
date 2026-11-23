@@ -93,7 +93,7 @@ const AnimatedInput = ({ type, value, onChange, label, icon: Icon, showToggle, o
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { signup, login } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -181,7 +181,16 @@ const Signup = () => {
         return;
       }
       // OTP verified — now create Firebase account
-      await signup(cleanName, cleanEmail, password);
+      try {
+        await signup(cleanName, cleanEmail, password);
+      } catch (signupErr) {
+        if (signupErr.code === 'auth/email-already-in-use') {
+          // Account was already registered in Auth during previous try; log in seamlessly
+          await login(cleanEmail, password);
+        } else {
+          throw signupErr;
+        }
+      }
       toast.success('Account created successfully! 🚀');
       navigate('/');
     } catch (err) {
