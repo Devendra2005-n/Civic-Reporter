@@ -120,19 +120,21 @@ const Signup = () => {
   const handleSendOTP = async (e) => {
     e.preventDefault();
     setError('');
-    if (!name.trim()) return setError('Please enter your name.');
-    if (!email.trim()) return setError('Please enter your email.');
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+    if (!cleanName) return setError('Please enter your name.');
+    if (!cleanEmail) return setError('Please enter your email.');
     if (password.length < 6) return setError('Password must be at least 6 characters.');
 
     setOtpSending(true);
     try {
-      await sendOTP(email, name);
-      toast.success('OTP sent to your email! 📧');
+      await sendOTP(cleanEmail, cleanName);
+      toast.success(`OTP sent to ${cleanEmail}! 📧`);
       setStep(2);
       setCountdown(300); // 5 min
       setTimeout(() => otpRefs.current[0]?.focus(), 300);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send OTP.');
+      setError(err.response?.data?.message || err.message || 'Failed to send OTP.');
     } finally {
       setOtpSending(false);
     }
@@ -169,15 +171,17 @@ const Signup = () => {
 
     setError('');
     setOtpVerifying(true);
+    const cleanEmail = email.trim();
+    const cleanName = name.trim();
     try {
-      const verifyRes = await verifyOTP(email, otpString);
+      const verifyRes = await verifyOTP(cleanEmail, otpString);
       if (!verifyRes.data.verified) {
         setError('Invalid OTP. Please try again.');
         setOtpVerifying(false);
         return;
       }
       // OTP verified — now create Firebase account
-      await signup(name, email, password);
+      await signup(cleanName, cleanEmail, password);
       toast.success('Account created successfully! 🚀');
       navigate('/');
     } catch (err) {
@@ -195,16 +199,18 @@ const Signup = () => {
 
   // Resend OTP
   const handleResendOTP = async () => {
-    if (countdown > 0) return;
+    if (countdown > 240 || otpSending) return;
     setOtpSending(true);
     setError('');
+    const cleanEmail = email.trim();
+    const cleanName = name.trim();
     try {
-      await sendOTP(email, name);
-      toast.success('New OTP sent! 📧');
+      await sendOTP(cleanEmail, cleanName);
+      toast.success(`New OTP sent to ${cleanEmail}! 📧`);
       setCountdown(300);
       setOtp(['', '', '', '', '', '']);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to resend OTP.');
+      setError(err.response?.data?.message || err.message || 'Failed to resend OTP.');
     } finally {
       setOtpSending(false);
     }
