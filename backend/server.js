@@ -1,11 +1,29 @@
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 // Fix gRPC TLS issues for Firebase Admin SDK on local dev (Firestore uses gRPC, not http)
 process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA:HIGH+RSA:HIGH+DSS';
-import 'dotenv/config';
+
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import dns from "dns";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, ".env") });
+dotenv.config();
+
+// Guard DNS override so it doesn't break container internal networking on cloud hosts
+try {
+  if (process.env.NODE_ENV !== "production") {
+    dns.setServers(["1.1.1.1", "8.8.8.8"]);
+  }
+} catch (e) {
+  console.warn("DNS override skipped:", e.message);
+}
+
 import express from "express";
 import cors from "cors";
 import connectDB from "./config/db.js";
-import dns from "dns";
 import complaintRoutes from "./routes/complaint.js";
 import uploadRoutes from "./routes/upload.js";
 import aiRoutes from "./routes/ai.js";
@@ -15,9 +33,6 @@ import notificationRoutes from "./routes/notification.js";
 import otpRoutes from "./routes/otp.js";
 import locationRoutes from "./routes/location.js";
 import duplicateRoutes from "./routes/duplicate.js";
-
-// Load env first (handled via import 'dotenv/config' at top)
-dns.setServers(["1.1.1.1","8.8.8.8"]);
 
 console.log("Starting server...");
 
