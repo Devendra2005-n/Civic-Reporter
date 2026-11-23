@@ -13,6 +13,9 @@ const sendEmail = async (to, subject, html) => {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,  // Must be Gmail App Password (not your Gmail login password)
     },
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 5000,
     tls: {
       rejectUnauthorized: false
     }

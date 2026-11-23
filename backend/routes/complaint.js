@@ -226,48 +226,52 @@ router.post("/", async (req, res) => {
 
     const doc = saved.toJSON();
 
-    // 🚀 NEW: SEND EMAILS AS REQUESTED
-    try {
-      const rawId = String(doc._id);
-      const namePart = safeUserName.split(' ')[0].split('@')[0].toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
-      const idPart = rawId.slice(-4).toUpperCase();
-      const shortId = `#${namePart}-${idPart}`;
-
-      // 1. Send to User (if email is provided)
-      const submitterEmail = userEmail || req.user?.email;
-      if (submitterEmail) {
-        await sendEmail(
-          submitterEmail,
-          'Complaint Submitted Successfully - Smart Civic Reporter',
-          `<h3>Hello ${safeUserName},</h3>
-          <p>Thank you for submitting a complaint. We have received your report regarding <b>"${problemType}"</b>.</p>
-          <p>Your Complaint ID is: <b>${shortId}</b></p>
-          <p>We will keep you updated on its progress.</p>`
-        );
-      }
-
-      // 2. Send to Admin
-      const adminEmail = process.env.EMAIL_USER || 'dnimbalkar340@gmail.com';
-      await sendEmail(
-        adminEmail,
-        'New Complaint Received - Admin Panel',
-        `<h3>New Complaint Alert</h3>
-        <p>A new complaint has been filed by <b>${safeUserName}</b>.</p>
-        <p><b>Type:</b> ${problemType}</p>
-        <p><b>Severity:</b> ${severity || 'medium'}</p>
-        <p><b>Complaint ID:</b> ${shortId}</p>
-        <p>Please log in to the admin panel to review the details.</p>`
-      );
-    } catch (emailErr) {
-      console.error("Error sending notification emails:", emailErr);
-      // We don't fail the request if emails fail
-    }
-
+    // Respond immediately to the client so submission is instant and never hangs on SMTP
     res.status(201).json({
       ...doc,
       locationAddress: doc.location?.address || '',
       id: doc._id,
     });
+
+    // 🚀 Background notification emails (non-blocking, never delays client response)
+    (async () => {
+      try {
+        const rawId = String(doc._id);
+        const namePart = safeUserName.split(' ')[0].split('@')[0].toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+        const idPart = rawId.slice(-4).toUpperCase();
+        const shortId = `#${namePart}-${idPart}`;
+
+        // 1. Send to User (if email is provided)
+        const submitterEmail = userEmail || req.user?.email;
+        if (submitterEmail && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+          sendEmail(
+            submitterEmail,
+            'Complaint Submitted Successfully - Smart Civic Reporter',
+            `<h3>Hello ${safeUserName},</h3>
+            <p>Thank you for submitting a complaint. We have received your report regarding <b>"${problemType}"</b>.</p>
+            <p>Your Complaint ID is: <b>${shortId}</b></p>
+            <p>We will keep you updated on its progress.</p>`
+          ).catch(e => console.warn("User notification email failed (non-critical):", e.message));
+        }
+
+        // 2. Send to Admin
+        const adminEmail = process.env.EMAIL_USER || 'dnimbalkar340@gmail.com';
+        if (adminEmail && process.env.EMAIL_PASS) {
+          sendEmail(
+            adminEmail,
+            'New Complaint Received - Admin Panel',
+            `<h3>New Complaint Alert</h3>
+            <p>A new complaint has been filed by <b>${safeUserName}</b>.</p>
+            <p><b>Type:</b> ${problemType}</p>
+            <p><b>Severity:</b> ${severity || 'medium'}</p>
+            <p><b>Complaint ID:</b> ${shortId}</p>
+            <p>Please log in to the admin panel to review the details.</p>`
+          ).catch(e => console.warn("Admin notification email failed (non-critical):", e.message));
+        }
+      } catch (emailErr) {
+        console.warn("Background email notification error (non-critical):", emailErr.message);
+      }
+    })();
 
   } catch (error) {
     console.error("❌ CREATE ERROR:", error);
