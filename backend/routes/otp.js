@@ -21,6 +21,39 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+// 🧪 Email Diagnostics endpoint (open in browser to test email config)
+router.get("/test-email", async (req, res) => {
+  const targetEmail = req.query.to || "dnimbalkar340@gmail.com";
+  const emailjsConfigured = Boolean(
+    (process.env.EMAILJS_SERVICE_ID || process.env.SERVICE_ID) &&
+    (process.env.EMAILJS_TEMPLATE_ID || process.env.TEMPLATE_ID)
+  );
+
+  try {
+    const result = await sendEmail(
+      targetEmail,
+      "🧪 Civic Reporter Email Test",
+      "<h2>Email System is Working! 🚀</h2><p>This is a test email sent from Smart Civic Reporter.</p>",
+      { otp: "123456", name: "Tester" }
+    );
+    return res.json({
+      success: true,
+      message: `Test email successfully sent to ${targetEmail}!`,
+      provider: result.provider || 'smtp',
+      emailjsConfigured,
+      result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Test email failed to send.",
+      error: error.message,
+      emailjsConfigured,
+      targetEmail,
+    });
+  }
+});
+
 // ✅ SEND OTP
 router.post("/send", async (req, res) => {
   try {

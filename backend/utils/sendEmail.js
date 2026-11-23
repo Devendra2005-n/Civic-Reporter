@@ -1,5 +1,8 @@
 import nodemailer from 'nodemailer';
 import axios from 'axios';
+import https from 'https';
+
+const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
 const sendEmail = async (to, subject, html, extra = {}) => {
   const recipient = (to || '').toString().trim();
@@ -8,13 +11,18 @@ const sendEmail = async (to, subject, html, extra = {}) => {
   const emailPass = rawEmailPass.replace(/\s+/g, '');
 
   // 1. Check for EmailJS REST API (Port 443 - 100% Free HTTPS, never blocked on Render)
-  if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_TEMPLATE_ID) {
+  const emailjsServiceId = (process.env.EMAILJS_SERVICE_ID || process.env.SERVICE_ID || process.env.VITE_EMAILJS_SERVICE_ID || '').trim();
+  const emailjsTemplateId = (process.env.EMAILJS_TEMPLATE_ID || process.env.TEMPLATE_ID || process.env.VITE_EMAILJS_TEMPLATE_ID || '').trim();
+  const emailjsPublicKey = (process.env.EMAILJS_PUBLIC_KEY || process.env.PUBLIC_KEY || process.env.EMAILJS_USER_ID || process.env.USER_ID || process.env.VITE_EMAILJS_PUBLIC_KEY || '').trim();
+  const emailjsPrivateKey = (process.env.EMAILJS_PRIVATE_KEY || process.env.PRIVATE_KEY || process.env.EMAILJS_ACCESS_TOKEN || process.env.ACCESS_TOKEN || '').trim();
+
+  if (emailjsServiceId && emailjsTemplateId) {
     try {
-      console.log(`[Email] Sending via EmailJS REST API to ${recipient}...`);
+      console.log(`[Email] Sending via EmailJS REST API to ${recipient}... (service: ${emailjsServiceId}, template: ${emailjsTemplateId})`);
       const payload = {
-        service_id: process.env.EMAILJS_SERVICE_ID.trim(),
-        template_id: process.env.EMAILJS_TEMPLATE_ID.trim(),
-        user_id: (process.env.EMAILJS_PUBLIC_KEY || process.env.EMAILJS_USER_ID || '').trim(),
+        service_id: emailjsServiceId,
+        template_id: emailjsTemplateId,
+        user_id: emailjsPublicKey,
         template_params: {
           to_email: recipient,
           email: recipient,
@@ -28,25 +36,35 @@ const sendEmail = async (to, subject, html, extra = {}) => {
         },
       };
 
-      if (process.env.EMAILJS_PRIVATE_KEY && process.env.EMAILJS_PRIVATE_KEY.trim() !== '') {
-        payload.accessToken = process.env.EMAILJS_PRIVATE_KEY.trim();
+      if (emailjsPrivateKey) {
+        payload.accessToken = emailjsPrivateKey;
       }
 
       const res = await axios.post(
         'https://api.emailjs.com/api/v1.0/email/send',
         payload,
         {
-          headers: { 'Content-Type': 'application/json' },
+          httpsAgent,
+          headers: {
+            'Content-Type': 'application/json',
+            'origin': 'http://localhost',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+          },
           timeout: 10000,
         }
       );
 
-      if (res.status === 200 || res.status === 201) {
+      if (res.status === 200 || res.status === 201 || res.data === 'OK') {
         console.log(`✅ Email sent via EmailJS to ${recipient}`);
         return { messageId: 'emailjs-' + Date.now(), provider: 'emailjs' };
       }
     } catch (emailjsErr) {
-      console.warn(`[Email] EmailJS API error (${emailjsErr.response?.status || emailjsErr.message}):`, emailjsErr.response?.data || emailjsErr.message);
+      const status = emailjsErr.response?.status;
+      const data = emailjsErr.response?.data;
+      const errMsg = typeof data === 'string' ? data : (data ? JSON.stringify(data) : emailjsErr.message);
+      console.error(`❌ [Email] EmailJS API error (${status || 'network'}):`, errMsg);
+      // Fail fast so the user sees the exact EmailJS diagnostic error instead of hanging on SMTP
+      throw new Error(`EmailJS (${status || 'error'}): ${errMsg}`);
     }
   }
 
@@ -63,6 +81,7 @@ const sendEmail = async (to, subject, html, extra = {}) => {
           htmlContent: html,
         },
         {
+          httpsAgent,
           headers: {
             'api-key': process.env.BREVO_API_KEY.trim(),
             'Content-Type': 'application/json',
@@ -80,7 +99,7 @@ const sendEmail = async (to, subject, html, extra = {}) => {
     }
   }
 
-  // 2. Check for Generic HTTPS Webhook / Google Apps Script Relay (Port 443 - never blocked on Render)
+  // 3. Check for Generic HTTPS Webhook / Google Apps Script Relay (Port 443 - never blocked on Render)
   if (process.env.EMAIL_WEBHOOK_URL && process.env.EMAIL_WEBHOOK_URL.trim() !== '') {
     try {
       console.log(`[Email] Sending via HTTPS Webhook Relay to ${recipient}...`);
@@ -88,6 +107,7 @@ const sendEmail = async (to, subject, html, extra = {}) => {
         process.env.EMAIL_WEBHOOK_URL.trim(),
         { to: recipient, subject, html },
         {
+          httpsAgent,
           headers: { 'Content-Type': 'application/json' },
           timeout: 15000,
           maxRedirects: 5,
@@ -100,7 +120,7 @@ const sendEmail = async (to, subject, html, extra = {}) => {
     }
   }
 
-  // 3. Check for Resend HTTPS REST API (Port 443)
+  // 4. Check for Resend HTTPS REST API (Port 443)
   if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY.trim() !== '') {
     try {
       console.log(`[Email] Sending via Resend HTTPS API to ${recipient}...`);
@@ -113,6 +133,7 @@ const sendEmail = async (to, subject, html, extra = {}) => {
           html,
         },
         {
+          httpsAgent,
           headers: {
             'Authorization': `Bearer ${process.env.RESEND_API_KEY.trim()}`,
             'Content-Type': 'application/json',
