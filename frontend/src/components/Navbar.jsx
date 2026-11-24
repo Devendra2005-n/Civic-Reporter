@@ -1,18 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Camera, Home, Map, Activity, ShieldAlert, LogIn, LogOut, User, Menu, X, Shield, User as UserIcon, Bell, Check } from 'lucide-react';
+import { Camera, Home, Map, Activity, ShieldAlert, LogIn, LogOut, User, Menu, X, Shield, User as UserIcon, Bell, Check, Globe, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { getNotifications, markNotificationAsRead } from '../services/api';
 import toast from 'react-hot-toast';
 
 const Navbar = () => {
   const { user, userData, isAdmin, logout } = useAuth();
+  const { currentLang, changeLanguage, activeLanguage, languages, t } = useLanguage();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const dropdownRef = useRef(null);
+  const [showLangMenu, setShowLangMenu] = useState(false);
+  const langMenuRef = useRef(null);
 
   useEffect(() => {
     if (user) {
@@ -27,10 +31,13 @@ const Navbar = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowNotifications(false);
       }
+      if (langMenuRef.current && !langMenuRef.current.contains(event.target)) {
+        setShowLangMenu(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [dropdownRef]);
+  }, []);
 
   const fetchNotifications = async () => {
     try {
@@ -141,6 +148,66 @@ const Navbar = () => {
           )}
 
           <div className="w-px h-5 bg-[#E5E7EB] mx-1.5" />
+
+          {/* Language Selector Dropdown */}
+          <div className="relative" ref={langMenuRef}>
+            <button
+              onClick={() => setShowLangMenu(!showLangMenu)}
+              className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#334155] hover:text-[#0284C7] hover:bg-[#F0F9FF] border border-[#E5E7EB] hover:border-[#BAE6FD] transition-all cursor-pointer shadow-2xs"
+              title="Change Language (English / मराठी / हिंदी)"
+            >
+              <Globe className="w-3.5 h-3.5 text-[#0284C7]" />
+              <span className="hidden sm:inline font-medium">{activeLanguage.name}</span>
+              <span className="text-[10px] font-bold text-[#0284C7] bg-[#E0F2FE] px-1.5 py-0.2 rounded sm:hidden uppercase">
+                {activeLanguage.code}
+              </span>
+              <ChevronDown className={`w-3.5 h-3.5 text-[#6B7280] transition-transform ${showLangMenu ? 'rotate-180' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+              {showLangMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-[#E5E7EB] py-1.5 z-50 text-left overflow-hidden"
+                >
+                  <div className="px-3 py-1.5 border-b border-[#F3F4F6] text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">
+                    Select Language / भाषा
+                  </div>
+                  {languages.map((lang) => {
+                    const isSelected = lang.code === currentLang;
+                    return (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          changeLanguage(lang.code);
+                          setShowLangMenu(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 text-xs transition-colors cursor-pointer ${
+                          isSelected 
+                            ? 'bg-[#F0F9FF] text-[#0284C7] font-bold' 
+                            : 'text-[#334155] hover:bg-[#F9FAFB] hover:text-[#0F172A]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">{lang.flag}</span>
+                          <div className="text-left">
+                            <span className="block leading-tight">{lang.nativeName}</span>
+                            {lang.name !== lang.nativeName && (
+                              <span className="text-[10px] text-[#6B7280] font-normal">{lang.name}</span>
+                            )}
+                          </div>
+                        </div>
+                        {isSelected && <Check className="w-4 h-4 text-[#0284C7]" />}
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {user ? (
             <div className="flex items-center space-x-2">
@@ -263,6 +330,36 @@ const Navbar = () => {
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden border-t border-[#E5E7EB] bg-white px-4 py-3 space-y-1 shadow-md"
           >
+            {/* Mobile Language Selector */}
+            <div className="py-2 px-1 border-b border-[#E5E7EB] mb-2">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-2">
+                <Globe className="w-3.5 h-3.5 text-[#0284C7]" />
+                <span>Select Language / भाषा निवडा</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                {languages.map((lang) => {
+                  const isSelected = lang.code === currentLang;
+                  return (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        changeLanguage(lang.code);
+                        closeMobile();
+                      }}
+                      className={`py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#0284C7] text-white shadow-xs'
+                          : 'bg-[#F9FAFB] text-[#334155] border border-[#E5E7EB] hover:bg-[#F3F4F6]'
+                      }`}
+                    >
+                      <span>{lang.flag}</span>
+                      <span>{lang.nativeName}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <NavLink to="/" end className={navLinkClass} onClick={closeMobile}>
               <Home className="w-4 h-4" /><span>Home</span>
             </NavLink>

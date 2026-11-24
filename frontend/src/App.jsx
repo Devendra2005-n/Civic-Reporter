@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -61,18 +62,20 @@ const AnimatedRoutes = () => {
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <SmoothScroll>
-          <div className="relative min-h-screen bg-[#F9FAFB] text-[#334155] font-sans selection:bg-[#E0F2FE] selection:text-[#0284C7] overflow-x-hidden">
-            
-            <Navbar />
-            
-            <main className="relative z-10 w-full h-full">
-              <AnimatedRoutes />
-            </main>
-          </div>
-        </SmoothScroll>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <SmoothScroll>
+            <div className="relative min-h-screen bg-[#F9FAFB] text-[#334155] font-sans selection:bg-[#E0F2FE] selection:text-[#0284C7] overflow-x-hidden">
+              
+              <Navbar />
+              
+              <main className="relative z-10 w-full h-full">
+                <AnimatedRoutes />
+              </main>
+            </div>
+          </SmoothScroll>
+        </AuthProvider>
+      </LanguageProvider>
     </Router>
   );
 }
