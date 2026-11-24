@@ -130,7 +130,7 @@ const Home = () => {
       {/* =========================================================================
           HERO SECTION: 2-COLUMN MODERN SAAS WITH MULTI-SHAPE VIDEO SHOWCASE
          ========================================================================= */}
-      <section className="relative pt-24 sm:pt-32 pb-16 sm:pb-24 overflow-hidden bg-white border-b border-[#E5E7EB]">
+      <section className="relative pt-20 sm:pt-26 pb-16 sm:pb-20 overflow-hidden bg-white border-b border-[#E5E7EB]">
         
         {/* Subtle architectural dot grid background */}
         <div 
@@ -246,7 +246,7 @@ const Home = () => {
             </div>
 
             {/* ================= RIGHT COLUMN: INTERACTIVE MULTI-SHAPE VIDEO HERO ================= */}
-            <div className="lg:col-span-6 relative flex flex-col items-center">
+            <div className="lg:col-span-6 relative flex flex-col items-center -mt-4 sm:-mt-8 lg:-mt-12">
               
               {/* Outer decorative ambient backlight */}
               <div className="absolute -inset-2 bg-gradient-to-tr from-[#BAE6FD]/40 to-[#E0F2FE]/20 rounded-3xl blur-2xl -z-10 pointer-events-none" />
