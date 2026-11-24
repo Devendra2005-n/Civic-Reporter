@@ -9,6 +9,7 @@ import LocationDetector from '../components/LocationDetector';
 import DuplicateModal from '../components/DuplicateModal';
 import { analyzeImage, createComplaint, checkDuplicate, detectAuthority, translateLetter, checkCanSubmit, extractLocationFromImage, reverseGeocodeLocation } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import useUserLocation from '../hooks/useLocation';
 import exifr from 'exifr';
 import { getDepartment } from '../utils/departments';
@@ -49,6 +50,7 @@ const AUTHORITY_TYPES = [
 const Submit = () => {
   const navigate = useNavigate();
   const { userData } = useAuth();
+  const { t } = useLanguage();
   const location = useUserLocation();
 
   const [step, setStep] = useState(1);
@@ -492,7 +494,11 @@ const Submit = () => {
     return { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30' };
   };
 
-  const steps = ["Upload", "Analyze", "Submit"];
+  const steps = [
+    t('step_upload', 'Upload'), 
+    t('step_analyze', 'Analyze'), 
+    t('step_submit', 'Submit')
+  ];
 
   // Enhanced Stepper Component
   const Stepper = () => {
@@ -686,9 +692,9 @@ const Submit = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-3xl sm:text-4xl font-extrabold mb-2 text-center text-[#0F172A]"
           >
-            Report an <span className="text-[#0284C7]">Issue</span>
+            {t('nav_report')}
           </motion.h1>
-          <p className="text-[#6B7280] text-center mb-6 text-sm">Upload a photo, and our AI will document the rest.</p>
+          <p className="text-[#6B7280] text-center mb-6 text-sm">{t('submit_upload_sub', 'Upload a photo, and our AI will document the rest.')}</p>
           
           {/* Image Validation Error Banner */}
           {imageValidation && !imageValidation.isValid && (

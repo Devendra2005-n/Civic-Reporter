@@ -87,41 +87,41 @@ const Home = () => {
   };
 
   const stats = [
-    { value: '24,500+', label: 'Issues Resolved', sub: 'Across 65+ municipal wards', icon: CheckCircle2, color: 'text-[#16A34A]' },
-    { value: '94.8%', label: 'Resolution Rate', sub: 'Within 7 business days', icon: Activity, color: 'text-[#0284C7]' },
-    { value: '< 48 hrs', label: 'Avg. First Response', sub: 'Direct municipal intake', icon: Clock, color: 'text-[#D97706]' },
-    { value: '13 Languages', label: 'Automated Petitions', sub: 'Formal local language letters', icon: Globe, color: 'text-[#7C3AED]' },
+    { value: '24,500+', label: t('home_stat_resolved', 'Issues Resolved'), sub: t('home_stat_resolved_sub', 'Across 65+ municipal wards'), icon: CheckCircle2, color: 'text-[#16A34A]' },
+    { value: '94.8%', label: t('home_stat_rate', 'Resolution Rate'), sub: t('home_stat_rate_sub', 'Within 7 business days'), icon: Activity, color: 'text-[#0284C7]' },
+    { value: '< 48 hrs', label: t('home_stat_resp', 'Avg. First Response'), sub: t('home_stat_resp_sub', 'Direct municipal intake'), icon: Clock, color: 'text-[#D97706]' },
+    { value: '13 Languages', label: t('home_stat_pet', 'Automated Petitions'), sub: t('home_stat_pet_sub', 'Formal local language letters'), icon: Globe, color: 'text-[#7C3AED]' },
   ];
 
   const categories = [
-    { id: 'potholes', name: 'Roads & Potholes', icon: AlertTriangle, color: '#F97316', bg: '#FFF7ED', border: '#FED7AA', count: '8.4k resolved', desc: 'Potholes, broken asphalt, uneven road surfaces, missing manhole covers.' },
-    { id: 'garbage', name: 'Waste & Sanitation', icon: Trash2, color: '#16A34A', bg: '#F0FDF4', border: '#BBF7D0', count: '6.1k resolved', desc: 'Overflowing dumpsters, public littering, uncollected residential waste.' },
-    { id: 'streetlights', name: 'Streetlights & Poles', icon: Lightbulb, color: '#D97706', bg: '#FFFBEB', border: '#FDE68A', count: '4.2k resolved', desc: 'Dark road stretches, blinking lamps, hazardous exposed electrical cables.' },
-    { id: 'water', name: 'Water & Pipelines', icon: Droplets, color: '#0284C7', bg: '#F0F9FF', border: '#BAE6FD', count: '3.8k resolved', desc: 'Burst supply mains, low pressure, contaminated municipal drinking water.' },
-    { id: 'drainage', name: 'Drainage & Sewage', icon: Layers, color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE', count: '2.0k resolved', desc: 'Blocked storm gutters, stagnant rainwater, overflowing sewer lines.' },
-    { id: 'public', name: 'Public Hazards', icon: Shield, color: '#4B5563', bg: '#F3F4F6', border: '#E5E7EB', count: '1.5k resolved', desc: 'Illegal encroachments, damaged footpaths, fallen branches, safety hazards.' }
+    { id: 'potholes', name: t('cat_roads_potholes', 'Roads & Potholes'), icon: AlertTriangle, color: '#F97316', bg: '#FFF7ED', border: '#FED7AA', count: '8.4k resolved', desc: t('cat_roads_desc', 'Potholes, broken asphalt, uneven road surfaces, missing manhole covers.') },
+    { id: 'garbage', name: t('cat_waste_sanitation', 'Waste & Sanitation'), icon: Trash2, color: '#16A34A', bg: '#F0FDF4', border: '#BBF7D0', count: '6.1k resolved', desc: t('cat_waste_desc', 'Overflowing dumpsters, public littering, uncollected residential waste.') },
+    { id: 'streetlights', name: t('cat_streetlights_poles', 'Streetlights & Poles'), icon: Lightbulb, color: '#D97706', bg: '#FFFBEB', border: '#FDE68A', count: '4.2k resolved', desc: t('cat_streetlights_desc', 'Dark road stretches, blinking lamps, hazardous exposed electrical cables.') },
+    { id: 'water', name: t('cat_water_pipelines', 'Water & Pipelines'), icon: Droplets, color: '#0284C7', bg: '#F0F9FF', border: '#BAE6FD', count: '3.8k resolved', desc: t('cat_water_desc', 'Burst supply mains, low pressure, contaminated municipal drinking water.') },
+    { id: 'drainage', name: t('cat_drainage_sewage', 'Drainage & Sewage'), icon: Layers, color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE', count: '2.0k resolved', desc: t('cat_drainage_desc', 'Blocked storm gutters, stagnant rainwater, overflowing sewer lines.') },
+    { id: 'public', name: t('cat_public_hazards', 'Public Hazards'), icon: Shield, color: '#4B5563', bg: '#F3F4F6', border: '#E5E7EB', count: '1.5k resolved', desc: t('cat_public_desc', 'Illegal encroachments, damaged footpaths, fallen branches, safety hazards.') }
   ];
 
   const workflowSteps = [
     {
       step: '01',
-      title: 'Snap & Instant Detection',
-      desc: 'Take a quick photo of the issue. Our integrated vision model instantly classifies the defect category, extracts verified GPS coordinates, and assigns severity.',
-      badge: 'Vision AI & EXIF Verification',
+      title: t('wf_step1_title', 'Snap & Instant Detection'),
+      desc: t('wf_step1_desc', 'Take a quick photo of the issue. Our integrated vision model instantly classifies the defect category, extracts verified GPS coordinates, and assigns severity.'),
+      badge: t('wf_step1_badge', 'Vision AI & EXIF Verification'),
       icon: Camera
     },
     {
       step: '02',
-      title: 'Automated Authority Routing',
-      desc: 'Our engine identifies the jurisdictional body—Gram Panchayat, Municipal Council, or Corporation—and auto-generates a standardized formal petition in 13 languages.',
-      badge: 'Auto Legal Letter Generator',
+      title: t('wf_step2_title', 'Automated Authority Routing'),
+      desc: t('wf_step2_desc', 'Our engine identifies the jurisdictional body—Gram Panchayat, Municipal Council, or Corporation—and auto-generates a standardized formal petition in 13 languages.'),
+      badge: t('wf_step2_badge', 'Auto Legal Letter Generator'),
       icon: Building2
     },
     {
       step: '03',
-      title: 'Transparent Public Tracking',
-      desc: 'Follow the progress in real time with an open audit timeline. Fellow citizens can upvote urgent reports, and authorities submit before/after photographic proof of resolution.',
-      badge: 'Verified Before & After Closure',
+      title: t('wf_step3_title', 'Transparent Public Tracking'),
+      desc: t('wf_step3_desc', 'Follow the progress in real time with an open audit timeline. Fellow citizens can upvote urgent reports, and authorities submit before/after photographic proof of resolution.'),
+      badge: t('wf_step3_badge', 'Verified Before & After Closure'),
       icon: ShieldCheck
     }
   ];

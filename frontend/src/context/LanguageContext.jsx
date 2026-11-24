@@ -25,6 +25,12 @@ export const translations = {
     nav_notifications: 'Notifications',
     nav_no_notif: 'No new notifications',
 
+    // Stepper & Submit
+    step_upload: 'Upload',
+    step_analyze: 'Analyze',
+    step_submit: 'Submit',
+    submit_upload_sub: 'Upload a photo, and our AI will document the rest.',
+
     // Dashboard Header & Stats
     dash_title: 'Civic Issue Dashboard',
     dash_subtitle: 'Real-time municipal complaints tracked and resolved across wards.',
@@ -158,7 +164,38 @@ export const translations = {
     cat_drainage: 'Drainage',
     live_console_title: 'LIVE MUNICIPAL INCIDENT CONSOLE',
     live_console_badge: 'Certified Real-Time Feed',
-    live_console_desc: 'Streaming incoming citizen reports with automated damage classification, geospatial GIS boundary validation, and real-time municipal routing.'
+    live_console_desc: 'Streaming incoming citizen reports with automated damage classification, geospatial GIS boundary validation, and real-time municipal routing.',
+
+    // Home Stats, Categories & Workflows
+    home_stat_resolved: 'Issues Resolved',
+    home_stat_resolved_sub: 'Across 65+ municipal wards',
+    home_stat_rate: 'Resolution Rate',
+    home_stat_rate_sub: 'Within 7 business days',
+    home_stat_resp: 'Avg. First Response',
+    home_stat_resp_sub: 'Direct municipal intake',
+    home_stat_pet: 'Automated Petitions',
+    home_stat_pet_sub: 'Formal local language letters',
+    cat_roads_potholes: 'Roads & Potholes',
+    cat_roads_desc: 'Potholes, broken asphalt, uneven road surfaces, missing manhole covers.',
+    cat_waste_sanitation: 'Waste & Sanitation',
+    cat_waste_desc: 'Overflowing dumpsters, public littering, uncollected residential waste.',
+    cat_streetlights_poles: 'Streetlights & Poles',
+    cat_streetlights_desc: 'Dark road stretches, blinking lamps, hazardous exposed electrical cables.',
+    cat_water_pipelines: 'Water & Pipelines',
+    cat_water_desc: 'Burst supply mains, low pressure, contaminated municipal drinking water.',
+    cat_drainage_sewage: 'Drainage & Sewage',
+    cat_drainage_desc: 'Blocked storm gutters, stagnant rainwater, overflowing sewer lines.',
+    cat_public_hazards: 'Public Hazards',
+    cat_public_desc: 'Illegal encroachments, damaged footpaths, fallen branches, safety hazards.',
+    wf_step1_title: 'Snap & Instant Detection',
+    wf_step1_desc: 'Take a quick photo of the issue. Our integrated vision model instantly classifies the defect category, extracts verified GPS coordinates, and assigns severity.',
+    wf_step1_badge: 'Vision AI & EXIF Verification',
+    wf_step2_title: 'Automated Authority Routing',
+    wf_step2_desc: 'Our engine identifies the jurisdictional body—Gram Panchayat, Municipal Council, or Corporation—and auto-generates a standardized formal petition in 13 languages.',
+    wf_step2_badge: 'Auto Legal Letter Generator',
+    wf_step3_title: 'Transparent Public Tracking',
+    wf_step3_desc: 'Follow the progress in real time with an open audit timeline. Fellow citizens can upvote urgent reports, and authorities submit before/after photographic proof of resolution.',
+    wf_step3_badge: 'Verified Before & After Closure'
   },
 
   mr: {
@@ -176,6 +213,12 @@ export const translations = {
     nav_portal: 'नागरिक पोर्टल',
     nav_notifications: 'सूचना',
     nav_no_notif: 'नवीन सूचना नाहीत',
+
+    // Stepper & Submit
+    step_upload: 'फोटो अपलोड',
+    step_analyze: 'तपासणी',
+    step_submit: 'तक्रार सादर',
+    submit_upload_sub: 'समस्येचा फोटो अपलोड करा, उर्वरित काम आमचे एआय करेल.',
 
     // Dashboard Header & Stats
     dash_title: 'नागरी तक्रार डॅशबोर्ड',
@@ -310,7 +353,38 @@ export const translations = {
     cat_drainage: 'सांडपाणी',
     live_console_title: 'थेट महापालिका नियंत्रण कक्ष',
     live_console_badge: 'प्रमाणित थेट फीड',
-    live_console_desc: 'स्वयंचलित नुकसान वर्गीकरण, जीआयएस सीमा प्रमाणीकरण आणि थेट महापालिका मार्गासह नागरिकांच्या तक्रारींचे थेट प्रवाह.'
+    live_console_desc: 'स्वयंचलित नुकसान वर्गीकरण, जीआयएस सीमा प्रमाणीकरण आणि थेट महापालिका मार्गासह नागरिकांच्या तक्रारींचे थेट प्रवाह.',
+
+    // Home Stats, Categories & Workflows
+    home_stat_resolved: 'सोडवलेल्या समस्या',
+    home_stat_resolved_sub: '६५+ प्रभाग क्षेत्रात',
+    home_stat_rate: 'निवारण दर',
+    home_stat_rate_sub: '७ कार्यालयीन दिवसांत',
+    home_stat_resp: 'सरासरी पहिला प्रतिसाद',
+    home_stat_resp_sub: 'थेट महापालिका संपर्क',
+    home_stat_pet: 'स्वयंचलित कायदेशीर अर्ज',
+    home_stat_pet_sub: 'स्थानिक भाषेतील अधिकृत अर्ज',
+    cat_roads_potholes: 'रस्ते व खड्डे',
+    cat_roads_desc: 'खड्डे, उखडलेला डांबर, खडबडीत रस्ते आणि उघडी मॅनहोल झाकणे.',
+    cat_waste_sanitation: 'कचरा व स्वच्छता',
+    cat_waste_desc: 'कचऱ्याचे ढीग, उघड्यावरील कचरा आणि न उचललेला घरगुती कचरा.',
+    cat_streetlights_poles: 'पथदिवे व खांब',
+    cat_streetlights_desc: 'अंधारे रस्ते, लुकलुकणारे पथदिवे आणि उघड्या धोकादायक वीज तारा.',
+    cat_water_pipelines: 'पाणी व जलवाहिन्या',
+    cat_water_desc: 'फुटलेली मुख्य जलवाहिनी, कमी पाण्याचा दाब आणि दूषित पिण्याचे पाणी.',
+    cat_drainage_sewage: 'सांडपाणी व गटारे',
+    cat_drainage_desc: 'तुंबलेली गटारे, साचलेले पावसाचे पाणी आणि ओव्हरफ्लो होणाऱ्या सांडपाणी वाहिन्या.',
+    cat_public_hazards: 'सार्वजनिक धोके',
+    cat_public_desc: 'अनधिकृत अतिक्रमणे, तुटलेले पदपथ, पडलेल्या झाडांच्या फांद्या आणि सुरक्षिततेचे धोके.',
+    wf_step1_title: 'फोटो आणि त्वरित ओळख',
+    wf_step1_desc: 'समस्येचा एक फोटो काढा. आमचे एआय मॉडेल त्वरित समस्येचा प्रकार ठरवते, जीपीएस स्थान मिळवते आणि तीव्रता निश्चित करते.',
+    wf_step1_badge: 'व्हिजन एआय व जीपीएस पडताळणी',
+    wf_step2_title: 'स्वयंचलित महापालिका मार्गक्रमण',
+    wf_step2_desc: 'आमची प्रणाली संबंधित स्थानिक संस्था—ग्रामपंचायत, नगरपरिषद किंवा महानगरपालिका—ओळखते आणि १३ भाषांमध्ये अधिकृत अर्ज तयार करते.',
+    wf_step2_badge: 'स्वयंचलित कायदेशीर अर्ज जनरेटर',
+    wf_step3_title: 'पारदर्शक सार्वजनिक मागोवा',
+    wf_step3_desc: 'खुली ऑडिट टाइमलाइनसह कामाच्या प्रगतीचा थेट मागोवा घ्या. नागरिक त्वरित कामासाठी पाठिंबा देऊ शकतात आणि अधिकारी कामाचे पुरावे सादर करतात.',
+    wf_step3_badge: 'दुरुस्तीपूर्वी व नंतरचे पुरावे'
   },
 
   hi: {
@@ -328,6 +402,12 @@ export const translations = {
     nav_portal: 'नागरिक पोर्टल',
     nav_notifications: 'सूचनाएं',
     nav_no_notif: 'कोई नई सूचना नहीं',
+
+    // Stepper & Submit
+    step_upload: 'फोटो अपलोड',
+    step_analyze: 'विश्लेषण',
+    step_submit: 'शिकायत दर्ज',
+    submit_upload_sub: 'समस्या का फोटो अपलोड करें, बाकी काम हमारा एआई करेगा।',
 
     // Dashboard Header & Stats
     dash_title: 'नागरिक शिकायत डैशबोर्ड',
@@ -462,7 +542,38 @@ export const translations = {
     cat_drainage: 'जल निकासी',
     live_console_title: 'लाइव नगर निगम नियंत्रण कक्ष',
     live_console_badge: 'प्रमाणित लाइव फीड',
-    live_console_desc: 'स्वचालित क्षति वर्गीकरण, जीआईएस सीमा सत्यापन और लाइव नगरपालिका रूटिंग के साथ नागरिक शिकायतों का सीधा प्रसारण।'
+    live_console_desc: 'स्वचालित क्षति वर्गीकरण, जीआईएस सीमा सत्यापन और लाइव नगरपालिका रूटिंग के साथ नागरिक शिकायतों का सीधा प्रसारण।',
+
+    // Home Stats, Categories & Workflows
+    home_stat_resolved: 'हल की गई समस्याएं',
+    home_stat_resolved_sub: '६५+ नगर निगम वार्डों में',
+    home_stat_rate: 'समाधान दर',
+    home_stat_rate_sub: '७ कार्य दिवसों में',
+    home_stat_resp: 'औसत प्रथम प्रतिक्रिया',
+    home_stat_resp_sub: 'सीधा नगर निगम संपर्क',
+    home_stat_pet: 'स्वचालित कानूनी याचिकाएं',
+    home_stat_pet_sub: 'स्थानीय भाषा में औपचारिक पत्र',
+    cat_roads_potholes: 'सड़कें और गड्ढे',
+    cat_roads_desc: 'सड़क के गड्ढे, उखड़ा डामर, असमतल सड़कें और खुले मैनहोल।',
+    cat_waste_sanitation: 'कचरा और सफाई',
+    cat_waste_desc: 'कचरे के ढेर, सार्वजनिक स्थानों पर गंदगी और न उठाया गया कचरा।',
+    cat_streetlights_poles: 'स्ट्रीट लाइट व खंभे',
+    cat_streetlights_desc: 'अंधेरी सड़कें, खराब लाइटें और खतरनाक खुली बिजली की तारें।',
+    cat_water_pipelines: 'पानी और पाइपलाइन',
+    cat_water_desc: 'टूटी हुई मुख्य पाइपलाइन, कम दबाव और दूषित पेयजल।',
+    cat_drainage_sewage: 'नाली और सीवेज',
+    cat_drainage_desc: 'अवरुद्ध नालियां, रुका हुआ बारिश का पानी और बहता गंदा पानी।',
+    cat_public_hazards: 'सार्वजनिक खतरे',
+    cat_public_desc: 'अवैध अतिक्रमण, टूटे फुटपाथ, गिरी शाखाएं और सुरक्षा खतरे।',
+    wf_step1_title: 'फोटो और तत्काल पहचान',
+    wf_step1_desc: 'समस्या का फोटो खींचें। हमारा एआई मॉडल तुरंत समस्या की पहचान करता है, जीपीएस स्थान दर्ज करता है और गंभीरता तय करता है।',
+    wf_step1_badge: 'विज़न एआई और जीपीएस सत्यापन',
+    wf_step2_title: 'स्वचालित नगर निगम रूटिंग',
+    wf_step2_desc: 'हमारा सिस्टम संबंधित स्थानीय निकाय—ग्राम पंचायत, नगर पालिका या नगर निगम—की पहचान कर १३ भाषाओं में कानूनी याचिका तैयार करता है।',
+    wf_step2_badge: 'स्वचालित कानूनी पत्र जनरेटर',
+    wf_step3_title: 'पारदर्शी सार्वजनिक ट्रैकिंग',
+    wf_step3_desc: 'खुली ऑडिट टाइमलाइन के साथ कार्य प्रगति को लाइव देखें। नागरिक महत्वपूर्ण समस्याओं का समर्थन कर सकते हैं और अधिकारी समाधान के प्रमाण अपलोड करते हैं।',
+    wf_step3_badge: 'समाधान से पहले और बाद के प्रमाण'
   }
 };
 
@@ -903,27 +1014,46 @@ const REGEX_RULES = {
   ]
 };
 
+// Pre-sort dictionary keys by length in descending order for optimal phrase matching
+const SORTED_KEYS = {
+  mr: Object.keys(PHRASE_DICTIONARY.mr).sort((a, b) => b.length - a.length),
+  hi: Object.keys(PHRASE_DICTIONARY.hi).sort((a, b) => b.length - a.length),
+};
+
 // Global WeakMap to store pristine original English text for text nodes
 const originalTextMap = new WeakMap();
 
-// Translate a plain string
-const translateString = (str, lang) => {
-  if (!str || lang === 'en') return str;
+// Guard flag to prevent MutationObserver recursive loops
+let isTranslating = false;
+
+// Translate a plain string with sub-phrase matching & regex rules
+export const translateString = (str, lang) => {
+  if (!str || typeof str !== 'string' || lang === 'en') return str;
   const dict = PHRASE_DICTIONARY[lang];
   if (!dict) return str;
 
-  const trimmed = str.trim();
-  if (dict[trimmed]) {
-    return str.replace(trimmed, dict[trimmed]);
-  }
-
-  // Check dynamic regex rules
-  const rules = REGEX_RULES[lang] || [];
+  // 1. Run dynamic regex rules first
   let modified = str;
+  const rules = REGEX_RULES[lang] || [];
   for (const rule of rules) {
     if (rule.regex.test(modified)) {
       rule.regex.lastIndex = 0;
       modified = modified.replace(rule.regex, rule.replace);
+    }
+  }
+
+  // 2. Exact match check
+  const trimmed = modified.trim();
+  if (dict[trimmed]) {
+    return modified.replace(trimmed, dict[trimmed]);
+  }
+
+  // 3. Sub-phrase scanning (longest phrases first)
+  const keys = SORTED_KEYS[lang] || [];
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i];
+    if (modified.includes(k)) {
+      modified = modified.split(k).join(dict[k]);
     }
   }
 
@@ -934,61 +1064,72 @@ const translateString = (str, lang) => {
 const translateDomTree = (root, lang) => {
   if (!root || typeof window === 'undefined') return;
 
-  const walker = document.createTreeWalker(
-    root,
-    NodeFilter.SHOW_TEXT,
-    {
-      acceptNode: (node) => {
-        if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
-        const parent = node.parentElement;
-        if (!parent) return NodeFilter.FILTER_REJECT;
-        const tag = parent.tagName.toLowerCase();
-        if (tag === 'script' || tag === 'style' || tag === 'code' || tag === 'noscript') {
-          return NodeFilter.FILTER_REJECT;
+  isTranslating = true;
+  try {
+    const walker = document.createTreeWalker(
+      root,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: (node) => {
+          if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          const parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          const tag = parent.tagName.toLowerCase();
+          if (tag === 'script' || tag === 'style' || tag === 'code' || tag === 'noscript') {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return NodeFilter.FILTER_ACCEPT;
         }
-        return NodeFilter.FILTER_ACCEPT;
       }
-    }
-  );
+    );
 
-  let currentNode = walker.nextNode();
-  while (currentNode) {
-    const rawVal = currentNode.nodeValue;
-    if (!originalTextMap.has(currentNode)) {
-      originalTextMap.set(currentNode, rawVal);
-    }
-    const orig = originalTextMap.get(currentNode);
+    let currentNode = walker.nextNode();
+    while (currentNode) {
+      const rawVal = currentNode.nodeValue;
 
-    if (lang === 'en') {
-      if (currentNode.nodeValue !== orig) {
-        currentNode.nodeValue = orig;
-      }
-    } else {
-      const translated = translateString(orig, lang);
-      if (translated !== currentNode.nodeValue) {
-        currentNode.nodeValue = translated;
-      }
-    }
-
-    currentNode = walker.nextNode();
-  }
-
-  // Also translate input placeholders
-  const inputs = root.querySelectorAll ? root.querySelectorAll('input, textarea') : [];
-  inputs.forEach((input) => {
-    const placeholder = input.getAttribute('placeholder');
-    if (placeholder) {
-      if (!input.hasAttribute('data-orig-placeholder')) {
-        input.setAttribute('data-orig-placeholder', placeholder);
-      }
-      const origP = input.getAttribute('data-orig-placeholder');
       if (lang === 'en') {
-        input.setAttribute('placeholder', origP);
+        if (originalTextMap.has(currentNode)) {
+          const orig = originalTextMap.get(currentNode);
+          if (currentNode.nodeValue !== orig) {
+            currentNode.nodeValue = orig;
+          }
+        }
       } else {
-        input.setAttribute('placeholder', translateString(origP, lang));
+        // If not recorded yet, or if React rendered a new English string
+        if (!originalTextMap.has(currentNode)) {
+          originalTextMap.set(currentNode, rawVal);
+        }
+        const orig = originalTextMap.get(currentNode);
+        const translated = translateString(orig, lang);
+        if (translated !== currentNode.nodeValue) {
+          currentNode.nodeValue = translated;
+        }
       }
+
+      currentNode = walker.nextNode();
     }
-  });
+
+    // Also translate input placeholders
+    const inputs = root.querySelectorAll ? root.querySelectorAll('input, textarea') : [];
+    inputs.forEach((input) => {
+      const placeholder = input.getAttribute('placeholder');
+      if (placeholder) {
+        if (!input.hasAttribute('data-orig-placeholder')) {
+          input.setAttribute('data-orig-placeholder', placeholder);
+        }
+        const origP = input.getAttribute('data-orig-placeholder');
+        if (lang === 'en') {
+          input.setAttribute('placeholder', origP);
+        } else {
+          input.setAttribute('placeholder', translateString(origP, lang));
+        }
+      }
+    });
+  } catch (err) {
+    console.warn('DOM translation pass warning:', err);
+  } finally {
+    isTranslating = false;
+  }
 };
 
 export const LanguageProvider = ({ children }) => {
@@ -997,6 +1138,7 @@ export const LanguageProvider = ({ children }) => {
   });
 
   const observerRef = useRef(null);
+  const rafRef = useRef(null);
 
   const changeLanguage = (langCode) => {
     if (langCode === currentLang) return;
@@ -1023,26 +1165,40 @@ export const LanguageProvider = ({ children }) => {
 
     // Set up MutationObserver to translate any newly added elements or DOM updates instantly
     observerRef.current = new MutationObserver((mutations) => {
+      if (isTranslating) return;
+
       let shouldTranslate = false;
       for (const m of mutations) {
         if (m.type === 'childList' && m.addedNodes.length > 0) {
           shouldTranslate = true;
           break;
         }
+        if (m.type === 'characterData') {
+          shouldTranslate = true;
+          break;
+        }
       }
-      if (shouldTranslate) {
-        translateDomTree(rootEl, currentLang);
+
+      if (shouldTranslate && currentLang !== 'en') {
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        rafRef.current = requestAnimationFrame(() => {
+          translateDomTree(rootEl, currentLang);
+        });
       }
     });
 
     observerRef.current.observe(rootEl, {
       childList: true,
       subtree: true,
+      characterData: true,
     });
 
     return () => {
       if (observerRef.current) {
         observerRef.current.disconnect();
+      }
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
       }
     };
   }, [currentLang]);
