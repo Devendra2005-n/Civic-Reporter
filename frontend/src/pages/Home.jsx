@@ -248,7 +248,7 @@ const Home = () => {
             </div>
 
             {/* ================= RIGHT COLUMN: INTERACTIVE MULTI-SHAPE VIDEO HERO ================= */}
-            <div className="lg:col-span-6 relative flex flex-col items-center -mt-4 sm:-mt-8 lg:-mt-12">
+            <div className="lg:col-span-6 relative flex flex-col items-center -mt-4 sm:-mt-8 lg:-mt-12 top-[5px]">
               
               {/* Outer decorative ambient backlight */}
               <div className="absolute -inset-2 bg-gradient-to-tr from-[#BAE6FD]/40 to-[#E0F2FE]/20 rounded-3xl blur-2xl -z-10 pointer-events-none" />
