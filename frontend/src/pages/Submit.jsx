@@ -616,7 +616,7 @@ const Submit = () => {
   };
 
   return (
-    <div className="min-h-screen pt-36 md:pt-40 px-6 relative max-w-5xl mx-auto pb-24">
+    <div className="min-h-screen pt-6 sm:pt-8 px-4 sm:px-6 relative max-w-5xl mx-auto pb-20">
       {/* Hidden PDF Container — always in DOM, positioned offscreen */}
       <div
         ref={pdfRef}
