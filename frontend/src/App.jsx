@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
@@ -38,11 +38,7 @@ const AnimatedRoutes = () => {
         />
         <Route
           path="/my-complaints"
-          element={
-            <ProtectedRoute>
-              <MyComplaints />
-            </ProtectedRoute>
-          }
+          element={<Navigate to="/dashboard?tab=my" replace />}
         />
         <Route
           path="/admin"

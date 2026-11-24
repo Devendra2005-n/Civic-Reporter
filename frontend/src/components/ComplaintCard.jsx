@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ThumbsUp, MapPin, Clock, TrendingUp, ExternalLink, Edit } from 'lucide-react';
+import { ThumbsUp, MapPin, Clock, TrendingUp, ExternalLink, Edit, Trash2, FileDown } from 'lucide-react';
 import StatusTracker from './StatusTracker';
 
 const categoryColors = {
@@ -51,7 +51,7 @@ const severityBadges = {
   Low: 'bg-slate-50 text-slate-600 border-slate-200',
 };
 
-const ComplaintCard = ({ complaint, onAddIssue, onEdit }) => {
+const ComplaintCard = ({ complaint, onAddIssue, onEdit, onDelete, onDownloadPDF, isOwner }) => {
   const navigate = useNavigate();
 
   const displayAddress = complaint.locationAddress || 
@@ -148,31 +148,62 @@ const ComplaintCard = ({ complaint, onAddIssue, onEdit }) => {
             </div>
           </div>
 
-          {/* User action buttons if present */}
-          {(onAddIssue || onEdit) && (
-            <div className="mt-3 pt-2.5 border-t border-[#F3F4F6] flex items-center justify-between gap-2">
+          {/* User action buttons for owner */}
+          {(isOwner || onEdit || onDelete || onDownloadPDF || onAddIssue) && (
+            <div className="mt-3 pt-2.5 border-t border-[#F3F4F6] flex items-center justify-between gap-1.5">
               {onEdit && (
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onEdit(complaint);
                   }}
-                  className="flex-1 flex justify-center items-center gap-1.5 px-2.5 py-1.5 bg-white hover:bg-[#F8FAFC] text-[#334155] rounded-lg text-xs font-semibold transition-colors border border-[#E5E7EB]"
+                  title="Edit Complaint"
+                  className="flex-1 flex justify-center items-center gap-1 px-2 py-1.5 bg-[#F9FAFB] hover:bg-[#F0F9FF] text-[#334155] hover:text-[#0284C7] rounded-lg text-xs font-semibold transition-colors border border-[#E5E7EB] hover:border-[#BAE6FD]"
                 >
                   <Edit className="w-3.5 h-3.5 text-[#0284C7]" />
-                  Edit
+                  <span>Edit</span>
+                </button>
+              )}
+              {onDownloadPDF && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDownloadPDF(complaint);
+                  }}
+                  title="Download Formal PDF Letter"
+                  className="flex-1 flex justify-center items-center gap-1 px-2 py-1.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#16A34A] rounded-lg text-xs font-semibold transition-colors border border-[#BBF7D0]"
+                >
+                  <FileDown className="w-3.5 h-3.5" />
+                  <span>PDF</span>
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(complaint);
+                  }}
+                  title="Delete Complaint"
+                  className="flex-1 flex justify-center items-center gap-1 px-2 py-1.5 bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] rounded-lg text-xs font-semibold transition-colors border border-[#FECACA]"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
                 </button>
               )}
               {onAddIssue && (
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onAddIssue(complaint);
                   }}
-                  className="flex-1 flex justify-center items-center gap-1.5 px-2.5 py-1.5 bg-[#F0F9FF] hover:bg-[#E0F2FE] text-[#0284C7] rounded-lg text-xs font-semibold transition-colors border border-[#BAE6FD]"
+                  className="flex-1 flex justify-center items-center gap-1 px-2 py-1.5 bg-[#F0F9FF] hover:bg-[#E0F2FE] text-[#0284C7] rounded-lg text-xs font-semibold transition-colors border border-[#BAE6FD]"
                 >
                   <TrendingUp className="w-3.5 h-3.5" />
-                  Add Issue
+                  <span>Add Issue</span>
                 </button>
               )}
             </div>

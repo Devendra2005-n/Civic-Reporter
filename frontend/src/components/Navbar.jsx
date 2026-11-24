@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Camera, Home, Map, Activity, ShieldAlert, LogIn, LogOut, User, Menu, X, FileText, Shield, User as UserIcon, Bell, Check } from 'lucide-react';
+import { Camera, Home, Map, Activity, ShieldAlert, LogIn, LogOut, User, Menu, X, Shield, User as UserIcon, Bell, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { getNotifications, markNotificationAsRead } from '../services/api';
@@ -103,12 +103,7 @@ const Navbar = () => {
             </NavLink>
           )}
 
-          {user && (
-            <NavLink to="/my-complaints" className={navLinkClass}>
-              <FileText className="w-4 h-4" />
-              <span>My Complaints</span>
-            </NavLink>
-          )}
+
 
           {isAdmin && (
             <>
@@ -291,11 +286,7 @@ const Navbar = () => {
                 <Camera className="w-4 h-4" /><span>Report Issue</span>
               </NavLink>
             )}
-            {user && (
-              <NavLink to="/my-complaints" className={navLinkClass} onClick={closeMobile}>
-                <FileText className="w-4 h-4" /><span>My Complaints</span>
-              </NavLink>
-            )}
+
             {isAdmin && (
               <NavLink to="/admin" className={navLinkClass} onClick={closeMobile}>
                 <ShieldAlert className="w-4 h-4" /><span>Admin</span>
