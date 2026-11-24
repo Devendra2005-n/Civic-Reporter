@@ -678,7 +678,7 @@ const Details = () => {
             {/* Letter Paper Box with nice readable scroll if long */}
             <div className="bg-[#F9FAFB] rounded-xl border border-[#E5E7EB] border-l-4 border-l-[#0284C7] p-4 text-[#334155] leading-relaxed max-h-[380px] overflow-y-auto">
               <div className="font-serif text-xs sm:text-sm whitespace-pre-wrap">
-                {complaint.formalLetter || complaint.description || 'No formal petition text recorded.'}
+                {complaint.formalLetter || complaint.description || t('details_no_letter')}
               </div>
             </div>
 

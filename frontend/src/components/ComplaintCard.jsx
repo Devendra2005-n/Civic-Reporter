@@ -112,7 +112,7 @@ const ComplaintCard = ({ complaint, onAddIssue, onEdit, onDelete, onDownloadPDF,
 
           {complaint.severity && (
             <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-md border shadow-2xs ${severityBadges[complaint.severity] || severityBadges.Medium}`}>
-              {complaint.severity}
+              {complaint.severity === 'High' ? t('dash_filter_high', 'High') : complaint.severity === 'Medium' ? t('dash_filter_medium', 'Medium') : complaint.severity}
             </span>
           )}
         </div>
@@ -132,11 +132,11 @@ const ComplaintCard = ({ complaint, onAddIssue, onEdit, onDelete, onDownloadPDF,
           </div>
 
           <h3 className="text-base font-bold text-[#0F172A] leading-snug mb-2 group-hover:text-[#0284C7] transition-colors line-clamp-1">
-            {complaint.problemType || 'Civic Issue'}
+            {localizedCategoryLabel || complaint.problemType || 'Civic Issue'}
           </h3>
 
           <p className="text-xs text-[#4B5563] line-clamp-2 mb-3">
-            {complaint.description || 'Citizen reported issue requiring department inspection and action.'}
+            {complaint.description || t('card_loc_avail')}
           </p>
 
           {/* Stepper */}
