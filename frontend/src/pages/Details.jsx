@@ -329,296 +329,386 @@ const Details = () => {
         </div>
       </div>
 
-      {/* Enhanced Back Button */}
-      <MagneticButton strength={0.1}>
-        <motion.button 
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-[#4B5563] hover:text-[#0284C7] transition-colors mb-6 group px-3.5 py-1.5 rounded-xl bg-white border border-[#E5E7EB] shadow-sm hover:border-[#BAE6FD] hover:bg-[#F0F9FF]"
-          whileHover={{ x: -3 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-          <span className="font-semibold text-xs">Back</span>
-        </motion.button>
-      </MagneticButton>
+      {/* Top Header & Actions Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <MagneticButton strength={0.1}>
+            <motion.button 
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-1.5 text-[#4B5563] hover:text-[#0284C7] transition-colors group px-3.5 py-1.5 rounded-xl bg-white border border-[#E5E7EB] shadow-xs hover:border-[#BAE6FD] hover:bg-[#F0F9FF] text-xs font-semibold cursor-pointer"
+              whileHover={{ x: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+              <span>Back</span>
+            </motion.button>
+          </MagneticButton>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          {/* Complaint ID */}
+          <button 
+            onClick={() => {
+              copyToClipboard('#' + formatComplaintId(complaint));
+              setCopiedId(true);
+              toast.success('Complaint ID copied!');
+              setTimeout(() => setCopiedId(false), 2000);
+            }}
+            className="flex items-center gap-1.5 bg-[#F0F9FF] hover:bg-[#E0F2FE] px-3 py-1.5 rounded-xl border border-[#BAE6FD] transition-colors group cursor-pointer"
+            title="Click to copy Complaint ID"
+          >
+            <span className="font-mono text-xs font-bold text-[#0284C7]">#{formatComplaintId(complaint)}</span>
+            {copiedId ? (
+              <Check className="w-3.5 h-3.5 text-[#16A34A]" />
+            ) : (
+              <Copy className="w-3.5 h-3.5 text-[#0284C7]" />
+            )}
+          </button>
+
+          {/* Severity Badge */}
+          <span className={`px-2.5 py-1 text-xs font-semibold rounded-lg border shadow-2xs ${
+            complaint.severity === 'High' 
+              ? 'bg-rose-50 text-rose-700 border-rose-200' 
+              : complaint.severity === 'Medium'
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+          }`}>
+            {complaint.severity || 'Medium'} Priority
+          </span>
+
+          {/* Status Badge */}
+          <span className={`px-2.5 py-1 text-xs font-semibold rounded-lg border shadow-2xs ${
+            complaint.status === 'Resolved'
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              : complaint.status === 'In Progress'
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-sky-50 text-sky-700 border-sky-200'
+          }`}>
+            {complaint.status}
+          </span>
+        </div>
+
+        {/* Right side: Quick Download PDF */}
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={downloadPDF}
+            className="flex items-center gap-1.5 bg-white hover:bg-[#F0F9FF] px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#0284C7] transition-all border border-[#E5E7EB] hover:border-[#BAE6FD] shadow-xs cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Download Petition PDF</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Balanced 2-Column Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         
-        {/* Visual Evidence Section */}
-        <motion.div 
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-          className="lg:col-span-3 rounded-2xl overflow-hidden bg-white border border-[#E5E7EB] p-2 shadow-sm h-fit sticky top-28"
-        >
-          {/* Image Toggle Tabs */}
-          {hasAfterImage && (
-             <div className="flex rounded-xl overflow-hidden p-1 mb-2 bg-[#F3F4F6]">
-               <div className="flex space-x-1 flex-1">
-                 <button 
-                   onClick={() => setShowAfterImage(false)}
-                   className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                     !showAfterImage 
-                       ? 'bg-white text-[#0284C7] shadow-sm border border-[#E5E7EB]' 
-                       : 'text-[#6B7280] hover:text-[#0F172A]'
-                   }`}
-                 >
-                   <ImageIcon className="w-3.5 h-3.5" />
-                   <span>Before</span>
-                 </button>
-                 <button 
-                   onClick={() => setShowAfterImage(true)}
-                   className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                     showAfterImage 
-                       ? 'bg-white text-[#16A34A] shadow-sm border border-[#E5E7EB]' 
-                       : 'text-[#6B7280] hover:text-[#0F172A]'
-                   }`}
-                 >
-                   <CheckCircle2 className="w-3.5 h-3.5" />
-                   <span>After ✨</span>
-                 </button>
-               </div>
-             </div>
-          )}
+        {/* Left Column: Visual Evidence + Municipal Routing Desk + Community Actions */}
+        <div className="space-y-5">
           
-          {/* Main Image Display */}
-          <div className="relative aspect-[4/3] w-full bg-[#F3F4F6] rounded-xl overflow-hidden group cursor-zoom-in border border-[#E5E7EB]"
-               onClick={() => setShowLightbox(true)}>
-             <AnimatePresence mode="wait">
-               <motion.div
+          {/* Visual Evidence Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="rounded-2xl overflow-hidden bg-white border border-[#E5E7EB] p-3 shadow-xs"
+          >
+            {/* Image Toggle Tabs (Before / After) */}
+            {hasAfterImage && (
+              <div className="flex rounded-xl overflow-hidden p-1 mb-2.5 bg-[#F3F4F6]">
+                <div className="flex space-x-1 flex-1">
+                  <button 
+                    onClick={() => setShowAfterImage(false)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      !showAfterImage 
+                        ? 'bg-white text-[#0284C7] shadow-xs border border-[#E5E7EB]' 
+                        : 'text-[#6B7280] hover:text-[#0F172A]'
+                    }`}
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    <span>Before</span>
+                  </button>
+                  <button 
+                    onClick={() => setShowAfterImage(true)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      showAfterImage 
+                        ? 'bg-white text-[#16A34A] shadow-xs border border-[#E5E7EB]' 
+                        : 'text-[#6B7280] hover:text-[#0F172A]'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>After (Resolved) ✨</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Main Image Container */}
+            <div 
+              className="relative aspect-[16/10] max-h-[360px] w-full bg-[#F3F4F6] rounded-xl overflow-hidden group cursor-zoom-in border border-[#E5E7EB]"
+              onClick={() => setShowLightbox(true)}
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
                   key={showAfterImage ? 'after' : 'before'}
-                  initial={{ opacity: 0, scale: 1.05 }}
+                  initial={{ opacity: 0, scale: 1.02 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.3 }}
                   className="absolute inset-0"
-               >
-                 <img 
-                    src={showAfterImage ? complaint.afterImageUrl : complaint.imageUrl} 
-                    alt="Evidence" 
-                    className="w-full h-full object-cover"
-                 />
-               </motion.div>
-             </AnimatePresence>
-             
-             {/* Hover Overlay */}
-             <motion.div 
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-             >
-               <motion.div
-                  initial={{ scale: 0.8 }}
-                  whileHover={{ scale: 1 }}
-                  className="flex items-center gap-2 px-6 py-3 bg-white/20 backdrop-blur-md rounded-full text-white font-medium"
-               >
-                 <Maximize2 className="w-5 h-5" />
-                 <span>View Full Size</span>
-               </motion.div>
-             </motion.div>
-
-             {/* Corner Badge */}
-             <div className="absolute top-4 left-4">
-               <motion.div 
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-md border ${
-                    complaint.severity === 'High' 
-                      ? 'bg-red-500/30 border-red-500/50 text-red-300' 
-                      : complaint.severity === 'Medium'
-                        ? 'bg-yellow-500/30 border-yellow-500/50 text-yellow-300'
-                        : 'bg-green-500/30 border-green-500/50 text-green-300'
-                  }`}
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-               >
-                 {complaint.severity} Priority
-               </motion.div>
-             </div>
-
-             {/* Status Badge */}
-             <div className="absolute top-4 right-4">
-               <div className={`px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-md border ${
-                  complaint.status === 'Resolved'
-                    ? 'bg-green-500/30 border-green-500/50 text-green-300'
-                    : complaint.status === 'In Progress'
-                      ? 'bg-blue-500/30 border-blue-500/50 text-blue-300'
-                      : 'bg-orange-500/30 border-orange-500/50 text-orange-300'
-                }`}>
-                 {complaint.status}
-               </div>
-             </div>
-          </div>
-
-          {/* Thumbnail Strip */}
-          {hasAfterImage && (
-            <div className="flex gap-2 mt-2 px-1">
-              {[complaint.imageUrl, complaint.afterImageUrl].map((img, idx) => (
-                <motion.button
-                  key={idx}
-                  onClick={() => setShowAfterImage(idx === 1)}
-                  className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
-                    showAfterImage === (idx === 1) 
-                      ? 'border-blue-500 ring-2 ring-blue-500/30' 
-                      : 'border-transparent hover:border-white/20'
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                  {showAfterImage === (idx === 1) && (
-                    <motion.div
-                      layoutId="activeThumb"
-                      className="absolute inset-0 border-2 border-blue-500 rounded-xl"
-                    />
-                  )}
-                </motion.button>
-              ))}
+                  <img 
+                    src={showAfterImage ? complaint.afterImageUrl : complaint.imageUrl} 
+                    alt="Civic Evidence" 
+                    className="w-full h-full object-cover"
+                  />
+                </motion.div>
+              </AnimatePresence>
+              
+              {/* Hover Overlay */}
+              <div className="absolute inset-0 bg-black/30 backdrop-blur-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-[#0F172A] text-xs font-bold shadow-md">
+                  <Maximize2 className="w-4 h-4 text-[#0284C7]" />
+                  <span>Click to Enlarge</span>
+                </div>
+              </div>
             </div>
-          )}
-        </motion.div>
 
-        {/* Text Details Section - Apple-Level UI */}
-        <motion.div
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: 0.1 }}
-          className="lg:col-span-2 space-y-6"
-        >
-          {/* Title Section */}
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] mb-2 leading-tight">
-              {complaint.problemType}
-            </h1>
+            {/* Thumbnail Strip */}
+            {hasAfterImage && (
+              <div className="flex gap-2 mt-2.5 px-0.5">
+                {[complaint.imageUrl, complaint.afterImageUrl].map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setShowAfterImage(idx === 1)}
+                    className={`relative w-16 h-16 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                      showAfterImage === (idx === 1) 
+                        ? 'border-[#0284C7] ring-2 ring-[#BAE6FD]' 
+                        : 'border-[#E5E7EB] opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </motion.div>
+
+          {/* Authority, Department & Location Cards */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-xs space-y-3">
+            <h4 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+              Municipal Ward & Routing Desk
+            </h4>
             
-            {/* Meta Info Row */}
-            <div className="flex flex-wrap items-center gap-2 text-xs text-[#6B7280]">
-              <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-[#E5E7EB] shadow-sm">
-                <MapPin className="w-3.5 h-3.5 text-[#0284C7]" />
-                <span className="max-w-[200px] truncate text-[#334155] font-medium">
-                  {complaint.locationAddress || 'Location not specified'}
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-[#E5E7EB] shadow-sm">
-                <Clock className="w-3.5 h-3.5 text-[#6B7280]" />
-                <span className="text-[#334155] font-medium">{new Date(complaint.createdAt).toLocaleDateString()}</span>
-              </div>
-              
-              {complaint.userName && (
-                <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-[#E5E7EB] shadow-sm">
-                  <span className="text-xs">👤</span>
-                  <span className="text-[#334155] font-medium">{complaint.userName}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {complaint.authorityBody && (
+                <div className="flex items-center gap-2.5 p-3 bg-[#F0F9FF] border border-[#BAE6FD] rounded-xl">
+                  <div className="w-8 h-8 rounded-lg bg-white border border-[#BAE6FD] flex items-center justify-center text-lg shrink-0">
+                    {authorityLabel.icon}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-[#0284C7] font-semibold uppercase tracking-wider">Authority</p>
+                    <p className="text-xs font-bold text-[#0F172A] truncate">{complaint.authorityBody}</p>
+                  </div>
                 </div>
               )}
 
-              <button 
-                onClick={() => {
-                  copyToClipboard('#' + formatComplaintId(complaint));
-                  setCopiedId(true);
-                  setTimeout(() => setCopiedId(false), 2000);
-                }}
-                className="flex items-center gap-1.5 bg-[#F0F9FF] hover:bg-[#E0F2FE] px-3 py-1.5 rounded-full border border-[#BAE6FD] transition-colors group cursor-pointer"
-                title="Copy Complaint ID"
-              >
-                <span className="font-mono text-xs font-bold text-[#0284C7]">#{formatComplaintId(complaint)}</span>
-                {copiedId ? (
-                  <Check className="w-3.5 h-3.5 text-[#16A34A]" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5 text-[#0284C7]" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Status Timeline */}
-          <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
-            <StatusTracker status={complaint.status} />
-          </div>
-
-          {/* Authority & Department Cards */}
-          <div className="grid grid-cols-1 gap-3">
-            {complaint.authorityBody && (
-              <div className="flex items-center gap-3 p-4 bg-[#F0F9FF] border border-[#BAE6FD] rounded-xl shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-white border border-[#BAE6FD] flex items-center justify-center text-xl">
-                  {authorityLabel.icon}
-                </div>
-                <div className="flex-1">
-                  <p className="text-[11px] text-[#0284C7] font-semibold uppercase tracking-wider">Complaint Authority</p>
-                  <p className="text-sm font-bold text-[#0F172A]">{complaint.authorityBody}</p>
-                </div>
-                <Shield className="w-4 h-4 text-[#0284C7]" />
-              </div>
-            )}
-
-            {complaint.department && (
-              <div className="flex items-center gap-3 p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-white border border-[#E5E7EB] flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-[#0284C7]" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-[11px] text-[#6B7280] font-semibold uppercase tracking-wider">Department</p>
-                  <p className="text-sm font-bold text-[#0F172A]">{complaint.department}</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Formal Letter Section */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold flex items-center gap-2 text-[#0F172A] uppercase tracking-wider">
-                <FileText className="w-4 h-4 text-[#0284C7]" />
-                <span>Formal Complaint Letter</span>
-              </h3>
-              
-              <button 
-                onClick={downloadPDF}
-                className="flex items-center gap-1.5 bg-white hover:bg-[#F0F9FF] px-3 py-1.5 rounded-lg text-xs font-semibold text-[#0284C7] transition-all border border-[#E5E7EB] hover:border-[#BAE6FD] shadow-sm"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Download PDF</span>
-              </button>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl text-[#334155] leading-relaxed border border-[#E5E7EB] border-l-4 border-l-[#0284C7] shadow-sm">
-              <div className="font-serif text-sm whitespace-pre-wrap">
-                {complaint.formalLetter || complaint.description}
-              </div>
-            </div>
-
-            {/* Translated Letter */}
-            {complaint.translatedLetter && (
-              <div className="space-y-2 pt-2">
-                <h3 className="text-sm font-bold flex items-center gap-2 text-[#0F172A] uppercase tracking-wider">
-                  <Globe className="w-4 h-4 text-[#0284C7]" />
-                  <span>Translated Version</span>
-                </h3>
-                <div className="bg-[#F9FAFB] p-5 rounded-2xl text-[#334155] leading-relaxed border border-[#E5E7EB] border-l-4 border-l-[#F97316] shadow-sm">
-                  <div className="text-sm whitespace-pre-wrap">
-                    {complaint.translatedLetter}
+              {complaint.department && (
+                <div className="flex items-center gap-2.5 p-3 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl">
+                  <div className="w-8 h-8 rounded-lg bg-white border border-[#E5E7EB] flex items-center justify-center shrink-0">
+                    <Building2 className="w-4 h-4 text-[#0284C7]" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-[#6B7280] font-semibold uppercase tracking-wider">Department</p>
+                    <p className="text-xs font-bold text-[#0F172A] truncate">{complaint.department}</p>
                   </div>
                 </div>
+              )}
+            </div>
+
+            {/* Location Address */}
+            <div className="flex items-start gap-2 pt-2 border-t border-[#F3F4F6] text-xs text-[#4B5563]">
+              <MapPin className="w-4 h-4 text-[#0284C7] shrink-0 mt-0.5" />
+              <span className="leading-relaxed">
+                <strong className="text-[#0F172A]">Location:</strong> {complaint.locationAddress || 'Ward Coordinates recorded'}
+              </span>
+            </div>
+          </div>
+
+          {/* Upvote Support & Community Resolution Actions */}
+          <div className="space-y-3">
+            {/* Upvote Support Section */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="font-bold text-xs text-[#0F172A] flex items-center gap-1.5">
+                  <Heart className="w-4 h-4 text-[#EF4444] fill-current" />
+                  <span>Support this Civic Issue</span>
+                </p>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  {hasUpvoted ? 'You supported this issue! Upvotes prioritize ward action.' : 'Upvotes flag issues to municipal officers with higher priority.'}
+                </p>
+              </div>
+              
+              <button 
+                onClick={handleUpvote}
+                disabled={upvoting}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-xs transition-all shadow-xs shrink-0 cursor-pointer ${
+                  hasUpvoted 
+                    ? 'bg-[#16A34A] text-white' 
+                    : 'bg-[#0284C7] hover:bg-[#0369A1] text-white'
+                }`}
+              >
+                <Heart className={`w-3.5 h-3.5 ${hasUpvoted ? 'fill-current' : ''}`} />
+                <span>{hasUpvoted ? 'Supported' : 'Support'}</span>
+                <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-mono">{complaint.upvotes || 0}</span>
+              </button>
+            </div>
+
+            {/* Citizen Resolution Badge & Button Section */}
+            <div>
+              {complaint.status === "Resolved" || complaint.status === "RESOLVED" ? (
+                complaint.resolvedByType === "Citizen" ? (
+                  <div className="bg-[#FFFBEB] rounded-2xl border border-[#FDE68A] p-4 flex items-center gap-3 shadow-xs">
+                    <div className="w-9 h-9 bg-white border border-[#FDE68A] rounded-full flex items-center justify-center shrink-0">
+                      <Trophy className="w-4 h-4 text-[#D97706]" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold text-[#92400E]">Solved by Community Hero</h3>
+                      <p className="text-xs text-[#B45309]">
+                        <strong>{complaint.resolvedByUserName}</strong> resolved this issue for the community!
+                      </p>
+                      {complaint.resolutionRemarks && (
+                        <p className="text-[11px] text-[#92400E] mt-1 italic">"{complaint.resolutionRemarks}"</p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-[#F0FDF4] rounded-2xl border border-[#BBF7D0] p-4 flex items-center gap-3 shadow-xs">
+                    <div className="w-9 h-9 bg-white border border-[#BBF7D0] rounded-full flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-[#16A34A]" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold text-[#166534]">Resolved by Municipal Authority</h3>
+                      <p className="text-xs text-[#15803D]">This issue was officially inspected and resolved by municipal teams.</p>
+                    </div>
+                  </div>
+                )
+              ) : (
+                <div className="bg-[#F0F9FF] rounded-2xl border border-[#BAE6FD] p-4 flex items-center justify-between gap-3 shadow-xs">
+                  <div>
+                    <p className="font-bold text-xs text-[#0F172A] flex items-center gap-1.5">
+                      <Trophy className="w-4 h-4 text-[#0284C7]" />
+                      <span>Did you solve this?</span>
+                    </p>
+                    <p className="text-[11px] text-[#0369A1] mt-0.5">
+                      If you or the community fixed this, claim credit as a Community Hero!
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      if (!isAuthenticated) return toast.error("Please login first!");
+                      setShowCitizenResolveModal(true);
+                    }}
+                    className="px-3.5 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>I Solved This!</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Title + Status Tracker + Formal Petition Letter */}
+        <div className="space-y-5">
+          
+          {/* Issue Header & Timeline Card */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-xs space-y-4">
+            <div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[#6B7280] mb-2">
+                <span className="font-semibold text-[#0284C7] bg-[#F0F9FF] border border-[#BAE6FD] px-2 py-0.5 rounded-md uppercase tracking-wider text-[10px]">
+                  {complaint.problemType || 'Civic Issue'}
+                </span>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-[#9CA3AF]" />
+                  {new Date(complaint.createdAt).toLocaleDateString()}
+                </span>
+                {complaint.userName && (
+                  <>
+                    <span>•</span>
+                    <span className="font-medium text-[#334155]">Reported by {complaint.userName}</span>
+                  </>
+                )}
+              </div>
+
+              <h1 className="text-xl sm:text-2xl font-extrabold text-[#0F172A] leading-tight">
+                {complaint.problemType}
+              </h1>
+            </div>
+
+            {/* Status Timeline */}
+            <div className="pt-3 border-t border-[#F3F4F6]">
+              <p className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider mb-2.5">
+                Resolution Lifecycle
+              </p>
+              <StatusTracker status={complaint.status} />
+            </div>
+          </div>
+
+          {/* Formal Complaint Letter / RTI Grievance Petition */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-xs space-y-3.5">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-[#0284C7]" />
+                <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">
+                  Formal Complaint Letter
+                </h3>
+              </div>
+              <button 
+                onClick={downloadPDF}
+                className="flex items-center gap-1.5 text-xs font-semibold text-[#0284C7] hover:text-[#0369A1] transition-colors cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>PDF</span>
+              </button>
+            </div>
+
+            {/* Letter Paper Box with nice readable scroll if long */}
+            <div className="bg-[#F9FAFB] rounded-xl border border-[#E5E7EB] border-l-4 border-l-[#0284C7] p-4 text-[#334155] leading-relaxed max-h-[380px] overflow-y-auto">
+              <div className="font-serif text-xs sm:text-sm whitespace-pre-wrap">
+                {complaint.formalLetter || complaint.description || 'No formal petition text recorded.'}
+              </div>
+            </div>
+
+            {/* Translated Letter (if present) */}
+            {complaint.translatedLetter && (
+              <div className="pt-2 border-t border-[#F3F4F6]">
+                <h4 className="text-xs font-bold flex items-center gap-1.5 text-[#0F172A] uppercase tracking-wider mb-2">
+                  <Globe className="w-3.5 h-3.5 text-[#0284C7]" />
+                  <span>Translated Regional Version</span>
+                </h4>
+                <div className="bg-[#F9FAFB] p-3.5 rounded-xl border border-[#E5E7EB] border-l-4 border-l-[#F97316] text-[#334155] text-xs max-h-[220px] overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                  {complaint.translatedLetter}
+                </div>
               </div>
             )}
 
-            {/* Additional User Issues */}
+            {/* Additional Citizen Follow-ups (if present) */}
             {complaint.additionalIssues && complaint.additionalIssues.length > 0 && (
-              <div className="space-y-3 pt-2">
-                <h3 className="text-sm font-bold flex items-center gap-2 text-[#0F172A] uppercase tracking-wider">
-                  <FileText className="w-4 h-4 text-[#0284C7]" />
-                  <span>Additional User Updates</span>
-                </h3>
-                <div className="space-y-3">
+              <div className="pt-2 border-t border-[#F3F4F6] space-y-2">
+                <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">
+                  Citizen Activity & Updates
+                </h4>
+                <div className="space-y-2">
                   {complaint.additionalIssues.map((issue, idx) => (
-                    <div key={idx} className="bg-white p-5 rounded-xl text-[#334155] border border-[#E5E7EB] border-l-4 border-l-[#7C3AED] shadow-sm">
-                      <p className="text-xs text-[#6B7280] mb-2 flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5" />
+                    <div key={idx} className="bg-[#F9FAFB] p-3 rounded-lg border border-[#E5E7EB] text-xs text-[#334155]">
+                      <p className="text-[10px] text-[#6B7280] mb-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
                         {new Date(issue.addedAt).toLocaleString()}
                       </p>
-                      <div className="whitespace-pre-wrap text-sm">
-                        {issue.description}
-                      </div>
+                      <p className="whitespace-pre-wrap">{issue.description}</p>
                       {issue.imageUrl && (
-                        <div className="mt-3">
-                          <img src={issue.imageUrl} alt="Issue update" className="rounded-lg border border-[#E5E7EB] max-h-60 object-cover" />
-                        </div>
+                        <img src={issue.imageUrl} alt="Update" className="mt-2 rounded-lg border border-[#E5E7EB] max-h-40 object-cover" />
                       )}
                     </div>
                   ))}
@@ -627,94 +717,11 @@ const Details = () => {
             )}
           </div>
 
-          {/* Upvote Support Section */}
-          <div className="pt-2">
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-5 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex-1 min-w-[200px]">
-                <p className="font-bold text-sm text-[#0F172A] flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-[#EF4444] fill-current" />
-                  Support this issue
-                </p>
-                <p className="text-xs text-[#6B7280] mt-0.5">
-                  {hasUpvoted 
-                    ? 'You supported this! Click to undo.' 
-                    : 'Upvotes help flag issues to authorities faster.'}
-                </p>
-              </div>
-              
-              <button 
-                onClick={handleUpvote}
-                disabled={upvoting}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-xs transition-all shadow-sm ${
-                  hasUpvoted 
-                    ? 'bg-[#16A34A] text-white' 
-                    : 'bg-[#0284C7] hover:bg-[#0369A1] text-white'
-                }`}
-              >
-                <Heart className={`w-4 h-4 ${hasUpvoted ? 'fill-current' : ''}`} />
-                <span>{hasUpvoted ? 'Supported' : 'Support'}</span>
-                <span className="bg-white/20 px-1.5 py-0.5 rounded text-[11px] font-bold">{complaint.upvotes}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Citizen Resolution Badge & Button Section */}
-          <div className="pt-1">
-            {complaint.status === "Resolved" || complaint.status === "RESOLVED" ? (
-              complaint.resolvedByType === "Citizen" ? (
-                <div className="bg-[#FFFBEB] rounded-xl border border-[#FDE68A] p-4 flex items-center gap-3 shadow-sm">
-                  <div className="w-10 h-10 bg-white border border-[#FDE68A] rounded-full flex items-center justify-center shrink-0">
-                    <Trophy className="w-5 h-5 text-[#D97706]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-[#92400E]">Solved by Community Hero</h3>
-                    <p className="text-xs text-[#B45309]">
-                      <strong>{complaint.resolvedByUserName}</strong> resolved this issue for the community!
-                    </p>
-                    {complaint.resolutionRemarks && (
-                      <p className="text-xs text-[#92400E] mt-1 italic">"{complaint.resolutionRemarks}"</p>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-[#F0FDF4] rounded-xl border border-[#BBF7D0] p-4 flex items-center gap-3 shadow-sm">
-                  <div className="w-10 h-10 bg-white border border-[#BBF7D0] rounded-full flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-5 h-5 text-[#16A34A]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-[#166534]">Resolved by Authority</h3>
-                    <p className="text-xs text-[#15803D]">This issue has been officially resolved by municipal teams.</p>
-                  </div>
-                </div>
-              )
-            ) : (
-              <div className="bg-[#F0F9FF] rounded-xl border border-[#BAE6FD] p-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
-                <div className="flex-1 min-w-[200px]">
-                  <p className="font-bold text-sm text-[#0F172A] flex items-center gap-1.5">
-                    <Trophy className="w-4 h-4 text-[#0284C7]" />
-                    Did you solve this?
-                  </p>
-                  <p className="text-xs text-[#0369A1] mt-0.5">
-                    If you or the community fixed this issue, claim credit as a Community Hero!
-                  </p>
-                </div>
-                <button 
-                  onClick={() => {
-                    if (!isAuthenticated) return toast.error("Please login first!");
-                    setShowCitizenResolveModal(true);
-                  }}
-                  className="px-4 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white font-semibold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  I Solved This!
-                </button>
-              </div>
-            )}
-          </div>
-        </motion.div>
         </div>
 
-        {/* Citizen Resolution Modal */}
+      </div>
+
+      {/* Citizen Resolution Modal */}
         <AnimatePresence>
           {showCitizenResolveModal && (
             <motion.div 
