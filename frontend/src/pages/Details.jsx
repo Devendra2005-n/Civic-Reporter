@@ -259,16 +259,16 @@ const Details = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-24 text-white">
-        <div className="w-12 h-12 border-4 border-purple-500 border-b-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center pt-8 text-[#0284C7]">
+        <div className="w-10 h-10 border-3 border-[#0284C7] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!complaint) {
     return (
-      <div className="min-h-screen pt-24 px-6 text-center text-white">
-        <h2 className="text-2xl font-bold bg-white/10 p-12 rounded-2xl glass-panel inline-block">Complaint Not Found</h2>
+      <div className="min-h-screen pt-8 px-6 text-center text-[#0F172A]">
+        <h2 className="text-xl font-bold bg-white p-8 rounded-2xl border border-[#E5E7EB] shadow-xs inline-block">Complaint Not Found</h2>
       </div>
     );
   }
@@ -277,7 +277,7 @@ const Details = () => {
   const authorityLabel = AUTHORITY_LABELS[complaint.authorityType] || AUTHORITY_LABELS.municipal_corporation;
 
   return (
-    <div className="min-h-screen pt-24 pb-24 px-6 max-w-6xl mx-auto">
+    <div className="min-h-screen pt-6 sm:pt-8 pb-20 px-4 sm:px-6 max-w-6xl mx-auto">
       {/* Lightbox */}
       <AnimatePresence>
         {showLightbox && <Lightbox />}
