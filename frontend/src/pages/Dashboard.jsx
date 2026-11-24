@@ -63,6 +63,7 @@ const Dashboard = () => {
   const [filter, setFilter] = useState('All');
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [mapInstance, setMapInstance] = useState(null);
+  const [showMap, setShowMap] = useState(true);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
@@ -230,231 +231,157 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Main Grid: Interactive Map + Recent Complaints */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Column: Live Map & Ward Widgets */}
-        <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-24 lg:self-start">
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-4 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
-                <MapIcon className="w-4 h-4 text-[#0284C7]" />
-                <span>Live Issue Map</span>
-              </h2>
-              <div className="flex items-center gap-2 text-[11px] text-[#6B7280]">
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-[#16A34A]" /> Resolved
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-[#D97706]" /> Active
-                </span>
-              </div>
-            </div>
-
-            <div className="h-[320px] rounded-lg overflow-hidden border border-[#E5E7EB] relative bg-[#F3F4F6]">
-              {!isLoaded ? (
-                <div className="w-full h-full flex items-center justify-center text-xs text-[#6B7280]">
-                  Loading map...
-                </div>
-              ) : (
-                <GoogleMap
-                  mapContainerStyle={mapContainerStyle}
-                  center={defaultCenter}
-                  zoom={12}
-                  options={{
-                    disableDefaultUI: true,
-                    zoomControl: true,
-                    gestureHandling: 'cooperative',
-                    mapId: 'civic_map',
-                  }}
-                  onLoad={(map) => { setMapInstance(map); onMapLoad(map); }}
-                >
-                  {mapInstance && filtered.map(c => {
-                    const getMarkerIcon = (complaint) => {
-                      if (complaint.status === 'Resolved') return 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
-                      if (complaint.severity === 'High') return 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
-                      return 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png';
-                    };
-                    
-                    return c.location && c.location.lat && (
-                      <AdvancedMarker
-                        key={c._id || c.id}
-                        map={mapInstance}
-                        position={{ lat: c.location.lat, lng: c.location.lng }}
-                        icon={getMarkerIcon(c)}
-                        onClick={() => setSelectedMarker(c)}
-                      />
-                    );
-                  })}
-
-                  {selectedMarker && (
-                    <InfoWindowF
-                      position={{ lat: selectedMarker.location.lat, lng: selectedMarker.location.lng }}
-                      onCloseClick={() => setSelectedMarker(null)}
-                    >
-                      <div className="p-1 min-w-[150px] text-[#0F172A] font-sans">
-                        <p className="font-bold text-xs capitalize text-[#0F172A] m-0">
-                          {selectedMarker.problemType}
-                        </p>
-                        <p className="text-[11px] text-[#4B5563] mt-0.5 mb-1">
-                          {selectedMarker.locationAddress || 'Civic location'}
-                        </p>
-                        <span className="inline-block px-1.5 py-0.5 text-[10px] font-semibold rounded bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD]">
-                          {selectedMarker.status}
-                        </span>
-                      </div>
-                    </InfoWindowF>
-                  )}
-                </GoogleMap>
-              )}
-            </div>
-
-            <p className="text-[11px] text-[#6B7280] mt-2.5 text-center">
-              Click any pin on the map to preview report details.
-            </p>
+      {/* Interactive City Live Map Banner */}
+      <div className="bg-white rounded-xl border border-[#E5E7EB] p-4 shadow-xs mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2">
+            <MapIcon className="w-4 h-4 text-[#0284C7]" />
+            <h2 className="text-sm font-bold text-[#0F172A]">Live Issue Map</h2>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD]">
+              {filtered.length} Locations Plotted
+            </span>
           </div>
 
-          {/* Card: Issue Category Breakdown */}
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-4 shadow-xs">
-            <div className="flex items-center justify-between mb-3.5">
-              <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
-                <BarChart2 className="w-4 h-4 text-[#0284C7]" />
-                <span>Issue Breakdown</span>
-              </h3>
-              <span className="text-[11px] font-semibold text-[#0284C7] bg-[#F0F9FF] border border-[#BAE6FD] px-2 py-0.5 rounded-full">
-                {totalCount} Total
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-[11px] text-[#6B7280]">
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-[#16A34A]" /> Resolved
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-[#D97706]" /> Active
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-[#DC2626]" /> High Priority
               </span>
             </div>
 
-            <div className="space-y-3">
-              {[
-                { name: 'Roads & Potholes', count: potholeCount, color: 'bg-[#F97316]', text: 'text-[#F97316]', icon: AlertTriangle },
-                { name: 'Streetlights', count: streetlightCount, color: 'bg-[#D97706]', text: 'text-[#D97706]', icon: Lightbulb },
-                { name: 'Waste & Sanitation', count: garbageCount, color: 'bg-[#16A34A]', text: 'text-[#16A34A]', icon: Trash2 },
-                { name: 'Water & Drainage', count: waterCount, color: 'bg-[#0284C7]', text: 'text-[#0284C7]', icon: Droplets },
-              ].map((cat) => {
-                const pct = totalCount > 0 ? Math.round((cat.count / totalCount) * 100) : 0;
-                return (
-                  <div key={cat.name} className="text-xs">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-[#4B5563] flex items-center gap-1.5">
-                        <cat.icon className={`w-3.5 h-3.5 ${cat.text}`} />
-                        {cat.name}
-                      </span>
-                      <span className="font-semibold text-[#0F172A]">
-                        {cat.count} <span className="text-[#9CA3AF] font-normal">({pct}%)</span>
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full ${cat.color} transition-all duration-500`} 
-                        style={{ width: `${Math.max(pct, cat.count > 0 ? 5 : 0)}%` }} 
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Card: Municipal Helpdesk & Response SLA */}
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-4 shadow-xs">
-            <div className="flex items-center justify-between mb-2.5">
-              <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-[#0284C7]" />
-                <span>Municipal Ward Desk</span>
-              </h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]">
-                Active
-              </span>
-            </div>
-
-            <p className="text-xs text-[#4B5563] leading-relaxed mb-3">
-              Direct municipal routing is active. Standard high-priority resolution turnaround is <strong>under 48 hours</strong>.
-            </p>
-
-            <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 space-y-2 mb-3 text-xs">
-              <div className="flex items-center justify-between text-[#334155]">
-                <span className="text-[#6B7280] flex items-center gap-1.5">
-                  <PhoneCall className="w-3.5 h-3.5 text-[#0284C7]" /> Civic Helpline:
-                </span>
-                <span className="font-mono font-bold text-[#0F172A]">1800-123-2484</span>
-              </div>
-              <div className="flex items-center justify-between text-[#334155]">
-                <span className="text-[#6B7280] flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-[#DC2626]" /> Emergency Services:
-                </span>
-                <span className="font-mono font-bold text-[#DC2626]">112</span>
-              </div>
-            </div>
-
-            <Link
-              to="/submit"
-              className="w-full py-2 px-3 rounded-lg bg-[#F0F9FF] hover:bg-[#E0F2FE] text-[#0284C7] border border-[#BAE6FD] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+            <button 
+              onClick={() => setShowMap(!showMap)}
+              className="text-xs font-semibold text-[#0284C7] hover:text-[#0369A1] px-2.5 py-1 rounded-lg bg-[#F0F9FF] border border-[#BAE6FD] hover:bg-[#E0F2FE] transition-colors cursor-pointer"
             >
-              <span>File a New Grievance</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
+              {showMap ? 'Collapse Map' : 'Expand Map'}
+            </button>
           </div>
         </div>
 
-        {/* Right Column: Complaints List & Filter Pills */}
-        <div className="lg:col-span-2 space-y-4">
-          
-          {/* Filter Header */}
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-3.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-[#0F172A]">Recent Complaints</h2>
-              <span className="text-xs text-[#6B7280]">
-                ({filtered.length} showing)
-              </span>
-            </div>
+        {showMap && (
+          <div className="h-[280px] sm:h-[340px] rounded-lg overflow-hidden border border-[#E5E7EB] relative bg-[#F3F4F6]">
+            {!isLoaded ? (
+              <div className="w-full h-full flex items-center justify-center text-xs text-[#6B7280]">
+                Loading map...
+              </div>
+            ) : (
+              <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                center={defaultCenter}
+                zoom={12}
+                options={{
+                  disableDefaultUI: true,
+                  zoomControl: true,
+                  gestureHandling: 'cooperative',
+                  mapId: 'civic_map',
+                }}
+                onLoad={(map) => { setMapInstance(map); onMapLoad(map); }}
+              >
+                {mapInstance && filtered.map(c => {
+                  const getMarkerIcon = (complaint) => {
+                    if (complaint.status === 'Resolved') return 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
+                    if (complaint.severity === 'High') return 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
+                    return 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+                  };
+                  
+                  return c.location && c.location.lat && (
+                    <AdvancedMarker
+                      key={c._id || c.id}
+                      map={mapInstance}
+                      position={{ lat: c.location.lat, lng: c.location.lng }}
+                      icon={getMarkerIcon(c)}
+                      onClick={() => setSelectedMarker(c)}
+                    />
+                  );
+                })}
 
-            {/* Filter Pills */}
-            <div className="flex flex-wrap gap-1.5">
-              {['All', 'High', 'Medium', 'Resolved'].map((f) => {
-                const isActive = filter === f;
-                return (
-                  <button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                      isActive
-                        ? 'bg-[#0284C7] text-white shadow-xs'
-                        : 'bg-[#F9FAFB] text-[#4B5563] hover:text-[#0F172A] hover:bg-[#F3F4F6] border border-[#E5E7EB]'
-                    }`}
+                {selectedMarker && (
+                  <InfoWindowF
+                    position={{ lat: selectedMarker.location.lat, lng: selectedMarker.location.lng }}
+                    onCloseClick={() => setSelectedMarker(null)}
                   >
-                    {f}
-                  </button>
-                );
-              })}
-            </div>
+                    <div className="p-1 min-w-[150px] text-[#0F172A] font-sans">
+                      <p className="font-bold text-xs capitalize text-[#0F172A] m-0">
+                        {selectedMarker.problemType}
+                      </p>
+                      <p className="text-[11px] text-[#4B5563] mt-0.5 mb-1">
+                        {selectedMarker.locationAddress || 'Civic location'}
+                      </p>
+                      <span className="inline-block px-1.5 py-0.5 text-[10px] font-semibold rounded bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD]">
+                        {selectedMarker.status}
+                      </span>
+                    </div>
+                  </InfoWindowF>
+                )}
+              </GoogleMap>
+            )}
           </div>
+        )}
 
-          {/* Cards Grid */}
-          {loading ? (
-            <div className="bg-white rounded-xl border border-[#E5E7EB] p-12 text-center text-[#6B7280]">
-              <div className="w-8 h-8 border-3 border-[#0284C7] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-sm">Loading complaints from city feed...</p>
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="bg-white rounded-xl border border-[#E5E7EB] p-12 text-center text-[#6B7280]">
-              <Filter className="w-10 h-10 mx-auto mb-3 text-[#9CA3AF]" />
-              <p className="text-base font-semibold text-[#0F172A]">No complaints found</p>
-              <p className="text-xs text-[#6B7280] mt-1">Try switching filter tab to "All".</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {filtered.map((complaint) => (
-                <div key={complaint.id || complaint._id}>
-                  <ComplaintCard complaint={complaint} />
-                </div>
-              ))}
-            </div>
-          )}
+        {showMap && (
+          <p className="text-[11px] text-[#6B7280] mt-2.5 text-center">
+            Click any pin on the map to preview report details.
+          </p>
+        )}
+      </div>
+
+      {/* Filter Header Bar */}
+      <div className="bg-white rounded-xl border border-[#E5E7EB] p-3.5 shadow-xs mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-bold text-[#0F172A]">Recent Complaints</h2>
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD]">
+            {filtered.length} showing
+          </span>
         </div>
 
+        {/* Filter Pills */}
+        <div className="flex flex-wrap gap-1.5">
+          {['All', 'High', 'Medium', 'Resolved'].map((f) => {
+            const isActive = filter === f;
+            return (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                  isActive
+                    ? 'bg-[#0284C7] text-white shadow-xs'
+                    : 'bg-[#F9FAFB] text-[#4B5563] hover:text-[#0F172A] hover:bg-[#F3F4F6] border border-[#E5E7EB]'
+                }`}
+              >
+                {f}
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      {/* Cards Grid: Full-Width Uniform 3-Column Grid */}
+      {loading ? (
+        <div className="bg-white rounded-xl border border-[#E5E7EB] p-12 text-center text-[#6B7280]">
+          <div className="w-8 h-8 border-3 border-[#0284C7] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm">Loading complaints from city feed...</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="bg-white rounded-xl border border-[#E5E7EB] p-12 text-center text-[#6B7280]">
+          <Filter className="w-10 h-10 mx-auto mb-3 text-[#9CA3AF]" />
+          <p className="text-base font-semibold text-[#0F172A]">No complaints found</p>
+          <p className="text-xs text-[#6B7280] mt-1">Try switching filter tab to "All".</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filtered.map((complaint) => (
+            <div key={complaint.id || complaint._id}>
+              <ComplaintCard complaint={complaint} />
+            </div>
+          ))}
+        </div>
+      )}
 
     </div>
   );
