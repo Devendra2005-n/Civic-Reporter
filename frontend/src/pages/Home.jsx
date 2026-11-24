@@ -1,17 +1,88 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, Map, FileText, Camera, Sparkles, Zap, Shield, Activity, 
   CheckCircle2, Clock, MapPin, Building2, Globe, ThumbsUp, AlertTriangle, 
-  ChevronRight, Eye, Layers, Check, Droplets, Lightbulb, Trash2, ShieldCheck
+  ChevronRight, Play, Pause, Volume2, VolumeX, Maximize2, Layers, Check, 
+  Droplets, Lightbulb, Trash2, ShieldCheck, RefreshCw, Eye
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [activeCategory, setActiveCategory] = useState('all');
+
+  // Video streams configuration
+  const videoClips = [
+    {
+      id: 'roads',
+      title: 'Road Damage & Potholes',
+      category: 'Pothole Detection',
+      videoUrl: '/sc1.mp4',
+      ward: 'Ward 14 · Station Road',
+      status: 'In Progress',
+      confidence: '98.4%',
+      badgeColor: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
+      accentColor: '#F97316'
+    },
+    {
+      id: 'sanitation',
+      title: 'Waste & Public Cleanliness',
+      category: 'Sanitation Dispatch',
+      videoUrl: '/sc2.mp4',
+      ward: 'Ward 08 · Market Yard',
+      status: 'Under Review',
+      confidence: '96.2%',
+      badgeColor: 'bg-[#F0FDF4] text-[#16A34A] border-[#BBF7D0]',
+      accentColor: '#16A34A'
+    },
+    {
+      id: 'streetlights',
+      title: 'Streetlights & Electrical',
+      category: 'Public Safety',
+      videoUrl: '/sc3.mp4',
+      ward: 'Ward 22 · Shivaji Chowk',
+      status: 'Resolved',
+      confidence: '99.1%',
+      badgeColor: 'bg-[#F0FDF4] text-[#16A34A] border-[#BBF7D0]',
+      accentColor: '#D97706'
+    },
+    {
+      id: 'drainage',
+      title: 'Drainage & Water Overflow',
+      category: 'Flood Prevention',
+      videoUrl: '/sc4.mp4',
+      ward: 'Ward 05 · Riverfront Bridge',
+      status: 'Authority Alerted',
+      confidence: '97.5%',
+      badgeColor: 'bg-[#EFF6FF] text-[#0284C7] border-[#BAE6FD]',
+      accentColor: '#7C3AED'
+    }
+  ];
+
+  const [activeClipIndex, setActiveClipIndex] = useState(0);
+  const activeClip = videoClips[activeClipIndex];
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef(null);
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
 
   const stats = [
     { value: '24,500+', label: 'Issues Resolved', sub: 'Across 65+ municipal wards', icon: CheckCircle2, color: 'text-[#16A34A]' },
@@ -57,10 +128,11 @@ const Home = () => {
     <div className="min-h-screen bg-[#F9FAFB] text-[#334155] font-sans antialiased overflow-x-hidden selection:bg-[#E0F2FE] selection:text-[#0369A1]">
       
       {/* =========================================================================
-          HERO SECTION
+          HERO SECTION: 2-COLUMN MODERN SAAS WITH MULTI-SHAPE VIDEO SHOWCASE
          ========================================================================= */}
-      <section className="relative pt-28 sm:pt-36 pb-20 sm:pb-28 overflow-hidden bg-white border-b border-[#E5E7EB]">
-        {/* Subtle architectural background grid */}
+      <section className="relative pt-24 sm:pt-32 pb-16 sm:pb-24 overflow-hidden bg-white border-b border-[#E5E7EB]">
+        
+        {/* Subtle architectural dot grid background */}
         <div 
           className="absolute inset-0 pointer-events-none opacity-[0.35]" 
           style={{
@@ -70,236 +142,294 @@ const Home = () => {
         />
 
         {/* Ambient Top Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-gradient-to-b from-[#F0F9FF] to-transparent rounded-full blur-3xl pointer-events-none -z-0" />
+        <div className="absolute top-0 right-1/4 w-[600px] h-[350px] bg-gradient-to-b from-[#F0F9FF] to-transparent rounded-full blur-3xl pointer-events-none -z-0" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
-          {/* Header pill & Typography */}
-          <div className="text-center max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
             
-            {/* Announcement Badge */}
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F0F9FF] border border-[#BAE6FD] text-[#0284C7] text-xs font-semibold shadow-xs mb-6 hover:bg-[#E0F2FE] transition-colors cursor-default"
-            >
-              <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
-              <span>Next-Gen Civic Action Platform</span>
-              <span className="text-[#9CA3AF]">•</span>
-              <span className="text-[#0369A1] hidden sm:inline">AI Vision & Municipal Routing</span>
-              <ChevronRight className="w-3.5 h-3.5 text-[#0284C7]" />
-            </motion.div>
-
-            {/* Main Headline */}
-            <motion.h1 
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-[#0F172A] tracking-tight leading-[1.1] mb-6"
-            >
-              Transform City Issues Into{' '}
-              <span className="text-[#0284C7] relative inline-block">
-                Transparent Action
-              </span>
-            </motion.h1>
-
-            {/* Subtitle */}
-            <motion.p 
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-base sm:text-xl text-[#4B5563] max-w-2xl mx-auto mb-9 leading-relaxed font-normal"
-            >
-              Empowering citizens and municipal authorities with instant photo-based defect recognition, automatic formal grievance drafting, and transparent end-to-end resolution.
-            </motion.p>
-
-            {/* CTA Action Group */}
-            <motion.div 
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-10"
-            >
-              {!isAdmin && (
-                <button
-                  onClick={() => navigate('/submit')}
-                  className="w-full sm:w-auto px-7 py-3.5 bg-[#0284C7] hover:bg-[#0369A1] text-white font-semibold rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2.5 text-sm sm:text-base group"
-                >
-                  <Camera className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
-                  <span>Report an Issue</span>
-                  <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
-                </button>
-              )}
-
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="w-full sm:w-auto px-7 py-3.5 bg-white hover:bg-[#F3F4F6] text-[#0F172A] font-semibold rounded-xl border border-[#D1D5DB] hover:border-[#9CA3AF] shadow-xs transition-all flex items-center justify-center gap-2.5 text-sm sm:text-base"
-              >
-                <Map className="w-4 h-4 text-[#0284C7]" />
-                <span>Explore City Live Map</span>
-              </button>
-            </motion.div>
-
-            {/* Trust Points Ribbon */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-[#6B7280] font-medium"
-            >
-              <div className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-[#16A34A]" />
-                <span>Zero Bureaucracy</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-[#16A34A]" />
-                <span>Auto-Drafted Formal Petitions</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-[#16A34A]" />
-                <span>Real-Time Public Accountability</span>
-              </div>
-            </motion.div>
-
-          </div>
-
-          {/* =========================================================================
-              HERO PRODUCT SHOWCASE / INTERACTIVE SAAS MOCKUP
-             ========================================================================= */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.45 }}
-            className="mt-14 sm:mt-18 max-w-5xl mx-auto"
-          >
-            <div className="relative rounded-2xl bg-white border border-[#E5E7EB] shadow-xl p-2 sm:p-4">
+            {/* ================= LEFT COLUMN: ENGAGING CONTENT & CALL TO ACTION ================= */}
+            <div className="lg:col-span-6 flex flex-col justify-center text-left">
               
-              {/* Window Chrome / Titlebar */}
-              <div className="flex items-center justify-between pb-3 px-2 border-b border-[#E5E7EB]">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#EF4444]/80" />
-                  <div className="w-3 h-3 rounded-full bg-[#F59E0B]/80" />
-                  <div className="w-3 h-3 rounded-full bg-[#10B981]/80" />
-                  <span className="ml-2 text-xs font-mono font-medium text-[#6B7280] hidden sm:inline">
-                    civic-reporter.gov / live-intake-console
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]">
-                    System Live • All Wards Active
-                  </span>
-                </div>
-              </div>
+              {/* Live Status Badge */}
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F0F9FF] border border-[#BAE6FD] text-[#0284C7] text-xs font-semibold shadow-xs mb-6 w-fit"
+              >
+                <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-ping" />
+                <span>AI-Powered Municipal Intake Engine</span>
+                <span className="text-[#9CA3AF]">•</span>
+                <span className="text-[#0369A1] hidden sm:inline">Real-Time Ward Dispatch</span>
+                <ChevronRight className="w-3.5 h-3.5 text-[#0284C7]" />
+              </motion.div>
 
-              {/* Showcase Inner Card Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 p-3 sm:p-5 bg-[#F9FAFB] rounded-xl mt-3">
+              {/* Main Headline */}
+              <motion.h1 
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0F172A] tracking-tight leading-[1.12] mb-5"
+              >
+                Report Civic Issues.{' '}
+                <span className="text-[#0284C7] block sm:inline">
+                  See Action in Hours.
+                </span>
+              </motion.h1>
+
+              {/* Subtitle */}
+              <motion.p 
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="text-base sm:text-lg text-[#4B5563] leading-relaxed mb-8 max-w-xl font-normal"
+              >
+                Empowering citizens and city departments with automated photo analysis, verified GPS location boundaries, and legal grievance drafting for road hazards, sanitation, and utilities.
+              </motion.p>
+
+              {/* Action Buttons */}
+              <motion.div 
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-8"
+              >
+                {!isAdmin && (
+                  <button
+                    onClick={() => navigate('/submit')}
+                    className="px-7 py-3.5 bg-[#0284C7] hover:bg-[#0369A1] text-white font-semibold rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2.5 text-sm sm:text-base group"
+                  >
+                    <Camera className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
+                    <span>Report an Issue</span>
+                    <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
+                  </button>
+                )}
+
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="px-7 py-3.5 bg-white hover:bg-[#F3F4F6] text-[#0F172A] font-semibold rounded-xl border border-[#D1D5DB] hover:border-[#9CA3AF] shadow-xs transition-all flex items-center justify-center gap-2.5 text-sm sm:text-base"
+                >
+                  <Map className="w-4 h-4 text-[#0284C7]" />
+                  <span>View Public Dashboard</span>
+                </button>
+              </motion.div>
+
+              {/* Citizen Social Proof Stack */}
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="flex items-center gap-4 pt-4 border-t border-[#E5E7EB]"
+              >
+                <div className="flex -space-x-2">
+                  <div className="w-8 h-8 rounded-full bg-[#0284C7] text-white flex items-center justify-center text-xs font-bold border-2 border-white shadow-xs">
+                    DP
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-[#16A34A] text-white flex items-center justify-center text-xs font-bold border-2 border-white shadow-xs">
+                    AK
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-[#F59E0B] text-white flex items-center justify-center text-xs font-bold border-2 border-white shadow-xs">
+                    RS
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-[#475569] text-white flex items-center justify-center text-xs font-bold border-2 border-white shadow-xs">
+                    +8k
+                  </div>
+                </div>
+
+                <div className="text-xs">
+                  <p className="font-bold text-[#0F172A]">Joined by 8,000+ Active Citizens</p>
+                  <p className="text-[#6B7280]">100% Free · Direct municipal accountability</p>
+                </div>
+              </motion.div>
+
+            </div>
+
+            {/* ================= RIGHT COLUMN: INTERACTIVE MULTI-SHAPE VIDEO HERO ================= */}
+            <div className="lg:col-span-6 relative flex flex-col items-center">
+              
+              {/* Outer decorative ambient backlight */}
+              <div className="absolute -inset-2 bg-gradient-to-tr from-[#BAE6FD]/40 to-[#E0F2FE]/20 rounded-3xl blur-2xl -z-10 pointer-events-none" />
+
+              {/* Main Interactive Video Card Container (Square with rounded-3xl) */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="w-full max-w-lg bg-white rounded-3xl p-3 sm:p-4 border border-[#E5E7EB] shadow-2xl relative"
+              >
                 
-                {/* Left: Incident Preview */}
-                <div className="lg:col-span-7 bg-white p-4 sm:p-5 rounded-xl border border-[#E5E7EB] shadow-xs flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-[#EFF6FF] text-[#0284C7] border border-[#BAE6FD]">
-                            REPORT #CR-1024
-                          </span>
-                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
-                            In Progress
-                          </span>
-                        </div>
-                        <h3 className="text-base sm:text-lg font-bold text-[#0F172A] leading-snug">
-                          Deep Road Pothole & Damaged Surface
-                        </h3>
-                        <p className="text-xs text-[#6B7280] flex items-center gap-1 mt-1">
-                          <MapPin className="w-3.5 h-3.5 text-[#0284C7]" />
-                          Station Road, Ward 14 • Near Central Market
-                        </p>
-                      </div>
-
-                      <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA] shrink-0">
-                        High Priority
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-[#4B5563] leading-relaxed mb-4">
-                      Dangerous asphalt cavity causing severe vehicular disruption. Auto-verified via geolocation coordinates (16.7050° N, 74.2433° E).
-                    </p>
-
-                    {/* AI Confidence Meter */}
-                    <div className="bg-[#F0F9FF] border border-[#BAE6FD] p-3 rounded-lg mb-4 flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <Sparkles className="w-4 h-4 text-[#0284C7]" />
-                        <div>
-                          <p className="text-xs font-bold text-[#0F172A]">Vision Model Confidence</p>
-                          <p className="text-[11px] text-[#0369A1]">Pothole & Surface Erosion (98.4% match)</p>
-                        </div>
-                      </div>
-                      <span className="text-xs font-bold text-[#0284C7] bg-white px-2 py-1 rounded border border-[#BAE6FD]">
-                        Auto-Classified
-                      </span>
-                    </div>
+                {/* Header HUD Bar */}
+                <div className="flex items-center justify-between px-2 pb-2.5 border-b border-[#E5E7EB] mb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#DC2626] animate-pulse" />
+                    <span className="text-xs font-bold text-[#0F172A] tracking-tight uppercase">
+                      Live Issue Feed
+                    </span>
+                    <span className="text-[11px] font-mono text-[#6B7280]">
+                      ({activeClip.ward})
+                    </span>
                   </div>
 
-                  {/* Status Track */}
-                  <div className="pt-3 border-t border-[#E5E7EB]">
-                    <div className="flex items-center justify-between text-[11px] font-medium text-[#6B7280] mb-2">
-                      <span className="text-[#0284C7] font-semibold">1. Reported</span>
-                      <span className="text-[#0284C7] font-semibold">2. Under Review</span>
-                      <span className="text-[#D97706] font-bold">3. In Progress</span>
-                      <span>4. Resolved</span>
-                    </div>
-                    <div className="w-full h-2 bg-[#E5E7EB] rounded-full overflow-hidden flex">
-                      <div className="w-3/4 bg-[#0284C7] h-full rounded-full" />
-                    </div>
+                  <div className="flex items-center gap-1.5">
+                    <button 
+                      onClick={toggleMute}
+                      className="p-1.5 rounded-lg text-[#6B7280] hover:text-[#0F172A] hover:bg-[#F3F4F6] transition-colors"
+                      title={isMuted ? "Unmute video" : "Mute video"}
+                    >
+                      {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                    </button>
+                    <button 
+                      onClick={togglePlay}
+                      className="p-1.5 rounded-lg text-[#6B7280] hover:text-[#0F172A] hover:bg-[#F3F4F6] transition-colors"
+                      title={isPlaying ? "Pause video" : "Play video"}
+                    >
+                      {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
-                {/* Right: Authority & Resolution Preview */}
-                <div className="lg:col-span-5 flex flex-col gap-4">
+                {/* Video Frame (Square with rounded-2xl, AI Laser Scanner effect) */}
+                <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-black border border-[#E5E7EB] shadow-inner group">
                   
-                  {/* Routed Authority Card */}
-                  <div className="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-xs">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-9 h-9 rounded-lg bg-[#F0F9FF] border border-[#BAE6FD] flex items-center justify-center text-[#0284C7] shrink-0">
-                        <Building2 className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Assigned Authority</p>
-                        <h4 className="text-sm font-bold text-[#0F172A]">Municipal Corporation · Roads Dept</h4>
-                      </div>
+                  {/* The active looping video */}
+                  <video
+                    key={activeClip.videoUrl}
+                    ref={videoRef}
+                    src={activeClip.videoUrl}
+                    autoPlay
+                    loop
+                    muted={isMuted}
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+
+                  {/* Gentle gradient overlay for contrast */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/30 pointer-events-none" />
+
+                  {/* AI Vision Laser Scanning Animation Line */}
+                  <motion.div
+                    className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#38BDF8] to-transparent shadow-[0_0_12px_#38BDF8] pointer-events-none z-10"
+                    animate={{
+                      top: ['5%', '92%', '5%'],
+                      opacity: [0.3, 0.9, 0.3]
+                    }}
+                    transition={{
+                      duration: 3.5,
+                      repeat: Infinity,
+                      ease: 'easeInOut'
+                    }}
+                  />
+
+                  {/* Floating AI Detection Box Overlay */}
+                  <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+                    <div className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-white/20 text-white text-[11px] font-semibold flex items-center gap-1.5 shadow-lg">
+                      <Sparkles className="w-3.5 h-3.5 text-[#38BDF8]" />
+                      <span>{activeClip.category}</span>
+                      <span className="text-[#38BDF8] font-bold">({activeClip.confidence})</span>
                     </div>
-                    <p className="text-xs text-[#4B5563]">
-                      Automated petition sent with location boundaries, RTI tracking ID, and official gazetted template.
-                    </p>
                   </div>
 
-                  {/* Community Upvotes & Engagement */}
-                  <div className="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-xs flex-1 flex flex-col justify-between">
+                  {/* Bottom Video HUD Overlay */}
+                  <div className="absolute bottom-4 left-4 right-4 z-20 flex items-end justify-between gap-3 text-white">
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-[#4B5563]">Community Validation</span>
-                        <span className="text-xs font-bold text-[#0284C7] flex items-center gap-1">
-                          <ThumbsUp className="w-3.5 h-3.5" /> 84 Citizens Endorsed
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#6B7280]">
-                        Local neighborhood upvotes elevate this complaint on the Municipal Ward dashboard.
+                      <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border mb-1.5 ${activeClip.badgeColor}`}>
+                        {activeClip.status}
+                      </span>
+                      <h4 className="text-sm sm:text-base font-bold text-white drop-shadow-sm leading-tight">
+                        {activeClip.title}
+                      </h4>
+                      <p className="text-[11px] text-white/80 flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3 h-3 text-[#38BDF8]" />
+                        {activeClip.ward}
                       </p>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-[#E5E7EB] flex items-center justify-between text-xs">
-                      <span className="text-[#6B7280]">Est. Completion:</span>
-                      <span className="font-bold text-[#16A34A]">Within 24 Hours</span>
-                    </div>
+                    <button 
+                      onClick={() => navigate('/dashboard')}
+                      className="px-2.5 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-semibold flex items-center gap-1 transition-all border border-white/20 shrink-0"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Track</span>
+                    </button>
                   </div>
 
                 </div>
 
-              </div>
+                {/* ================= SECONDARY SHAPE 1: FLOATING CAPSULE VIDEO (Top-Right) ================= */}
+                <motion.div
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                  className="hidden sm:flex absolute -top-6 -right-6 z-30 bg-white p-2 rounded-2xl border border-[#BAE6FD] shadow-xl items-center gap-2.5 max-w-[210px]"
+                >
+                  {/* Mini Pill Shaped Secondary Video Preview */}
+                  <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-[#E5E7EB] bg-black">
+                    <video
+                      src="/sc2.mp4"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="text-left pr-1">
+                    <span className="text-[10px] font-bold uppercase text-[#16A34A] block">
+                      ✓ Road Paved
+                    </span>
+                    <p className="text-[11px] font-bold text-[#0F172A] leading-tight">
+                      Ward 08 Cleaned
+                    </p>
+                    <p className="text-[10px] text-[#6B7280]">Resolved in 24h</p>
+                  </div>
+                </motion.div>
+
+                {/* ================= SECONDARY SHAPE 2: FLOATING BADGE (Bottom-Left) ================= */}
+                <motion.div
+                  animate={{ y: [0, 8, 0] }}
+                  transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+                  className="hidden sm:flex absolute -bottom-6 -left-6 z-30 bg-white p-2.5 rounded-2xl border border-[#E5E7EB] shadow-xl items-center gap-3"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-center justify-center text-[#16A34A]">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-bold text-[#0F172A]">Official Municipal Route</p>
+                    <p className="text-[11px] text-[#6B7280]">Auto-drafted RTI petition</p>
+                  </div>
+                </motion.div>
+
+                {/* Video Switcher Tabs (Click to swap the main square video) */}
+                <div className="mt-3 pt-3 border-t border-[#E5E7EB]">
+                  <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider mb-2 text-left px-1">
+                    Select Live Incident Video:
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                    {videoClips.map((clip, index) => (
+                      <button
+                        key={clip.id}
+                        onClick={() => setActiveClipIndex(index)}
+                        className={`px-2 py-1.5 rounded-xl text-xs font-semibold transition-all text-left flex items-center gap-1.5 ${
+                          activeClipIndex === index
+                            ? 'bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD] shadow-xs'
+                            : 'bg-[#F9FAFB] text-[#4B5563] border border-[#E5E7EB] hover:bg-[#F3F4F6]'
+                        }`}
+                      >
+                        <span 
+                          className="w-2 h-2 rounded-full shrink-0" 
+                          style={{ backgroundColor: clip.accentColor }} 
+                        />
+                        <span className="truncate">{clip.id.charAt(0).toUpperCase() + clip.id.slice(1)}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+              </motion.div>
 
             </div>
-          </motion.div>
+
+          </div>
 
         </div>
       </section>
