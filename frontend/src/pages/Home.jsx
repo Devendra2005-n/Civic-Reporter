@@ -431,6 +431,158 @@ const Home = () => {
 
           </div>
 
+          {/* =========================================================================
+              HERO PRODUCT SHOWCASE: MACOS WINDOW / LIVE INTAKE CONSOLE MOCKUP
+             ========================================================================= */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mt-20 sm:mt-24 max-w-5xl mx-auto pt-10 border-t border-[#E5E7EB]/80"
+          >
+            {/* Showcase Section Heading */}
+            <div className="text-center mb-8">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F0F9FF] border border-[#BAE6FD] text-[#0284C7] text-xs font-semibold mb-2 shadow-xs">
+                <Sparkles className="w-3.5 h-3.5 text-[#0284C7]" />
+                <span>Live Municipal Console Preview</span>
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight">
+                Civic Incident Processing in Action
+              </h3>
+              <p className="text-xs sm:text-sm text-[#6B7280] max-w-xl mx-auto mt-1">
+                See how a citizen's submitted complaint is instantly classified, packaged into a legal petition, and routed to the ward engineer.
+              </p>
+            </div>
+
+            {/* macOS Window Card */}
+            <div className="relative rounded-2xl bg-white border border-[#E5E7EB] shadow-xl p-2 sm:p-4">
+              
+              {/* macOS Chrome / Window Titlebar */}
+              <div className="flex items-center justify-between pb-3 px-2 border-b border-[#E5E7EB]">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#EF4444]" />
+                  <div className="w-3 h-3 rounded-full bg-[#F59E0B]" />
+                  <div className="w-3 h-3 rounded-full bg-[#10B981]" />
+                  <span className="ml-2 text-xs font-mono font-medium text-[#6B7280] hidden sm:inline">
+                    civic-reporter.gov / live-intake-console
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]">
+                    System Live • All Wards Active
+                  </span>
+                </div>
+              </div>
+
+              {/* Showcase Inner Card Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 p-3 sm:p-5 bg-[#F9FAFB] rounded-xl mt-3">
+                
+                {/* Left: Incident Preview */}
+                <div className="lg:col-span-7 bg-white p-4 sm:p-5 rounded-xl border border-[#E5E7EB] shadow-xs flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-[#EFF6FF] text-[#0284C7] border border-[#BAE6FD]">
+                            REPORT #CR-1024
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+                            In Progress
+                          </span>
+                        </div>
+                        <h3 className="text-base sm:text-lg font-bold text-[#0F172A] leading-snug">
+                          Deep Road Pothole & Damaged Surface
+                        </h3>
+                        <p className="text-xs text-[#6B7280] flex items-center gap-1 mt-1">
+                          <MapPin className="w-3.5 h-3.5 text-[#0284C7]" />
+                          Station Road, Ward 14 • Near Central Market
+                        </p>
+                      </div>
+
+                      <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA] shrink-0">
+                        High Priority
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-[#4B5563] leading-relaxed mb-4">
+                      Dangerous asphalt cavity causing severe vehicular disruption. Auto-verified via geolocation coordinates (16.7050° N, 74.2433° E).
+                    </p>
+
+                    {/* AI Confidence Meter */}
+                    <div className="bg-[#F0F9FF] border border-[#BAE6FD] p-3 rounded-lg mb-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <Sparkles className="w-4 h-4 text-[#0284C7]" />
+                        <div>
+                          <p className="text-xs font-bold text-[#0F172A]">Vision Model Confidence</p>
+                          <p className="text-[11px] text-[#0369A1]">Pothole & Surface Erosion (98.4% match)</p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-bold text-[#0284C7] bg-white px-2 py-1 rounded border border-[#BAE6FD]">
+                        Auto-Classified
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Status Track */}
+                  <div className="pt-3 border-t border-[#E5E7EB]">
+                    <div className="flex items-center justify-between text-[11px] font-medium text-[#6B7280] mb-2">
+                      <span className="text-[#0284C7] font-semibold">1. Reported</span>
+                      <span className="text-[#0284C7] font-semibold">2. Under Review</span>
+                      <span className="text-[#D97706] font-bold">3. In Progress</span>
+                      <span>4. Resolved</span>
+                    </div>
+                    <div className="w-full h-2 bg-[#E5E7EB] rounded-full overflow-hidden flex">
+                      <div className="w-3/4 bg-[#0284C7] h-full rounded-full" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Authority & Resolution Preview */}
+                <div className="lg:col-span-5 flex flex-col gap-4">
+                  
+                  {/* Routed Authority Card */}
+                  <div className="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-xs">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-9 h-9 rounded-lg bg-[#F0F9FF] border border-[#BAE6FD] flex items-center justify-center text-[#0284C7] shrink-0">
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Assigned Authority</p>
+                        <h4 className="text-sm font-bold text-[#0F172A]">Municipal Corporation · Roads Dept</h4>
+                      </div>
+                    </div>
+                    <p className="text-xs text-[#4B5563]">
+                      Automated petition sent with location boundaries, RTI tracking ID, and official gazetted template.
+                    </p>
+                  </div>
+
+                  {/* Community Upvotes & Engagement */}
+                  <div className="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-xs flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-[#4B5563]">Community Validation</span>
+                        <span className="text-xs font-bold text-[#0284C7] flex items-center gap-1">
+                          <ThumbsUp className="w-3.5 h-3.5" /> 84 Citizens Endorsed
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#6B7280]">
+                        Local neighborhood upvotes elevate this complaint on the Municipal Ward dashboard.
+                      </p>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-[#E5E7EB] flex items-center justify-between text-xs">
+                      <span className="text-[#6B7280]">Est. Completion:</span>
+                      <span className="font-bold text-[#16A34A]">Within 24 Hours</span>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          </motion.div>
+
         </div>
       </section>
 
