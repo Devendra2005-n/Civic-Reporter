@@ -16,7 +16,6 @@ import AuthorityDashboard from './pages/authority/Dashboard';
 import AuthorityComplaintDetail from './pages/authority/ComplaintDetail';
 // FAB removed — report buttons already exist in Navbar and Dashboard
 import SmoothScroll from './components/SmoothScroll';
-import AIChatbot from './components/AIChatbot';
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -71,7 +70,6 @@ function App() {
           <div className="relative min-h-screen bg-[#F9FAFB] text-[#334155] font-sans selection:bg-[#E0F2FE] selection:text-[#0284C7] overflow-x-hidden">
             
             <Navbar />
-            <AIChatbot />
             
             <main className="relative z-10 w-full h-full">
               <AnimatedRoutes />
