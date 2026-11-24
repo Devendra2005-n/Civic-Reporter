@@ -100,17 +100,15 @@ const Navbar = () => {
         <div className="hidden md:flex space-x-1.5 items-center">
           <NavLink to="/" end className={navLinkClass}>
             <Home className="w-4 h-4" />
-            <span>Home</span>
+            <span>{t('nav_home')}</span>
           </NavLink>
 
           {user && (
             <NavLink to="/dashboard" className={navLinkClass}>
               <Map className="w-4 h-4" />
-              <span>Dashboard</span>
+              <span>{t('nav_dashboard')}</span>
             </NavLink>
           )}
-
-
 
           {isAdmin && (
             <>
@@ -126,7 +124,7 @@ const Navbar = () => {
                 }
               >
                 <ShieldAlert className="w-4 h-4" />
-                <span>Admin</span>
+                <span>{t('nav_admin')}</span>
               </NavLink>
             </>
           )}
@@ -143,7 +141,7 @@ const Navbar = () => {
               className="flex items-center space-x-1.5 ml-2 px-3.5 py-2 rounded-lg transition-colors bg-[#0284C7] text-white hover:bg-[#0369A1] shadow-xs text-sm font-semibold"
             >
               <Camera className="w-4 h-4" />
-              <span>Report Issue</span>
+              <span>{t('nav_report')}</span>
             </NavLink>
           )}
 
@@ -288,7 +286,7 @@ const Navbar = () => {
                 title="Sign out"
               >
                 <LogOut className="w-4 h-4" />
-                <span className="hidden lg:inline">Logout</span>
+                <span className="hidden lg:inline">{t('nav_logout')}</span>
               </button>
             </div>
           ) : (
@@ -298,14 +296,14 @@ const Navbar = () => {
                 className="flex items-center space-x-1.5 px-3.5 py-2 rounded-lg text-sm text-[#334155] hover:text-[#0F172A] hover:bg-[#F3F4F6] transition-colors font-medium"
               >
                 <LogIn className="w-4 h-4" />
-                <span>Login</span>
+                <span>{t('nav_login')}</span>
               </NavLink>
               <NavLink
                 to="/signup"
                 className="flex items-center space-x-1.5 px-4 py-2 rounded-lg text-sm transition-colors bg-[#0284C7] text-white hover:bg-[#0369A1] font-semibold shadow-xs"
               >
                 <User className="w-4 h-4" />
-                <span>Sign Up</span>
+                <span>{t('nav_signup')}</span>
               </NavLink>
             </div>
           )}
@@ -361,11 +359,11 @@ const Navbar = () => {
             </div>
 
             <NavLink to="/" end className={navLinkClass} onClick={closeMobile}>
-              <Home className="w-4 h-4" /><span>Home</span>
+              <Home className="w-4 h-4" /><span>{t('nav_home')}</span>
             </NavLink>
             {user && (
               <NavLink to="/dashboard" className={navLinkClass} onClick={closeMobile}>
-                <Map className="w-4 h-4" /><span>Dashboard</span>
+                <Map className="w-4 h-4" /><span>{t('nav_dashboard')}</span>
               </NavLink>
             )}
             {user && !isAdmin && (
@@ -380,13 +378,13 @@ const Navbar = () => {
                   closeMobile();
                 }}
               >
-                <Camera className="w-4 h-4" /><span>Report Issue</span>
+                <Camera className="w-4 h-4" /><span>{t('nav_report')}</span>
               </NavLink>
             )}
 
             {isAdmin && (
               <NavLink to="/admin" className={navLinkClass} onClick={closeMobile}>
-                <ShieldAlert className="w-4 h-4" /><span>Admin</span>
+                <ShieldAlert className="w-4 h-4" /><span>{t('nav_admin')}</span>
               </NavLink>
             )}
 
@@ -403,7 +401,7 @@ const Navbar = () => {
                         userData?.role === 'admin' ? 'text-rose-600' : 'text-emerald-600'
                       }`}>
                         {userData?.role === 'admin' ? <Shield className="w-3 h-3" /> : <UserIcon className="w-3 h-3" />}
-                        <span>{userData?.role === 'admin' ? 'Admin' : 'Citizen'}</span>
+                        <span>{userData?.role === 'admin' ? t('nav_admin') : t('nav_citizen')}</span>
                       </span>
                     </div>
                   </div>
@@ -411,16 +409,16 @@ const Navbar = () => {
                     onClick={handleLogout}
                     className="flex items-center space-x-1.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 text-sm font-medium transition-colors w-full cursor-pointer"
                   >
-                    <LogOut className="w-4 h-4" /><span>Logout</span>
+                    <LogOut className="w-4 h-4" /><span>{t('nav_logout')}</span>
                   </button>
                 </div>
               ) : (
                 <div className="space-y-2">
                   <NavLink to="/login" className={navLinkClass} onClick={closeMobile}>
-                    <LogIn className="w-4 h-4" /><span>Login</span>
+                    <LogIn className="w-4 h-4" /><span>{t('nav_login')}</span>
                   </NavLink>
                   <NavLink to="/signup" className="flex items-center space-x-1.5 px-3.5 py-2 rounded-lg bg-[#0284C7] text-white font-semibold text-sm shadow-xs" onClick={closeMobile}>
-                    <User className="w-4 h-4" /><span>Sign Up</span>
+                    <User className="w-4 h-4" /><span>{t('nav_signup')}</span>
                   </NavLink>
                 </div>
               )}

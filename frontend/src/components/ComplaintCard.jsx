@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ThumbsUp, MapPin, Clock, TrendingUp, ExternalLink, Edit, Trash2, FileDown } from 'lucide-react';
 import StatusTracker from './StatusTracker';
+import { useLanguage } from '../context/LanguageContext';
 
 const categoryColors = {
   pothole: { label: 'Pothole', color: 'text-orange-600 bg-orange-50 border-orange-200' },
@@ -53,6 +54,16 @@ const severityBadges = {
 
 const ComplaintCard = ({ complaint, onAddIssue, onEdit, onDelete, onDownloadPDF, isOwner }) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+
+  const categoryLabels = {
+    pothole: t('card_pothole', 'Pothole'),
+    garbage: t('card_garbage', 'Garbage'),
+    streetlight: t('card_streetlight', 'Streetlight'),
+    'broken streetlight': t('card_streetlight', 'Streetlight'),
+    water: t('card_water', 'Water Leakage'),
+    drainage: t('card_drainage', 'Drainage'),
+  };
 
   const displayAddress = complaint.locationAddress || 
     (complaint.location && Array.isArray(complaint.location)
@@ -62,6 +73,14 @@ const ComplaintCard = ({ complaint, onAddIssue, onEdit, onDelete, onDownloadPDF,
   const activeStatus = statusConfig[complaint.status] || statusConfig['Pending'];
   const pTypeKey = (complaint.problemType || '').toLowerCase();
   const categoryInfo = categoryColors[pTypeKey] || { label: complaint.problemType || 'Issue', color: 'text-sky-700 bg-sky-50 border-sky-200' };
+  const localizedCategoryLabel = categoryLabels[pTypeKey] || complaint.problemType || 'Civic Issue';
+  const localizedStatusLabel = complaint.status === 'Resolved' 
+    ? t('card_status_resolved', 'Resolved') 
+    : complaint.status === 'In Progress' 
+    ? t('card_status_progress', 'In Progress') 
+    : complaint.status === 'Under Review' 
+    ? t('card_status_review', 'Under Review') 
+    : t('card_status_submitted', 'Submitted');
 
   return (
     <motion.div
@@ -88,7 +107,7 @@ const ComplaintCard = ({ complaint, onAddIssue, onEdit, onDelete, onDownloadPDF,
         <div className="absolute top-3 inset-x-3 flex items-center justify-between">
           <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border shadow-2xs backdrop-blur-xs flex items-center gap-1.5 ${activeStatus.badge}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${activeStatus.dot}`} />
-            {activeStatus.label}
+            {localizedStatusLabel}
           </span>
 
           {complaint.severity && (
@@ -105,7 +124,7 @@ const ComplaintCard = ({ complaint, onAddIssue, onEdit, onDelete, onDownloadPDF,
           {/* Category Tag & Title */}
           <div className="flex items-center justify-between mb-1.5">
             <span className={`px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded-md border ${categoryInfo.color}`}>
-              {categoryInfo.label}
+              {localizedCategoryLabel}
             </span>
             <span className="text-[11px] font-mono text-[#6B7280]">
               #{String(complaint.id || complaint._id).slice(-6).toUpperCase()}
@@ -162,7 +181,7 @@ const ComplaintCard = ({ complaint, onAddIssue, onEdit, onDelete, onDownloadPDF,
                   className="flex-1 flex justify-center items-center gap-1 px-2 py-1.5 bg-[#F9FAFB] hover:bg-[#F0F9FF] text-[#334155] hover:text-[#0284C7] rounded-lg text-xs font-semibold transition-colors border border-[#E5E7EB] hover:border-[#BAE6FD]"
                 >
                   <Edit className="w-3.5 h-3.5 text-[#0284C7]" />
-                  <span>Edit</span>
+                  <span>{t('card_edit', 'Edit')}</span>
                 </button>
               )}
               {onDownloadPDF && (
@@ -176,7 +195,7 @@ const ComplaintCard = ({ complaint, onAddIssue, onEdit, onDelete, onDownloadPDF,
                   className="flex-1 flex justify-center items-center gap-1 px-2 py-1.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#16A34A] rounded-lg text-xs font-semibold transition-colors border border-[#BBF7D0]"
                 >
                   <FileDown className="w-3.5 h-3.5" />
-                  <span>PDF</span>
+                  <span>{t('card_pdf', 'PDF')}</span>
                 </button>
               )}
               {onDelete && (
@@ -190,7 +209,7 @@ const ComplaintCard = ({ complaint, onAddIssue, onEdit, onDelete, onDownloadPDF,
                   className="flex-1 flex justify-center items-center gap-1 px-2 py-1.5 bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] rounded-lg text-xs font-semibold transition-colors border border-[#FECACA]"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span>Delete</span>
+                  <span>{t('card_delete', 'Delete')}</span>
                 </button>
               )}
               {onAddIssue && (
@@ -203,7 +222,7 @@ const ComplaintCard = ({ complaint, onAddIssue, onEdit, onDelete, onDownloadPDF,
                   className="flex-1 flex justify-center items-center gap-1 px-2 py-1.5 bg-[#F0F9FF] hover:bg-[#E0F2FE] text-[#0284C7] rounded-lg text-xs font-semibold transition-colors border border-[#BAE6FD]"
                 >
                   <TrendingUp className="w-3.5 h-3.5" />
-                  <span>Add Issue</span>
+                  <span>{t('card_add_issue', 'Add Issue')}</span>
                 </button>
               )}
             </div>

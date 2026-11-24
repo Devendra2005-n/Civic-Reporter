@@ -15,6 +15,7 @@ import {
   FileDown, Edit, User, X, Loader2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const mapContainerStyle = { width: '100%', height: '100%', borderRadius: '12px' };
 const defaultCenter = { lat: 28.6139, lng: 77.2090 };
@@ -61,6 +62,7 @@ const StatCard = ({ value, label, icon: Icon, colorClass, borderClass, bgIconCla
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, userData, isAdmin } = useAuth();
+  const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const [scope, setScope] = useState(searchParams.get('tab') === 'my' ? 'my' : 'all');
   const [complaints, setComplaints] = useState([]);
@@ -309,7 +311,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard 
           value={totalCount} 
-          label="Total Reports" 
+          label={t('dash_stat_total')} 
           icon={Layers} 
           colorClass="text-[#0284C7]"
           borderClass="border-[#BAE6FD]"
@@ -317,7 +319,7 @@ const Dashboard = () => {
         />
         <StatCard 
           value={resolvedCount} 
-          label="Resolved" 
+          label={t('dash_stat_resolved')} 
           icon={CheckCircle2} 
           colorClass="text-[#16A34A]"
           borderClass="border-[#BBF7D0]"
@@ -325,7 +327,7 @@ const Dashboard = () => {
         />
         <StatCard 
           value={inProgressCount} 
-          label="In Progress" 
+          label={t('dash_stat_progress')} 
           icon={Clock} 
           colorClass="text-[#D97706]"
           borderClass="border-[#FDE68A]"
@@ -333,7 +335,7 @@ const Dashboard = () => {
         />
         <StatCard 
           value={underReviewCount} 
-          label="Under Review" 
+          label={t('dash_stat_review')} 
           icon={Hourglass} 
           colorClass="text-[#7C3AED]"
           borderClass="border-[#DDD6FE]"
@@ -368,7 +370,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
                 <BarChart2 className="w-4 h-4 text-[#0284C7]" />
-                <span>Issue Breakdown</span>
+                <span>{t('dash_breakdown_title')}</span>
               </h3>
               <span className="text-xs font-semibold text-[#0284C7] bg-[#F0F9FF] border border-[#BAE6FD] px-2.5 py-0.5 rounded-full">
                 {totalCount} Total
@@ -377,10 +379,10 @@ const Dashboard = () => {
 
             <div className="space-y-3.5">
               {[
-                { name: 'Roads & Potholes', count: potholeCount, color: 'bg-[#F97316]', text: 'text-[#F97316]', icon: AlertTriangle },
-                { name: 'Streetlights', count: streetlightCount, color: 'bg-[#D97706]', text: 'text-[#D97706]', icon: Lightbulb },
-                { name: 'Waste & Sanitation', count: garbageCount, color: 'bg-[#16A34A]', text: 'text-[#16A34A]', icon: Trash2 },
-                { name: 'Water & Drainage', count: waterCount, color: 'bg-[#0284C7]', text: 'text-[#0284C7]', icon: Droplets },
+                { name: t('cat_roads'), count: potholeCount, color: 'bg-[#F97316]', text: 'text-[#F97316]', icon: AlertTriangle },
+                { name: t('cat_streetlights'), count: streetlightCount, color: 'bg-[#D97706]', text: 'text-[#D97706]', icon: Lightbulb },
+                { name: t('cat_sanitation'), count: garbageCount, color: 'bg-[#16A34A]', text: 'text-[#16A34A]', icon: Trash2 },
+                { name: t('cat_drainage'), count: waterCount, color: 'bg-[#0284C7]', text: 'text-[#0284C7]', icon: Droplets },
               ].map((cat) => {
                 const pct = totalCount > 0 ? Math.round((cat.count / totalCount) * 100) : 0;
                 return (
@@ -413,7 +415,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-[#0284C7]" />
-                <span>Municipal Ward Desk</span>
+                <span>{t('dash_ward_desk_title')}</span>
               </h3>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]">
                 Active
@@ -421,19 +423,19 @@ const Dashboard = () => {
             </div>
 
             <p className="text-xs text-[#4B5563] leading-relaxed mb-4">
-              Direct municipal routing is active across all city wards. Standard high-priority resolution turnaround is <strong>under 48 hours</strong>.
+              {t('dash_ward_desk_desc')}
             </p>
 
             <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-3 space-y-2.5 mb-4 text-xs">
               <div className="flex items-center justify-between text-[#334155]">
                 <span className="text-[#6B7280] flex items-center gap-1.5">
-                  <PhoneCall className="w-3.5 h-3.5 text-[#0284C7]" /> Civic Helpline:
+                  <PhoneCall className="w-3.5 h-3.5 text-[#0284C7]" /> {t('dash_helpline')}
                 </span>
                 <span className="font-mono font-bold text-[#0F172A]">1800-123-2484</span>
               </div>
               <div className="flex items-center justify-between text-[#334155]">
                 <span className="text-[#6B7280] flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-[#DC2626]" /> Emergency Services:
+                  <AlertCircle className="w-3.5 h-3.5 text-[#DC2626]" /> {t('dash_emergency')}
                 </span>
                 <span className="font-mono font-bold text-[#DC2626]">112</span>
               </div>
@@ -444,7 +446,7 @@ const Dashboard = () => {
             to="/submit"
             className="w-full py-2.5 px-4 rounded-lg bg-[#F0F9FF] hover:bg-[#E0F2FE] text-[#0284C7] border border-[#BAE6FD] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
           >
-            <span>File a New Grievance</span>
+            <span>{t('dash_file_grievance')}</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -564,7 +566,7 @@ const Dashboard = () => {
                 : 'bg-[#F9FAFB] text-[#4B5563] hover:text-[#0F172A] hover:bg-[#F3F4F6] border border-[#E5E7EB]'
             }`}
           >
-            <span>All City Complaints</span>
+            <span>{t('dash_tab_all')}</span>
             <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${scope === 'all' ? 'bg-white/20 text-white' : 'bg-[#E5E7EB] text-[#4B5563]'}`}>
               {complaints.length}
             </span>
@@ -580,7 +582,7 @@ const Dashboard = () => {
               }`}
             >
               <User className="w-3.5 h-3.5" />
-              <span>My Complaints</span>
+              <span>{t('dash_tab_my')}</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${scope === 'my' ? 'bg-white/20 text-white' : 'bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD]'}`}>
                 {myComplaintsCount}
               </span>
@@ -589,26 +591,31 @@ const Dashboard = () => {
 
           <div className="h-4 w-px bg-[#E5E7EB] mx-1 hidden sm:block" />
           <span className="text-xs text-[#6B7280] hidden sm:inline">
-            ({filtered.length} showing)
+            ({filtered.length} {t('dash_showing')})
           </span>
         </div>
 
         {/* Right: Severity / Status Filter Pills */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs font-medium text-[#6B7280] mr-1 hidden sm:inline">Filter:</span>
-          {['All', 'High', 'Medium', 'Resolved'].map((f) => {
-            const isActive = filter === f;
+          <span className="text-xs font-medium text-[#6B7280] mr-1 hidden sm:inline">{t('dash_filter_label')}</span>
+          {[
+            { key: 'All', label: t('dash_filter_all') },
+            { key: 'High', label: t('dash_filter_high') },
+            { key: 'Medium', label: t('dash_filter_medium') },
+            { key: 'Resolved', label: t('dash_filter_resolved') },
+          ].map(({ key, label }) => {
+            const isActive = filter === key;
             return (
               <button
-                key={f}
-                onClick={() => setFilter(f)}
+                key={key}
+                onClick={() => setFilter(key)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                   isActive
                     ? 'bg-[#0284C7] text-white shadow-xs'
                     : 'bg-[#F9FAFB] text-[#4B5563] hover:text-[#0F172A] hover:bg-[#F3F4F6] border border-[#E5E7EB]'
                 }`}
               >
-                {f}
+                {label}
               </button>
             );
           })}

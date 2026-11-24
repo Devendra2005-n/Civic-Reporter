@@ -8,9 +8,11 @@ import {
   Droplets, Lightbulb, Trash2, ShieldCheck, RefreshCw, Eye
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const Home = () => {
   const { isAdmin } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   // Video streams configuration
@@ -159,9 +161,9 @@ const Home = () => {
                 className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F0F9FF] border border-[#BAE6FD] text-[#0284C7] text-xs font-semibold shadow-xs mb-6 w-fit"
               >
                 <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-ping" />
-                <span>AI-Powered Municipal Intake Engine</span>
+                <span>{t('hero_badge_intake')}</span>
                 <span className="text-[#9CA3AF]">•</span>
-                <span className="text-[#0369A1] hidden sm:inline">Real-Time Ward Dispatch</span>
+                <span className="text-[#0369A1] hidden sm:inline">{t('hero_badge_dispatch')}</span>
                 <ChevronRight className="w-3.5 h-3.5 text-[#0284C7]" />
               </motion.div>
 
@@ -172,9 +174,9 @@ const Home = () => {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0F172A] tracking-tight leading-[1.12] mb-5"
               >
-                Report Civic Issues.{' '}
+                {t('hero_title_1')}{' '}
                 <span className="text-[#0284C7] block sm:inline">
-                  See Action in Hours.
+                  {t('hero_title_2')}
                 </span>
               </motion.h1>
 
@@ -185,7 +187,7 @@ const Home = () => {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 className="text-base sm:text-lg text-[#4B5563] leading-relaxed mb-8 max-w-xl font-normal"
               >
-                Empowering citizens and city departments with automated photo analysis, verified GPS location boundaries, and legal grievance drafting for road hazards, sanitation, and utilities.
+                {t('hero_subtitle')}
               </motion.p>
 
               {/* Action Buttons */}
@@ -201,7 +203,7 @@ const Home = () => {
                     className="px-7 py-3.5 bg-[#0284C7] hover:bg-[#0369A1] text-white font-semibold rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2.5 text-sm sm:text-base group"
                   >
                     <Camera className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
-                    <span>Report an Issue</span>
+                    <span>{t('hero_cta_report')}</span>
                     <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
                   </button>
                 )}
@@ -211,7 +213,7 @@ const Home = () => {
                   className="px-7 py-3.5 bg-white hover:bg-[#F3F4F6] text-[#0F172A] font-semibold rounded-xl border border-[#D1D5DB] hover:border-[#9CA3AF] shadow-xs transition-all flex items-center justify-center gap-2.5 text-sm sm:text-base"
                 >
                   <Map className="w-4 h-4 text-[#0284C7]" />
-                  <span>View Public Dashboard</span>
+                  <span>{t('hero_cta_dashboard')}</span>
                 </button>
               </motion.div>
 
@@ -238,8 +240,8 @@ const Home = () => {
                 </div>
 
                 <div className="text-xs">
-                  <p className="font-bold text-[#0F172A]">Joined by 8,000+ Active Citizens</p>
-                  <p className="text-[#6B7280]">100% Free · Direct municipal accountability</p>
+                  <p className="font-bold text-[#0F172A]">{t('hero_citizens_count')}</p>
+                  <p className="text-[#6B7280]">{t('hero_free_text')}</p>
                 </div>
               </motion.div>
 
@@ -264,7 +266,7 @@ const Home = () => {
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#DC2626] animate-pulse" />
                     <span className="text-xs font-bold text-[#0F172A] tracking-tight uppercase">
-                      Live Issue Feed
+                      {t('live_feed')}
                     </span>
                     <span className="text-[11px] font-mono text-[#6B7280]">
                       ({activeClip.ward})
@@ -375,12 +377,12 @@ const Home = () => {
                   </div>
                   <div className="text-left pr-1">
                     <span className="text-[10px] font-bold uppercase text-[#16A34A] block">
-                      ✓ Road Paved
+                      ✓ {t('status_road_paved')}
                     </span>
                     <p className="text-[11px] font-bold text-[#0F172A] leading-tight">
-                      Ward 08 Cleaned
+                      {t('status_ward_cleaned')}
                     </p>
-                    <p className="text-[10px] text-[#6B7280]">Resolved in 24h</p>
+                    <p className="text-[10px] text-[#6B7280]">{t('status_resolved_24h')}</p>
                   </div>
                 </motion.div>
 
@@ -394,34 +396,43 @@ const Home = () => {
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div className="text-left">
-                    <p className="text-xs font-bold text-[#0F172A]">Official Municipal Route</p>
-                    <p className="text-[11px] text-[#6B7280]">Auto-drafted RTI petition</p>
+                    <p className="text-xs font-bold text-[#0F172A]">{t('legal_route')}</p>
+                    <p className="text-[11px] text-[#6B7280]">{t('legal_route_sub')}</p>
                   </div>
                 </motion.div>
 
                 {/* Video Switcher Tabs (Click to swap the main square video) */}
                 <div className="mt-3 pt-3 border-t border-[#E5E7EB]">
                   <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider mb-2 text-left px-1">
-                    Select Live Incident Video:
+                    {t('select_incident')}
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                    {videoClips.map((clip, index) => (
-                      <button
-                        key={clip.id}
-                        onClick={() => setActiveClipIndex(index)}
-                        className={`px-2 py-1.5 rounded-xl text-xs font-semibold transition-all text-left flex items-center gap-1.5 ${
-                          activeClipIndex === index
-                            ? 'bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD] shadow-xs'
-                            : 'bg-[#F9FAFB] text-[#4B5563] border border-[#E5E7EB] hover:bg-[#F3F4F6]'
-                        }`}
-                      >
-                        <span 
-                          className="w-2 h-2 rounded-full shrink-0" 
-                          style={{ backgroundColor: clip.accentColor }} 
-                        />
-                        <span className="truncate">{clip.id.charAt(0).toUpperCase() + clip.id.slice(1)}</span>
-                      </button>
-                    ))}
+                    {videoClips.map((clip, index) => {
+                      const categoryNameMap = {
+                        roads: t('cat_roads'),
+                        sanitation: t('cat_sanitation'),
+                        streetlights: t('cat_streetlights'),
+                        drainage: t('cat_drainage'),
+                      };
+                      const localizedCategoryName = categoryNameMap[clip.id] || (clip.id.charAt(0).toUpperCase() + clip.id.slice(1));
+                      return (
+                        <button
+                          key={clip.id}
+                          onClick={() => setActiveClipIndex(index)}
+                          className={`px-2 py-1.5 rounded-xl text-xs font-semibold transition-all text-left flex items-center gap-1.5 ${
+                            activeClipIndex === index
+                              ? 'bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD] shadow-xs'
+                              : 'bg-[#F9FAFB] text-[#4B5563] border border-[#E5E7EB] hover:bg-[#F3F4F6]'
+                          }`}
+                        >
+                          <span 
+                            className="w-2 h-2 rounded-full shrink-0" 
+                            style={{ backgroundColor: clip.accentColor }} 
+                          />
+                          <span className="truncate">{localizedCategoryName}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 

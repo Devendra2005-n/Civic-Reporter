@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getComplaintById, upvoteComplaint, citizenResolveComplaint, uploadImage } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { ThumbsUp, MapPin, ArrowLeft, Clock, AlertTriangle, Image as ImageIcon, CheckCircle2, Building2, Shield, Download, Globe, Heart, X, ChevronLeft, ChevronRight, Share2, Maximize2, Copy, Check, FileText, Trophy, Loader2 } from 'lucide-react';
 import StatusTracker from '../components/StatusTracker';
 import MagneticButton from '../components/MagneticButton';
@@ -23,6 +24,7 @@ const Details = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const { t } = useLanguage();
   const [complaint, setComplaint] = useState(null);
   const [loading, setLoading] = useState(true);
   const [upvoting, setUpvoting] = useState(false);
@@ -340,7 +342,7 @@ const Details = () => {
               whileTap={{ scale: 0.98 }}
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-              <span>Back</span>
+              <span>{t('details_back')}</span>
             </motion.button>
           </MagneticButton>
 
@@ -371,7 +373,7 @@ const Details = () => {
                 ? 'bg-amber-50 text-amber-700 border-amber-200'
                 : 'bg-emerald-50 text-emerald-700 border-emerald-200'
           }`}>
-            {complaint.severity || 'Medium'} Priority
+            {complaint.severity || 'Medium'} {t('details_priority')}
           </span>
 
           {/* Status Badge */}
@@ -393,7 +395,7 @@ const Details = () => {
             className="flex items-center gap-1.5 bg-white hover:bg-[#F0F9FF] px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#0284C7] transition-all border border-[#E5E7EB] hover:border-[#BAE6FD] shadow-xs cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Download Petition PDF</span>
+            <span>{t('details_download_pdf')}</span>
           </button>
         </div>
       </div>
@@ -424,7 +426,7 @@ const Details = () => {
                     }`}
                   >
                     <ImageIcon className="w-3.5 h-3.5" />
-                    <span>Before</span>
+                    <span>{t('details_before')}</span>
                   </button>
                   <button 
                     onClick={() => setShowAfterImage(true)}
@@ -435,7 +437,7 @@ const Details = () => {
                     }`}
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>After (Resolved) ✨</span>
+                    <span>{t('details_after')}</span>
                   </button>
                 </div>
               </div>
@@ -467,7 +469,7 @@ const Details = () => {
               <div className="absolute inset-0 bg-black/30 backdrop-blur-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-[#0F172A] text-xs font-bold shadow-md">
                   <Maximize2 className="w-4 h-4 text-[#0284C7]" />
-                  <span>Click to Enlarge</span>
+                  <span>{t('details_enlarge')}</span>
                 </div>
               </div>
             </div>
@@ -495,7 +497,7 @@ const Details = () => {
           {/* Authority, Department & Location Cards */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-xs space-y-3">
             <h4 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">
-              Municipal Ward & Routing Desk
+              {t('details_ward_desk')}
             </h4>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -505,7 +507,7 @@ const Details = () => {
                     {authorityLabel.icon}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] text-[#0284C7] font-semibold uppercase tracking-wider">Authority</p>
+                    <p className="text-[10px] text-[#0284C7] font-semibold uppercase tracking-wider">{t('details_authority')}</p>
                     <p className="text-xs font-bold text-[#0F172A] truncate">{complaint.authorityBody}</p>
                   </div>
                 </div>
@@ -517,7 +519,7 @@ const Details = () => {
                     <Building2 className="w-4 h-4 text-[#0284C7]" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] text-[#6B7280] font-semibold uppercase tracking-wider">Department</p>
+                    <p className="text-[10px] text-[#6B7280] font-semibold uppercase tracking-wider">{t('details_department')}</p>
                     <p className="text-xs font-bold text-[#0F172A] truncate">{complaint.department}</p>
                   </div>
                 </div>
@@ -528,7 +530,7 @@ const Details = () => {
             <div className="flex items-start gap-2 pt-2 border-t border-[#F3F4F6] text-xs text-[#4B5563]">
               <MapPin className="w-4 h-4 text-[#0284C7] shrink-0 mt-0.5" />
               <span className="leading-relaxed">
-                <strong className="text-[#0F172A]">Location:</strong> {complaint.locationAddress || 'Ward Coordinates recorded'}
+                <strong className="text-[#0F172A]">{t('details_location')}</strong> {complaint.locationAddress || 'Ward Coordinates recorded'}
               </span>
             </div>
           </div>
@@ -540,10 +542,10 @@ const Details = () => {
               <div>
                 <p className="font-bold text-xs text-[#0F172A] flex items-center gap-1.5">
                   <Heart className="w-4 h-4 text-[#EF4444] fill-current" />
-                  <span>Support this Civic Issue</span>
+                  <span>{t('details_support_title')}</span>
                 </p>
                 <p className="text-[11px] text-[#6B7280] mt-0.5">
-                  {hasUpvoted ? 'You supported this issue! Upvotes prioritize ward action.' : 'Upvotes flag issues to municipal officers with higher priority.'}
+                  {hasUpvoted ? t('details_support_active') : t('details_support_desc')}
                 </p>
               </div>
               
@@ -557,7 +559,7 @@ const Details = () => {
                 }`}
               >
                 <Heart className={`w-3.5 h-3.5 ${hasUpvoted ? 'fill-current' : ''}`} />
-                <span>{hasUpvoted ? 'Supported' : 'Support'}</span>
+                <span>{hasUpvoted ? t('details_supported') : t('details_support_btn')}</span>
                 <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-mono">{complaint.upvotes || 0}</span>
               </button>
             </div>
@@ -571,9 +573,9 @@ const Details = () => {
                       <Trophy className="w-4 h-4 text-[#D97706]" />
                     </div>
                     <div>
-                      <h3 className="text-xs font-bold text-[#92400E]">Solved by Community Hero</h3>
+                      <h3 className="text-xs font-bold text-[#92400E]">{t('details_hero_title')}</h3>
                       <p className="text-xs text-[#B45309]">
-                        <strong>{complaint.resolvedByUserName}</strong> resolved this issue for the community!
+                        <strong>{complaint.resolvedByUserName}</strong> {t('details_hero_sub')}
                       </p>
                       {complaint.resolutionRemarks && (
                         <p className="text-[11px] text-[#92400E] mt-1 italic">"{complaint.resolutionRemarks}"</p>
@@ -586,8 +588,8 @@ const Details = () => {
                       <CheckCircle2 className="w-4 h-4 text-[#16A34A]" />
                     </div>
                     <div>
-                      <h3 className="text-xs font-bold text-[#166534]">Resolved by Municipal Authority</h3>
-                      <p className="text-xs text-[#15803D]">This issue was officially inspected and resolved by municipal teams.</p>
+                      <h3 className="text-xs font-bold text-[#166534]">{t('details_hero_auth')}</h3>
+                      <p className="text-xs text-[#15803D]">{t('details_hero_auth_desc')}</p>
                     </div>
                   </div>
                 )
@@ -596,10 +598,10 @@ const Details = () => {
                   <div>
                     <p className="font-bold text-xs text-[#0F172A] flex items-center gap-1.5">
                       <Trophy className="w-4 h-4 text-[#0284C7]" />
-                      <span>Did you solve this?</span>
+                      <span>{t('details_did_you_solve')}</span>
                     </p>
                     <p className="text-[11px] text-[#0369A1] mt-0.5">
-                      If you or the community fixed this, claim credit as a Community Hero!
+                      {t('details_did_you_solve_desc')}
                     </p>
                   </div>
                   <button 
@@ -610,7 +612,7 @@ const Details = () => {
                     className="px-3.5 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>I Solved This!</span>
+                    <span>{t('details_claim_btn')}</span>
                   </button>
                 </div>
               )}
@@ -649,7 +651,7 @@ const Details = () => {
             {/* Status Timeline */}
             <div className="pt-3 border-t border-[#F3F4F6]">
               <p className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider mb-2.5">
-                Resolution Lifecycle
+                {t('details_lifecycle')}
               </p>
               <StatusTracker status={complaint.status} />
             </div>
@@ -661,7 +663,7 @@ const Details = () => {
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-[#0284C7]" />
                 <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">
-                  Formal Complaint Letter
+                  {t('details_letter_title')}
                 </h3>
               </div>
               <button 
@@ -685,7 +687,7 @@ const Details = () => {
               <div className="pt-2 border-t border-[#F3F4F6]">
                 <h4 className="text-xs font-bold flex items-center gap-1.5 text-[#0F172A] uppercase tracking-wider mb-2">
                   <Globe className="w-3.5 h-3.5 text-[#0284C7]" />
-                  <span>Translated Regional Version</span>
+                  <span>{t('details_translated_title')}</span>
                 </h4>
                 <div className="bg-[#F9FAFB] p-3.5 rounded-xl border border-[#E5E7EB] border-l-4 border-l-[#F97316] text-[#334155] text-xs max-h-[220px] overflow-y-auto whitespace-pre-wrap leading-relaxed">
                   {complaint.translatedLetter}
@@ -697,7 +699,7 @@ const Details = () => {
             {complaint.additionalIssues && complaint.additionalIssues.length > 0 && (
               <div className="pt-2 border-t border-[#F3F4F6] space-y-2">
                 <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">
-                  Citizen Activity & Updates
+                  {t('details_citizen_updates')}
                 </h4>
                 <div className="space-y-2">
                   {complaint.additionalIssues.map((issue, idx) => (

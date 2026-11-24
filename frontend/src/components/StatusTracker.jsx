@@ -1,14 +1,16 @@
 import { CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const steps = [
-  { key: 'Pending', label: 'Submitted', icon: AlertTriangle, activeColor: 'text-[#0284C7]', activeBg: 'bg-[#EFF6FF]', activeBorder: 'border-[#BAE6FD]' },
-  { key: 'In Progress', label: 'In Progress', icon: Clock, activeColor: 'text-[#D97706]', activeBg: 'bg-[#FFFBEB]', activeBorder: 'border-[#FDE68A]' },
-  { key: 'Resolved', label: 'Resolved', icon: CheckCircle2, activeColor: 'text-[#16A34A]', activeBg: 'bg-[#F0FDF4]', activeBorder: 'border-[#BBF7D0]' },
+  { key: 'Pending', labelKey: 'track_submitted', defaultLabel: 'Submitted', icon: AlertTriangle, activeColor: 'text-[#0284C7]', activeBg: 'bg-[#EFF6FF]', activeBorder: 'border-[#BAE6FD]' },
+  { key: 'In Progress', labelKey: 'track_progress', defaultLabel: 'In Progress', icon: Clock, activeColor: 'text-[#D97706]', activeBg: 'bg-[#FFFBEB]', activeBorder: 'border-[#FDE68A]' },
+  { key: 'Resolved', labelKey: 'track_resolved', defaultLabel: 'Resolved', icon: CheckCircle2, activeColor: 'text-[#16A34A]', activeBg: 'bg-[#F0FDF4]', activeBorder: 'border-[#BBF7D0]' },
 ];
 
 const statusIndex = { 'Pending': 0, 'In Progress': 1, 'Resolved': 2 };
 
 const StatusTracker = ({ status = 'Pending', compact = false }) => {
+  const { t } = useLanguage();
   const currentIdx = statusIndex[status] ?? 0;
 
   if (compact) {
@@ -72,7 +74,7 @@ const StatusTracker = ({ status = 'Pending', compact = false }) => {
                   isCurrent ? 'text-[#0F172A] font-semibold' : isActive ? 'text-[#475569]' : 'text-[#94A3B8]'
                 }`}
               >
-                {step.label}
+                {t(step.labelKey, step.defaultLabel)}
               </span>
             </div>
             {idx < steps.length - 1 && (
