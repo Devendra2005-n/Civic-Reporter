@@ -32,15 +32,15 @@ const LocationDetector = ({ status, source, address, onManualSelect }) => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex items-center space-x-3"
+          className="bg-[#F0F9FF] border border-[#BAE6FD] rounded-xl p-4 flex items-center space-x-3 shadow-sm"
         >
           <div className="relative">
-            <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-            <MapPin className="w-4 h-4 text-blue-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            <div className="w-8 h-8 border-2 border-[#0284C7] border-t-transparent rounded-full animate-spin" />
+            <MapPin className="w-4 h-4 text-[#0284C7] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-blue-300">Detecting location from photo...</p>
-            <p className="text-xs text-blue-400/60 mt-0.5">Scanning EXIF metadata, GPS tags, and Plus Codes</p>
+            <p className="text-sm font-semibold text-[#0369A1]">Detecting location from photo...</p>
+            <p className="text-xs text-[#0284C7]/80 mt-0.5">Scanning EXIF metadata, GPS tags, and Plus Codes</p>
           </div>
         </motion.div>
       )}
@@ -48,34 +48,28 @@ const LocationDetector = ({ status, source, address, onManualSelect }) => {
       {status === 'found' && (
         <motion.div
           key="found"
-          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+          initial={{ opacity: 0, y: -10, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="bg-emerald-500/10 border border-emerald-500/25 rounded-xl p-4 space-y-3"
+          className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-xl p-4 space-y-3 shadow-sm"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-              <span className="text-sm font-bold text-emerald-300">📍 Location auto-detected from photo</span>
+              <CheckCircle2 className="w-5 h-5 text-[#16A34A]" />
+              <span className="text-sm font-bold text-[#166534]">📍 Location auto-detected from photo</span>
             </div>
-            <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold bg-${sourceInfo.color}-500/20 text-${sourceInfo.color}-300 border border-${sourceInfo.color}-500/30`}
-              style={{
-                backgroundColor: `var(--source-bg, rgba(16, 185, 129, 0.15))`,
-                color: `var(--source-text, rgb(110, 231, 183))`,
-                borderColor: `var(--source-border, rgba(16, 185, 129, 0.3))`,
-              }}
-            >
-              {sourceInfo.icon} Source: {sourceInfo.label}
+            <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-white text-[#16A34A] border border-[#BBF7D0]">
+              {sourceInfo.icon} {sourceInfo.label}
             </span>
           </div>
 
           {address?.fullAddress && (
-            <p className="text-xs text-gray-400 pl-7 line-clamp-2">{address.fullAddress}</p>
+            <p className="text-xs text-[#334155] pl-7 line-clamp-2">{address.fullAddress}</p>
           )}
 
           <div className="flex items-center justify-between pl-7">
-            <div className="flex items-center space-x-4 text-[11px] text-gray-500">
+            <div className="flex items-center space-x-4 text-[11px] text-[#6B7280]">
               {address?.city && <span>🏙️ {address.city}</span>}
               {address?.district && <span>📍 {address.district}</span>}
               {address?.state && <span>🗺️ {address.state}</span>}
@@ -84,7 +78,7 @@ const LocationDetector = ({ status, source, address, onManualSelect }) => {
               <button
                 type="button"
                 onClick={onManualSelect}
-                className="text-[11px] text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors"
+                className="text-[11px] text-[#0284C7] hover:text-[#0369A1] font-medium underline underline-offset-2 transition-colors"
               >
                 Wrong location? Change manually
               </button>
@@ -99,13 +93,13 @@ const LocationDetector = ({ status, source, address, onManualSelect }) => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4 flex items-center justify-between"
+          className="bg-[#FFFBEB] border border-[#FDE68A] rounded-xl p-4 flex items-center justify-between shadow-sm"
         >
           <div className="flex items-center space-x-3">
-            <AlertCircle className="w-5 h-5 text-orange-400" />
+            <AlertCircle className="w-5 h-5 text-[#D97706]" />
             <div>
-              <p className="text-sm font-semibold text-orange-300">📍 No location found in photo</p>
-              <p className="text-xs text-orange-400/60 mt-0.5">Using your browser location instead. You can drag the map marker to adjust.</p>
+              <p className="text-sm font-semibold text-[#92400E]">📍 No location found in photo</p>
+              <p className="text-xs text-[#B45309] mt-0.5">Using your browser location instead. You can drag the map marker to adjust.</p>
             </div>
           </div>
         </motion.div>
@@ -117,10 +111,10 @@ const LocationDetector = ({ status, source, address, onManualSelect }) => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-center space-x-3"
+          className="bg-[#FEF2F2] border border-[#FECACA] rounded-xl p-3 flex items-center space-x-3 shadow-sm"
         >
-          <AlertCircle className="w-4 h-4 text-red-400" />
-          <p className="text-xs text-red-300">Location detection failed. Using browser location as fallback.</p>
+          <AlertCircle className="w-4 h-4 text-[#DC2626]" />
+          <p className="text-xs text-[#991B1B]">Location detection failed. Using browser location as fallback.</p>
         </motion.div>
       )}
     </AnimatePresence>

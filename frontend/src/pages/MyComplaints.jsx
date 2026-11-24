@@ -43,10 +43,10 @@ const MyComplaints = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-36 text-white">
+      <div className="min-h-screen flex items-center justify-center pt-36 text-[#334155]">
         <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-          <p className="text-gray-400">Loading your complaints...</p>
+          <Loader2 className="w-10 h-10 text-[#0284C7] animate-spin" />
+          <p className="text-sm text-[#6B7280]">Loading your complaints...</p>
         </div>
       </div>
     );
@@ -126,41 +126,41 @@ const MyComplaints = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
         <div className="flex items-center space-x-4">
-          <div className="p-3 bg-purple-500/20 rounded-xl border border-purple-500/30">
-            <FileText className="w-8 h-8 text-purple-400" />
+          <div className="p-3 bg-[#F0F9FF] rounded-xl border border-[#BAE6FD]">
+            <FileText className="w-7 h-7 text-[#0284C7]" />
           </div>
           <div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              My <span className="text-gradient">Complaints</span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0F172A]">
+              My <span className="text-[#0284C7]">Complaints</span>
             </h1>
-            <p className="text-gray-400 mt-1">
+            <p className="text-[#6B7280] text-sm mt-0.5">
               Track your reported issues and community contributions.
             </p>
           </div>
         </div>
         
         {/* Community Hero Stats */}
-        <div className="bg-yellow-500/10 border border-yellow-500/30 px-6 py-4 rounded-2xl flex items-center gap-4 shrink-0">
-          <div className="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center">
-            <Trophy className="w-6 h-6 text-yellow-400" />
+        <div className="bg-[#FFFBEB] border border-[#FDE68A] px-5 py-3.5 rounded-2xl flex items-center gap-3.5 shrink-0 shadow-sm">
+          <div className="w-10 h-10 bg-white border border-[#FDE68A] rounded-full flex items-center justify-center">
+            <Trophy className="w-5 h-5 text-[#D97706]" />
           </div>
           <div>
-            <p className="text-sm text-yellow-400/80 font-medium">Community Hero</p>
-            <p className="text-2xl font-bold text-yellow-400">{solvedCount} <span className="text-sm font-normal text-gray-400">Issues Solved</span></p>
+            <p className="text-xs text-[#92400E] font-medium">Community Hero</p>
+            <p className="text-xl font-bold text-[#D97706]">{solvedCount} <span className="text-xs font-normal text-[#B45309]">Issues Solved</span></p>
           </div>
         </div>
       </div>
 
       {/* Search Bar */}
-      <div className="mb-8">
+      <div className="mb-6">
         <div className="relative max-w-md w-full">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="w-5 h-5 text-gray-400" />
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <Search className="w-4 h-4 text-[#9CA3AF]" />
           </div>
           <input
             type="text"
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
-            placeholder="Search by Complaint ID..."
+            className="w-full bg-white border border-[#D1D5DB] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#0F172A] placeholder-[#9CA3AF] focus:outline-none focus:border-[#0284C7] focus:ring-1 focus:ring-[#0284C7] shadow-sm transition-all"
+            placeholder="Search by Complaint ID or type..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -169,27 +169,27 @@ const MyComplaints = () => {
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-[#0B0F19] border border-white/10 rounded-2xl p-4 text-center">
-          <p className="text-2xl font-extrabold text-blue-400">{complaints.length}</p>
-          <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">Total Filed</p>
+        <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 text-center shadow-sm">
+          <p className="text-2xl font-extrabold text-[#0284C7]">{complaints.length}</p>
+          <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider mt-1">Total Filed</p>
         </div>
-        <div className="bg-[#0B0F19] border border-white/10 rounded-2xl p-4 text-center">
-          <p className="text-2xl font-extrabold text-orange-400">
+        <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 text-center shadow-sm">
+          <p className="text-2xl font-extrabold text-[#D97706]">
             {complaints.filter(c => c.status === 'Pending').length}
           </p>
-          <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">Pending</p>
+          <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider mt-1">Pending</p>
         </div>
-        <div className="bg-[#0B0F19] border border-white/10 rounded-2xl p-4 text-center">
-          <p className="text-2xl font-extrabold text-sky-400">
+        <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 text-center shadow-sm">
+          <p className="text-2xl font-extrabold text-[#0284C7]">
             {complaints.filter(c => c.status === 'In Progress').length}
           </p>
-          <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">In Progress</p>
+          <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider mt-1">In Progress</p>
         </div>
-        <div className="bg-[#0B0F19] border border-white/10 rounded-2xl p-4 text-center">
-          <p className="text-2xl font-extrabold text-green-400">
+        <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 text-center shadow-sm">
+          <p className="text-2xl font-extrabold text-[#16A34A]">
             {complaints.filter(c => c.status === 'Resolved').length}
           </p>
-          <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">Resolved</p>
+          <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider mt-1">Resolved</p>
         </div>
       </div>
 
@@ -198,21 +198,21 @@ const MyComplaints = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#0B0F19] rounded-2xl p-12 text-center border border-dashed border-red-500/30"
+          className="bg-[#FEF2F2] rounded-2xl p-12 text-center border border-[#FECACA] shadow-sm"
         >
-          <p className="text-red-400 text-lg">{error}</p>
+          <p className="text-[#DC2626] text-base font-semibold">{error}</p>
         </motion.div>
       ) : complaints.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#0B0F19] rounded-2xl p-16 text-center border border-dashed border-white/20"
+          className="bg-white rounded-2xl p-16 text-center border border-dashed border-[#D1D5DB] shadow-sm"
         >
-          <Inbox className="w-16 h-16 mx-auto mb-6 text-gray-600" />
-          <h3 className="text-2xl font-bold text-gray-300 mb-2">No complaints yet</h3>
-          <p className="text-gray-500 max-w-md mx-auto">
+          <Inbox className="w-14 h-14 mx-auto mb-4 text-[#9CA3AF]" />
+          <h3 className="text-xl font-bold text-[#0F172A] mb-1.5">No complaints yet</h3>
+          <p className="text-[#6B7280] text-sm max-w-md mx-auto">
             You haven't reported any civic issues yet. Head over to the{' '}
-            <a href="/submit" className="text-blue-400 hover:text-blue-300 underline transition-colors">
+            <a href="/submit" className="text-[#0284C7] hover:text-[#0369A1] font-semibold underline transition-colors">
               Report Issue
             </a>{' '}
             page to file your first complaint.
@@ -255,23 +255,23 @@ const MyComplaints = () => {
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           >
             <motion.div 
-              initial={{ scale: 0.9, y: 20 }}
+              initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-[#0B0F19] p-8 rounded-3xl w-full max-w-md border border-white/10 shadow-2xl relative"
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-white p-6 sm:p-8 rounded-2xl w-full max-w-md border border-[#E5E7EB] shadow-2xl relative text-[#0F172A]"
             >
               <button 
                 onClick={() => setSelectedComplaint(null)} 
-                className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors"
+                className="absolute top-5 right-5 text-[#6B7280] hover:text-[#0F172A] transition-colors"
               >
                 <X className="w-5 h-5"/>
               </button>
               
-              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                <PlusCircle className="w-6 h-6 text-purple-400" />
+              <h3 className="text-xl font-bold text-[#0F172A] mb-1 flex items-center gap-2">
+                <PlusCircle className="w-5 h-5 text-[#0284C7]" />
                 Add New Issue
               </h3>
-              <p className="text-sm text-gray-400 mb-6">
+              <p className="text-xs text-[#6B7280] mb-5">
                 Add an update or report an additional related issue for this complaint.
               </p>
 
@@ -279,12 +279,12 @@ const MyComplaints = () => {
                 value={newIssueText} 
                 onChange={(e) => setNewIssueText(e.target.value)} 
                 placeholder="Describe the new issue or update..." 
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none h-32 mb-4" 
+                className="w-full bg-white border border-[#D1D5DB] rounded-xl px-3.5 py-2.5 text-xs text-[#0F172A] placeholder-[#9CA3AF] focus:outline-none focus:border-[#0284C7] focus:ring-1 focus:ring-[#0284C7] resize-none h-28 mb-4" 
               />
 
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4" />
+              <div className="mb-5">
+                <label className="block text-xs font-semibold text-[#4B5563] mb-1.5 flex items-center gap-1.5">
+                  <ImageIcon className="w-3.5 h-3.5 text-[#0284C7]" />
                   Attach an Image (Optional)
                 </label>
                 <input
@@ -297,17 +297,17 @@ const MyComplaints = () => {
                       setNewIssueImagePreview(URL.createObjectURL(file));
                     }
                   }}
-                  className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30 transition-all cursor-pointer"
+                  className="w-full text-xs text-[#6B7280] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#F0F9FF] file:text-[#0284C7] hover:file:bg-[#E0F2FE] transition-all cursor-pointer"
                 />
                 {newIssueImagePreview && (
-                  <div className="mt-3 relative w-32 h-32 rounded-xl overflow-hidden border border-white/10">
+                  <div className="mt-2.5 relative w-28 h-28 rounded-xl overflow-hidden border border-[#E5E7EB]">
                     <img src={newIssueImagePreview} alt="Preview" className="w-full h-full object-cover" />
                     <button
                       onClick={() => {
                         setNewIssueImage(null);
                         setNewIssueImagePreview(null);
                       }}
-                      className="absolute top-1 right-1 bg-black/50 p-1 rounded-full text-white hover:bg-black/70 transition-colors"
+                      className="absolute top-1.5 right-1.5 bg-black/60 p-1 rounded-full text-white hover:bg-black/80 transition-colors"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -315,14 +315,14 @@ const MyComplaints = () => {
                 )}
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 <button 
                   onClick={() => {
                     setSelectedComplaint(null);
                     setNewIssueImage(null);
                     setNewIssueImagePreview(null);
                   }} 
-                  className="flex-1 py-3 px-4 rounded-xl font-bold border border-white/10 text-white hover:bg-white/5 transition-colors"
+                  className="flex-1 py-2.5 px-4 rounded-xl font-semibold text-xs border border-[#D1D5DB] text-[#334155] hover:bg-[#F9FAFB] transition-colors"
                   disabled={isSubmittingIssue}
                 >
                   Cancel
@@ -330,9 +330,9 @@ const MyComplaints = () => {
                 <button 
                   onClick={handleAddIssueSubmit} 
                   disabled={isSubmittingIssue}
-                  className="flex-1 py-3 px-4 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl shadow-lg transition-colors flex items-center justify-center"
+                  className="flex-1 py-2.5 px-4 bg-[#0284C7] hover:bg-[#0369A1] text-white font-semibold text-xs rounded-xl shadow-sm transition-colors flex items-center justify-center"
                 >
-                  {isSubmittingIssue ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit'}
+                  {isSubmittingIssue ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit'}
                 </button>
               </div>
             </motion.div>
@@ -350,50 +350,50 @@ const MyComplaints = () => {
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           >
             <motion.div 
-              initial={{ scale: 0.9, y: 20 }}
+              initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-[#0B0F19] p-8 rounded-3xl w-full max-w-md border border-white/10 shadow-2xl relative max-h-[90vh] overflow-y-auto"
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-white p-6 sm:p-8 rounded-2xl w-full max-w-md border border-[#E5E7EB] shadow-2xl relative max-h-[90vh] overflow-y-auto text-[#0F172A]"
             >
               <button 
                 onClick={() => setSelectedEditComplaint(null)} 
-                className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors"
+                className="absolute top-5 right-5 text-[#6B7280] hover:text-[#0F172A] transition-colors"
               >
                 <X className="w-5 h-5"/>
               </button>
               
-              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                <Edit className="w-6 h-6 text-blue-400" />
+              <h3 className="text-xl font-bold text-[#0F172A] mb-1 flex items-center gap-2">
+                <Edit className="w-5 h-5 text-[#0284C7]" />
                 Edit Complaint
               </h3>
-              <p className="text-sm text-gray-400 mb-6">
+              <p className="text-xs text-[#6B7280] mb-5">
                 Update the main details of your civic issue.
               </p>
 
               <div className="space-y-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Issue Category/Title</label>
+                  <label className="block text-xs font-semibold text-[#4B5563] mb-1">Issue Category/Title</label>
                   <input 
                     type="text"
                     value={editFormData.problemType} 
                     onChange={(e) => setEditFormData({...editFormData, problemType: e.target.value})} 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50" 
+                    className="w-full bg-white border border-[#D1D5DB] rounded-xl px-3.5 py-2.5 text-xs text-[#0F172A] placeholder-[#9CA3AF] focus:outline-none focus:border-[#0284C7] focus:ring-1 focus:ring-[#0284C7]" 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Description</label>
+                  <label className="block text-xs font-semibold text-[#4B5563] mb-1">Description</label>
                   <textarea 
                     value={editFormData.description} 
                     onChange={(e) => setEditFormData({...editFormData, description: e.target.value})} 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none h-40" 
+                    className="w-full bg-white border border-[#D1D5DB] rounded-xl px-3.5 py-2.5 text-xs text-[#0F172A] placeholder-[#9CA3AF] focus:outline-none focus:border-[#0284C7] focus:ring-1 focus:ring-[#0284C7] resize-none h-32" 
                   />
                 </div>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 <button 
                   onClick={() => setSelectedEditComplaint(null)} 
-                  className="flex-1 py-3 px-4 rounded-xl font-bold border border-white/10 text-white hover:bg-white/5 transition-colors"
+                  className="flex-1 py-2.5 px-4 rounded-xl font-semibold text-xs border border-[#D1D5DB] text-[#334155] hover:bg-[#F9FAFB] transition-colors"
                   disabled={isSubmittingEdit}
                 >
                   Cancel
@@ -401,9 +401,9 @@ const MyComplaints = () => {
                 <button 
                   onClick={handleEditSubmit} 
                   disabled={isSubmittingEdit}
-                  className="flex-1 py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl shadow-lg transition-colors flex items-center justify-center"
+                  className="flex-1 py-2.5 px-4 bg-[#0284C7] hover:bg-[#0369A1] text-white font-semibold text-xs rounded-xl shadow-sm transition-colors flex items-center justify-center"
                 >
-                  {isSubmittingEdit ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Changes'}
+                  {isSubmittingEdit ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
                 </button>
               </div>
             </motion.div>

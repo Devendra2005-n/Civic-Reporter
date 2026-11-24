@@ -114,78 +114,46 @@ const DuplicateModal = ({
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed inset-0 flex items-center justify-center z-[101] p-4"
           >
-            <div className="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-3xl relative">
-              {/* Animated gradient border effect */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-500/30 via-orange-500/30 to-red-500/30 blur-sm animate-pulse" />
-              
-              <div className="relative bg-[#0d1117] border border-white/10 rounded-3xl overflow-hidden">
+            <div className="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl relative shadow-2xl bg-white border border-[#E5E7EB]">
+              <div className="relative bg-white rounded-2xl overflow-hidden">
                 {/* Header Section */}
-                <div className="relative overflow-hidden">
-                  {/* Animated background effect */}
-                  <div className="absolute inset-0">
-                    <motion.div
-                      className="absolute top-0 right-0 w-64 h-64 bg-amber-500/15 rounded-full blur-[80px]"
-                      animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-                      transition={{ duration: 3, repeat: Infinity }}
-                    />
-                    <motion.div
-                      className="absolute bottom-0 left-0 w-48 h-48 bg-orange-500/15 rounded-full blur-[60px]"
-                      animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
-                      transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-                    />
+                <div className="relative px-8 pt-8 pb-5 border-b border-[#E5E7EB]">
+                  {/* Close button */}
+                  <button
+                    onClick={onClose}
+                    className="absolute top-5 right-5 w-9 h-9 rounded-xl bg-[#F3F4F6] hover:bg-[#E5E7EB] flex items-center justify-center transition-all group"
+                  >
+                    <X className="w-4 h-4 text-[#6B7280] group-hover:text-[#0F172A] transition-colors" />
+                  </button>
+
+                  {/* Icon + Title */}
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] flex items-center justify-center flex-shrink-0">
+                      <AlertTriangle className="w-6 h-6 text-[#D97706]" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-[#0F172A] mb-1">
+                        Similar Issues Found
+                      </h2>
+                      <p className="text-[#6B7280] text-sm leading-relaxed">
+                        Our AI detected <span className="text-[#D97706] font-semibold">{localComplaints.length}</span> existing complaint{localComplaints.length !== 1 ? 's' : ''} matching yours. 
+                        Help reduce duplicates by supporting existing reports.
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="relative px-8 pt-8 pb-6">
-                    {/* Close button */}
-                    <button
-                      onClick={onClose}
-                      className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all group"
-                    >
-                      <X className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
-                    </button>
-
-                    {/* Icon + Title */}
-                    <div className="flex items-start gap-4">
-                      <motion.div
-                        initial={{ rotate: -10, scale: 0 }}
-                        animate={{ rotate: 0, scale: 1 }}
-                        transition={{ type: 'spring', stiffness: 300 }}
-                        className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center flex-shrink-0"
-                      >
-                        <AlertTriangle className="w-7 h-7 text-amber-400" />
-                      </motion.div>
-                      <div>
-                        <h2 className="text-2xl font-extrabold text-white mb-1">
-                          Similar Issues Found
-                        </h2>
-                        <p className="text-gray-400 text-sm leading-relaxed">
-                          Our AI detected <span className="text-amber-400 font-semibold">{localComplaints.length}</span> existing complaint{localComplaints.length !== 1 ? 's' : ''} that appear similar to yours. 
-                          Help reduce duplicates by supporting existing reports instead.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Info Banner */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="mt-5 flex items-center gap-3 bg-blue-500/8 border border-blue-500/20 rounded-xl px-4 py-3"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center flex-shrink-0">
-                        <Users className="w-4 h-4 text-blue-400" />
-                      </div>
-                      <p className="text-xs text-blue-300/80 leading-relaxed">
-                        <span className="font-semibold text-blue-300">Why upvote?</span> Upvoting existing complaints increases their priority and helps authorities address issues faster.
-                      </p>
-                    </motion.div>
+                  {/* Info Banner */}
+                  <div className="mt-4 flex items-center gap-3 bg-[#F0F9FF] border border-[#BAE6FD] rounded-xl px-4 py-2.5">
+                    <Users className="w-4 h-4 text-[#0284C7] shrink-0" />
+                    <p className="text-xs text-[#0369A1] leading-relaxed">
+                      <span className="font-semibold">Why upvote?</span> Upvoting increases issue priority so municipal teams resolve it faster.
+                    </p>
                   </div>
                 </div>
 
                 {/* Complaints List */}
-                <div className="px-8 pb-4 max-h-[40vh] overflow-y-auto custom-scrollbar space-y-3">
+                <div className="px-8 py-4 max-h-[42vh] overflow-y-auto custom-scrollbar space-y-3">
                   {localComplaints.map((complaint, index) => {
-                    const colors = getSimilarityColor(complaint.similarityPercent);
                     const isExpanded = expandedId === complaint.id;
                     const userUpvoted = hasUserUpvoted(complaint);
                     const isUpvoting = upvotingId === complaint.id;
@@ -193,170 +161,76 @@ const DuplicateModal = ({
                     return (
                       <motion.div
                         key={complaint.id}
-                        initial={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className={`rounded-2xl border ${colors.border} bg-gradient-to-r ${colors.bg} overflow-hidden transition-all hover:shadow-lg ${colors.glow}`}
+                        transition={{ delay: index * 0.05 }}
+                        className="rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] overflow-hidden transition-all hover:border-[#BAE6FD] hover:bg-[#F0F9FF]/20"
                       >
-                        {/* Complaint Header */}
-                        <div className="p-4">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              {/* Similarity Badge + Problem Type */}
-                              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <motion.span
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  transition={{ delay: index * 0.1 + 0.2, type: 'spring' }}
-                                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${colors.text} bg-white/5 border ${colors.border}`}
-                                >
-                                  <Sparkles className="w-3 h-3" />
-                                  {complaint.similarityPercent}% Match
-                                </motion.span>
-
-                                <span className="px-2.5 py-1 rounded-lg text-xs font-semibold text-white/70 bg-white/5 border border-white/10 capitalize">
-                                  {complaint.problemType}
-                                </span>
-
-                                <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                                  complaint.status === 'Resolved' ? 'text-green-400 bg-green-500/10 border border-green-500/20' :
-                                  complaint.status === 'IN_PROGRESS' ? 'text-blue-400 bg-blue-500/10 border border-blue-500/20' :
-                                  'text-gray-400 bg-white/5 border border-white/10'
-                                }`}>
-                                  {complaint.status}
-                                </span>
-                              </div>
-
-                              {/* Description preview */}
-                              <p className="text-sm text-gray-300 leading-relaxed line-clamp-2">
-                                {complaint.description}
-                              </p>
-
-                              {/* Metadata row */}
-                              <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                                {complaint.city && (
-                                  <span className="flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" />
-                                    {complaint.area ? `${complaint.area}, ` : ''}{complaint.city}
-                                  </span>
-                                )}
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
-                                  {getTimeAgo(complaint.createdAt)}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <TrendingUp className="w-3 h-3" />
-                                  {complaint.upvotes} upvote{complaint.upvotes !== 1 ? 's' : ''}
-                                </span>
-                              </div>
+                        <div className="p-4 flex items-center justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-bold text-[#0F172A] uppercase">
+                                {complaint.problemType || 'Civic Issue'}
+                              </span>
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+                                {complaint.similarityPercent}% match
+                              </span>
                             </div>
-
-                            {/* Upvote Button */}
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => handleUpvote(complaint.id)}
-                              disabled={isUpvoting}
-                              className={`flex flex-col items-center gap-1 px-4 py-3 rounded-xl font-bold text-sm transition-all flex-shrink-0 min-w-[72px] ${
-                                userUpvoted
-                                  ? 'bg-green-500/20 border-2 border-green-500/50 text-green-400 shadow-lg shadow-green-500/10'
-                                  : 'bg-white/5 border-2 border-white/10 text-gray-400 hover:bg-blue-500/15 hover:border-blue-500/40 hover:text-blue-400'
-                              }`}
-                            >
-                              {isUpvoting ? (
-                                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                              ) : userUpvoted ? (
-                                <CheckCircle2 className="w-5 h-5" />
-                              ) : (
-                                <ThumbsUp className="w-5 h-5" />
-                              )}
-                              <span className="text-xs font-bold">{complaint.upvotes}</span>
-                            </motion.button>
+                            <p className="text-xs text-[#4B5563] line-clamp-2">
+                              {complaint.description}
+                            </p>
                           </div>
 
-                          {/* Expand/Collapse toggle */}
-                          {complaint.imageUrl && (
+                          <div className="flex items-center gap-2 shrink-0">
                             <button
-                              onClick={() => setExpandedId(isExpanded ? null : complaint.id)}
-                              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 mt-2 transition-colors"
+                              type="button"
+                              onClick={() => handleUpvote(complaint.id)}
+                              disabled={isUpvoting}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                                userUpvoted
+                                  ? 'bg-[#0284C7] text-white border-[#0284C7]'
+                                  : 'bg-white text-[#334155] border-[#E5E7EB] hover:border-[#BAE6FD] hover:text-[#0284C7]'
+                              }`}
                             >
-                              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                              {isExpanded ? 'Hide details' : 'Show image'}
+                              <ThumbsUp className={`w-3.5 h-3.5 ${userUpvoted ? 'fill-current' : ''}`} />
+                              <span>{complaint.upvotes || 0}</span>
                             </button>
-                          )}
+                          </div>
                         </div>
-
-                        {/* Expanded Details */}
-                        <AnimatePresence>
-                          {isExpanded && complaint.imageUrl && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.3 }}
-                              className="overflow-hidden border-t border-white/5"
-                            >
-                              <div className="p-4 pt-3">
-                                <img
-                                  src={complaint.imageUrl}
-                                  alt="Complaint evidence"
-                                  className="w-full h-40 object-cover rounded-xl border border-white/10"
-                                />
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
                       </motion.div>
                     );
                   })}
                 </div>
 
                 {/* Action Buttons Footer */}
-                <div className="px-8 py-6 border-t border-white/5 bg-white/[0.02]">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    {/* Submit Anyway */}
-                    <motion.button
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                      onClick={onSubmitAnyway}
-                      disabled={isSubmitting}
-                      className="flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-sm bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                          Submitting...
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="w-4 h-4" />
-                          Submit Anyway
-                        </>
-                      )}
-                    </motion.button>
+                <div className="px-8 py-5 border-t border-[#E5E7EB] bg-[#F9FAFB] flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={onSubmitAnyway}
+                    disabled={isSubmitting}
+                    className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm bg-white border border-[#D1D5DB] text-[#334155] hover:bg-[#F3F4F6] transition-all disabled:opacity-50"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4" />
+                        Submit Anyway
+                      </>
+                    )}
+                  </button>
 
-                    {/* Close / Done */}
-                    <motion.button
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                      onClick={onClose}
-                      className="flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all"
-                    >
-                      <Shield className="w-4 h-4" />
-                      {upvotedIds.size > 0 ? "Done — Thanks for Supporting!" : "Close"}
-                    </motion.button>
-                  </div>
-
-                  {upvotedIds.size > 0 && (
-                    <motion.p
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="text-center text-xs text-green-400/80 mt-3 flex items-center justify-center gap-1"
-                    >
-                      <CheckCircle2 className="w-3 h-3" />
-                      You supported {upvotedIds.size} existing complaint{upvotedIds.size !== 1 ? 's' : ''}
-                    </motion.p>
-                  )}
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm bg-[#0284C7] hover:bg-[#0369A1] text-white transition-all shadow-sm"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    {upvotedIds.size > 0 ? "Done — Thanks for Supporting!" : "Close"}
+                  </button>
                 </div>
               </div>
             </div>

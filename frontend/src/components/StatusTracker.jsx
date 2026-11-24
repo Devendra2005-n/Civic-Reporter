@@ -1,9 +1,9 @@
 import { CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
 
 const steps = [
-  { key: 'Pending', label: 'Submitted', icon: AlertTriangle, color: 'orange' },
-  { key: 'In Progress', label: 'In Progress', icon: Clock, color: 'blue' },
-  { key: 'Resolved', label: 'Resolved', icon: CheckCircle2, color: 'green' },
+  { key: 'Pending', label: 'Submitted', icon: AlertTriangle, activeColor: 'text-[#0284C7]', activeBg: 'bg-[#EFF6FF]', activeBorder: 'border-[#BAE6FD]' },
+  { key: 'In Progress', label: 'In Progress', icon: Clock, activeColor: 'text-[#D97706]', activeBg: 'bg-[#FFFBEB]', activeBorder: 'border-[#FDE68A]' },
+  { key: 'Resolved', label: 'Resolved', icon: CheckCircle2, activeColor: 'text-[#16A34A]', activeBg: 'bg-[#F0FDF4]', activeBorder: 'border-[#BBF7D0]' },
 ];
 
 const statusIndex = { 'Pending': 0, 'In Progress': 1, 'Resolved': 2 };
@@ -13,22 +13,25 @@ const StatusTracker = ({ status = 'Pending', compact = false }) => {
 
   if (compact) {
     return (
-      <div className="flex items-center space-x-1">
+      <div className="flex items-center space-x-1.5" title={`Status: ${status}`}>
         {steps.map((step, idx) => {
           const isActive = idx <= currentIdx;
+          const isCurrent = idx === currentIdx;
           return (
             <div key={step.key} className="flex items-center">
               <div
-                className={`w-2 h-2 rounded-full transition-all ${
-                  isActive
-                    ? `bg-${step.color}-400 shadow-[0_0_6px] shadow-${step.color}-400/50`
-                    : 'bg-gray-600'
+                className={`w-2.5 h-2.5 rounded-full transition-all ${
+                  isCurrent
+                    ? `${idx === 2 ? 'bg-[#16A34A]' : idx === 1 ? 'bg-[#D97706]' : 'bg-[#0284C7]'} ring-2 ring-white ring-offset-1`
+                    : isActive
+                    ? 'bg-[#94A3B8]'
+                    : 'bg-[#E2E8F0]'
                 }`}
               />
               {idx < steps.length - 1 && (
                 <div
-                  className={`w-4 h-0.5 ${
-                    idx < currentIdx ? `bg-${steps[idx + 1].color}-400/50` : 'bg-gray-700'
+                  className={`w-3.5 h-0.5 mx-0.5 ${
+                    idx < currentIdx ? 'bg-[#94A3B8]' : 'bg-[#E2E8F0]'
                   }`}
                 />
               )}
@@ -40,7 +43,7 @@ const StatusTracker = ({ status = 'Pending', compact = false }) => {
   }
 
   return (
-    <div className="flex items-center justify-between w-full">
+    <div className="flex items-center justify-between w-full py-1">
       {steps.map((step, idx) => {
         const Icon = step.icon;
         const isActive = idx <= currentIdx;
@@ -50,23 +53,23 @@ const StatusTracker = ({ status = 'Pending', compact = false }) => {
           <div key={step.key} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                   isCurrent
-                    ? `bg-${step.color}-500/20 border-2 border-${step.color}-400 shadow-lg shadow-${step.color}-500/25`
+                    ? `${step.activeBg} border-2 ${step.activeBorder} shadow-xs`
                     : isActive
-                    ? `bg-${step.color}-500/10 border border-${step.color}-400/50`
-                    : 'bg-white/5 border border-white/10'
+                    ? 'bg-[#F8FAFC] border border-[#CBD5E1]'
+                    : 'bg-[#F8FAFC] border border-[#E2E8F0]'
                 }`}
               >
                 <Icon
-                  className={`w-5 h-5 ${
-                    isActive ? `text-${step.color}-400` : 'text-gray-600'
+                  className={`w-4 h-4 ${
+                    isCurrent ? step.activeColor : isActive ? 'text-[#475569]' : 'text-[#94A3B8]'
                   }`}
                 />
               </div>
               <span
-                className={`text-xs mt-2 font-medium ${
-                  isCurrent ? `text-${step.color}-400` : isActive ? 'text-gray-300' : 'text-gray-600'
+                className={`text-xs mt-1.5 font-medium ${
+                  isCurrent ? 'text-[#0F172A] font-semibold' : isActive ? 'text-[#475569]' : 'text-[#94A3B8]'
                 }`}
               >
                 {step.label}
@@ -75,9 +78,7 @@ const StatusTracker = ({ status = 'Pending', compact = false }) => {
             {idx < steps.length - 1 && (
               <div
                 className={`flex-1 h-0.5 mx-2 rounded-full transition-all ${
-                  idx < currentIdx
-                    ? 'bg-gradient-to-r from-blue-500/50 to-green-500/50'
-                    : 'bg-white/10'
+                  idx < currentIdx ? 'bg-[#0284C7]' : 'bg-[#E2E8F0]'
                 }`}
               />
             )}

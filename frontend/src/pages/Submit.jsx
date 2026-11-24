@@ -497,8 +497,8 @@ const Submit = () => {
   // Enhanced Stepper Component
   const Stepper = () => {
     return (
-      <div className="flex items-center justify-center mb-12">
-        <div className="flex items-center space-x-2 bg-white/5 p-2 rounded-2xl border border-white/10">
+      <div className="flex items-center justify-center mb-10">
+        <div className="flex items-center space-x-2 bg-white p-2 rounded-2xl border border-[#E5E7EB] shadow-sm">
           {steps.map((s, idx) => {
             const num = idx + 1;
             const isActive = step === num;
@@ -506,38 +506,20 @@ const Submit = () => {
             
             return (
               <div key={s} className="flex items-center">
-                <motion.div 
-                  className="relative"
-                  whileHover={!isCompleted ? { scale: 1.05 } : {}}
-                >
-                  {/* Glow effect for active step */}
-                  {isActive && (
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl blur-md"
-                      animate={{ opacity: [0.5, 0.8, 0.5] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                  )}
-                  
-                  <div className={`relative flex items-center justify-center px-4 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+                <div className="relative">
+                  <div className={`flex items-center justify-center px-4 py-2 rounded-xl font-semibold text-xs transition-all ${
                     isActive 
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' 
+                      ? 'bg-[#0284C7] text-white shadow-sm' 
                       : isCompleted 
-                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                        : 'bg-white/5 text-gray-500'
+                        ? 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]'
+                        : 'bg-[#F9FAFB] text-[#6B7280]'
                   }`}>
                     {isCompleted ? (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: 'spring', stiffness: 500 }}
-                      >
-                        <CheckCircle2 className="w-5 h-5" />
-                      </motion.div>
+                      <CheckCircle2 className="w-4 h-4" />
                     ) : (
-                      <span className="flex items-center gap-2">
-                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
-                          isActive ? 'bg-white/20' : 'bg-white/10'
+                      <span className="flex items-center gap-1.5">
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
+                          isActive ? 'bg-white/20' : 'bg-[#E5E7EB]'
                         }`}>
                           {num}
                         </span>
@@ -545,20 +527,12 @@ const Submit = () => {
                       </span>
                     )}
                   </div>
-                </motion.div>
+                </div>
                 
                 {idx < steps.length - 1 && (
-                  <motion.div 
-                    className="w-12 h-0.5 mx-2"
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: isCompleted ? 1 : 0 }}
-                    transition={{ duration: 0.5 }}
-                    style={{ originX: 0 }}
-                  >
-                    <div className={`h-full rounded-full ${
-                      isCompleted ? 'bg-gradient-to-r from-green-500 to-blue-500' : 'bg-white/10'
-                    }`} />
-                  </motion.div>
+                  <div className="w-8 h-0.5 mx-1.5 bg-[#E5E7EB]">
+                    <div className={`h-full ${isCompleted ? 'bg-[#16A34A]' : 'bg-[#E5E7EB]'}`} />
+                  </div>
                 )}
               </div>
             );
@@ -573,68 +547,53 @@ const Submit = () => {
     return (
       <div className="relative flex flex-col items-center">
         {/* Image with scanning effect */}
-        <div className="relative w-64 h-64 rounded-3xl overflow-hidden shadow-2xl mb-8">
+        <div className="relative w-64 h-64 rounded-2xl overflow-hidden shadow-md mb-6 border border-[#E5E7EB] bg-white">
           <img src={preview} className="w-full h-full object-cover" alt="Analyzing" />
           
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F19]/90 via-[#0B0F19]/50 to-[#0B0F19]/30" />
+          {/* Subtle light overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-slate-900/20" />
           
           {/* Scanning line */}
           <motion.div
-            className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_20px_rgba(34,211,238,0.8)]"
+            className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#0284C7] to-transparent shadow-[0_0_15px_rgba(2,132,199,0.8)]"
             animate={{ top: ['0%', '100%', '0%'] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
           />
           
           {/* Corner brackets */}
-          <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-cyan-400/60" />
-          <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-cyan-400/60" />
-          <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-cyan-400/60" />
-          <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-cyan-400/60" />
+          <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-[#38BDF8]" />
+          <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-[#38BDF8]" />
+          <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-[#38BDF8]" />
+          <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-[#38BDF8]" />
           
           {/* AI Status Badge */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2">
+          <div className="absolute top-3 left-1/2 -translate-x-1/2">
             <motion.div 
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-cyan-500/30"
-              animate={{ opacity: [0.7, 1, 0.7] }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-[#BAE6FD] shadow-sm"
+              animate={{ opacity: [0.8, 1, 0.8] }}
               transition={{ duration: 1.5, repeat: Infinity }}
             >
-              <Cpu className="w-4 h-4 text-cyan-400 animate-pulse" />
-              <span className="text-xs font-semibold text-cyan-300">AI Analyzing...</span>
+              <Cpu className="w-3.5 h-3.5 text-[#0284C7] animate-pulse" />
+              <span className="text-[11px] font-semibold text-[#0284C7]">Analyzing Issue...</span>
             </motion.div>
-          </div>
-          
-          {/* Scanning grid overlay */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="w-full h-full" style={{
-              backgroundImage: `
-                linear-gradient(rgba(34,211,238,0.3) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(34,211,238,0.3) 1px, transparent 1px)
-              `,
-              backgroundSize: '20px 20px'
-            }} />
           </div>
         </div>
         
         {/* Analysis text */}
         <div className="text-center space-y-2">
-          <motion.div
-            className="flex items-center justify-center gap-2 text-cyan-400"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <ScanLine className="w-5 h-5" />
-            <span className="text-sm font-medium">Scanning image for issues...</span>
-          </motion.div>
+          <div className="flex items-center justify-center gap-2 text-[#0284C7]">
+            <ScanLine className="w-4 h-4 animate-spin" />
+            <span className="text-sm font-semibold">Scanning image with AI model...</span>
+          </div>
           
           {/* Progress dots */}
-          <div className="flex items-center justify-center gap-1.5 mt-4">
+          <div className="flex items-center justify-center gap-1.5 mt-3">
             {[0, 1, 2, 3].map((i) => (
               <motion.div
                 key={i}
-                className="w-2 h-2 rounded-full bg-cyan-400"
+                className="w-2 h-2 rounded-full bg-[#0284C7]"
                 animate={{ 
-                  scale: [1, 1.5, 1],
+                  scale: [1, 1.4, 1],
                   opacity: [0.3, 1, 0.3]
                 }}
                 transition={{ 
@@ -725,25 +684,25 @@ const Submit = () => {
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl font-extrabold mb-2 text-center"
+            className="text-3xl sm:text-4xl font-extrabold mb-2 text-center text-[#0F172A]"
           >
-            <span className="text-gradient">Report an Issue</span>
+            Report an <span className="text-[#0284C7]">Issue</span>
           </motion.h1>
-          <p className="text-gray-400 text-center mb-4">Upload a photo, and our AI will document the rest.</p>
+          <p className="text-[#6B7280] text-center mb-6 text-sm">Upload a photo, and our AI will document the rest.</p>
           
           {/* Image Validation Error Banner */}
           {imageValidation && !imageValidation.isValid && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="max-w-xl mx-auto mb-6 bg-red-500/10 border border-red-500/30 rounded-2xl p-5 flex items-start space-x-4"
+              className="max-w-xl mx-auto mb-6 bg-[#FEF2F2] border border-[#FECACA] rounded-xl p-4 flex items-start space-x-3 shadow-sm"
             >
-              <AlertCircle className="w-7 h-7 text-red-400 shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-[#DC2626] shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-lg font-bold text-red-400">❌ Invalid Image Detected</h4>
-                <p className="text-sm text-red-200 mt-1">{imageValidation.reason}</p>
-                <p className="text-xs text-red-300/60 mt-2">Detected: {imageValidation.detectedContent}</p>
-                <p className="text-xs text-gray-400 mt-3">Please upload a valid civic issue image (pothole, garbage, broken streetlight, drainage, etc.)</p>
+                <h4 className="text-sm font-bold text-[#991B1B]">Invalid Image Detected</h4>
+                <p className="text-xs text-[#DC2626] mt-0.5">{imageValidation.reason}</p>
+                <p className="text-[11px] text-[#9CA3AF] mt-1">Detected: {imageValidation.detectedContent}</p>
+                <p className="text-xs text-[#6B7280] mt-2">Please upload a valid civic issue image (pothole, garbage, broken streetlight, drainage, etc.)</p>
               </div>
             </motion.div>
           )}
@@ -753,13 +712,13 @@ const Submit = () => {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="max-w-xl mx-auto mb-6 bg-orange-500/10 border border-orange-500/30 rounded-2xl p-5 flex items-start space-x-4"
+              className="max-w-xl mx-auto mb-6 bg-[#FFFBEB] border border-[#FDE68A] rounded-xl p-4 flex items-start space-x-3 shadow-sm"
             >
-              <AlertCircle className="w-7 h-7 text-orange-400 shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-[#D97706] shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-lg font-bold text-orange-400">⛔ Daily Limit Reached</h4>
-                <p className="text-sm text-orange-200 mt-1">{rateLimitError.message}</p>
-                <p className="text-xs text-gray-400 mt-2">You have submitted {rateLimitError.currentCount}/{rateLimitError.dailyLimit} complaints today. Try again tomorrow.</p>
+                <h4 className="text-sm font-bold text-[#92400E]">Daily Limit Reached</h4>
+                <p className="text-xs text-[#B45309] mt-0.5">{rateLimitError.message}</p>
+                <p className="text-xs text-[#6B7280] mt-1">You have submitted {rateLimitError.currentCount}/{rateLimitError.dailyLimit} complaints today. Try again tomorrow.</p>
               </div>
             </motion.div>
           )}
@@ -769,13 +728,13 @@ const Submit = () => {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="max-w-xl mx-auto mb-6 bg-red-500/10 border border-red-500/30 rounded-2xl p-5 flex items-start space-x-4"
+              className="max-w-xl mx-auto mb-6 bg-[#FEF2F2] border border-[#FECACA] rounded-xl p-4 flex items-start space-x-3 shadow-sm"
             >
-              <AlertCircle className="w-7 h-7 text-red-400 shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-[#DC2626] shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-lg font-bold text-red-400">🚫 Account Restricted</h4>
-                <p className="text-sm text-red-200 mt-1">Your account has been restricted due to too many invalid or spam complaints.</p>
-                <p className="text-xs text-gray-400 mt-2">Contact admin to restore your submission privileges.</p>
+                <h4 className="text-sm font-bold text-[#991B1B]">Account Restricted</h4>
+                <p className="text-xs text-[#DC2626] mt-0.5">Your account has been restricted due to too many invalid or spam complaints.</p>
+                <p className="text-xs text-[#6B7280] mt-1">Contact admin to restore your submission privileges.</p>
               </div>
             </motion.div>
           )}
@@ -814,28 +773,28 @@ const Submit = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             onSubmit={handleSubmit}
-            className="bg-[#0B0F19] p-8 rounded-3xl max-w-4xl mx-auto space-y-8 border border-white/5"
+            className="bg-white p-6 sm:p-8 rounded-2xl max-w-4xl mx-auto space-y-8 border border-[#E5E7EB] shadow-sm text-[#0F172A]"
           >
-            {/* Duplicate warning banner — opens the detailed modal */}
+            {/* Duplicate warning banner */}
             {duplicateWarning && duplicateResults.length > 0 && (
               <motion.div 
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5 flex items-start space-x-4 mb-6 shadow-lg shadow-amber-500/5 cursor-pointer hover:bg-amber-500/15 transition-all"
+                className="bg-[#FFFBEB] border border-[#FDE68A] rounded-xl p-4 flex items-start space-x-3 cursor-pointer hover:bg-[#FEF3C7] transition-all shadow-sm"
                 onClick={() => setShowDuplicateModal(true)}
               >
-                <AlertCircle className="w-7 h-7 text-amber-400 shrink-0 mt-0.5 animate-pulse" />
+                <AlertCircle className="w-5 h-5 text-[#D97706] shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <h4 className="text-lg font-bold text-amber-400">⚠️ {duplicateResults.length} Similar Complaint{duplicateResults.length !== 1 ? 's' : ''} Found</h4>
-                  <p className="text-sm text-amber-200/80 mt-1">
+                  <h4 className="text-sm font-bold text-[#92400E]">{duplicateResults.length} Similar Complaint{duplicateResults.length !== 1 ? 's' : ''} Found</h4>
+                  <p className="text-xs text-[#B45309] mt-0.5">
                     Our AI detected existing reports that match yours ({duplicateResults[0]?.similarityPercent}% similarity). Help avoid duplicates by supporting them.
                   </p>
                   <button 
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setShowDuplicateModal(true); }}
-                    className="inline-flex items-center space-x-2 mt-3 px-4 py-2 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 rounded-xl transition-all font-semibold text-sm"
+                    className="inline-flex items-center space-x-1.5 mt-2 px-3 py-1.5 bg-white text-[#92400E] hover:bg-[#FDE68A] border border-[#FDE68A] rounded-lg transition-all font-semibold text-xs shadow-sm"
                   >
-                    <FileText className="w-4 h-4" />
+                    <FileText className="w-3.5 h-3.5" />
                     <span>Review & Upvote Existing</span>
                   </button>
                 </div>
@@ -843,35 +802,35 @@ const Submit = () => {
             )}
 
             {/* Top Analysis Header */}
-            <div className="flex flex-col md:flex-row gap-6 mb-6 pb-6 border-b border-white/10">
-              <div className="w-full md:w-1/4 rounded-2xl overflow-hidden shadow-lg relative h-40 flex-shrink-0">
+            <div className="flex flex-col md:flex-row gap-6 pb-6 border-b border-[#E5E7EB]">
+              <div className="w-full md:w-1/4 rounded-xl overflow-hidden shadow-sm border border-[#E5E7EB] relative h-36 flex-shrink-0">
                 <img src={preview} alt="Thumb" className="w-full h-full object-cover" />
-                <div className="absolute top-2 right-2 px-2 py-1 bg-black/60 backdrop-blur text-xs font-bold rounded-lg text-white">
+                <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/60 backdrop-blur text-[10px] font-bold rounded text-white">
                   Evidence
                 </div>
               </div>
               <div className="flex-1 flex flex-col justify-center">
-                <h3 className={`text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r ${aiData?.aiFallback ? 'from-amber-400 to-orange-400' : 'from-purple-400 to-pink-400'}`}>
+                <h3 className="text-2xl font-bold text-[#0F172A]">
                   {aiData?.aiFallback ? 'Template Generated' : 'AI Analysis Complete'}
                 </h3>
                 {aiData?.aiFallback && (
-                  <p className="text-sm text-amber-300/80 mt-2 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4" />
+                  <p className="text-xs text-[#D97706] mt-1 flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5" />
                     AI temporarily unavailable — please review and edit the details below
                   </p>
                 )}
                 {aiData && (
-                  <div className="mt-4 bg-white/5 p-4 rounded-xl border border-white/10 flex flex-col">
-                    <div className="flex justify-between items-end mb-2">
-                      <span className="text-sm text-gray-400 font-medium tracking-wide">Confidence Score</span>
-                      <span className="text-md font-bold text-purple-400">{Math.round((aiData.confidence || 0) * 100)}%</span>
+                  <div className="mt-3 bg-[#F9FAFB] p-3.5 rounded-xl border border-[#E5E7EB] flex flex-col">
+                    <div className="flex justify-between items-end mb-1.5">
+                      <span className="text-xs text-[#6B7280] font-medium">Confidence Score</span>
+                      <span className="text-sm font-bold text-[#0284C7]">{Math.round((aiData.confidence || 0) * 100)}%</span>
                     </div>
-                    <div className="w-full h-2 bg-gray-700/50 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-[#E5E7EB] rounded-full overflow-hidden">
                       <motion.div 
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.round((aiData.confidence || 0) * 100)}%` }}
                         transition={{ duration: 1, ease: 'easeOut' }}
-                        className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                        className="h-full bg-[#0284C7] rounded-full"
                       />
                     </div>
                   </div>
@@ -880,16 +839,16 @@ const Submit = () => {
             </div>
 
             {/* ===== AUTHORITY DETECTION SECTION ===== */}
-            <div className="space-y-4">
-              <label className="block text-sm font-semibold text-gray-400 flex items-center space-x-2 uppercase tracking-wider">
-                <Shield className="w-4 h-4 text-emerald-400" />
+            <div className="space-y-3">
+              <label className="block text-xs font-bold text-[#6B7280] flex items-center space-x-1.5 uppercase tracking-wider">
+                <Shield className="w-3.5 h-3.5 text-[#0284C7]" />
                 <span>Detected Authority</span>
               </label>
               
               {authorityLoading ? (
-                <div className="glass-panel p-4 rounded-xl border border-white/10 flex items-center space-x-3">
-                  <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-gray-400 text-sm">Detecting local authority...</span>
+                <div className="p-4 rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] flex items-center space-x-3">
+                  <div className="w-4 h-4 border-2 border-[#0284C7] border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-[#6B7280] text-xs">Detecting local authority...</span>
                 </div>
               ) : authorityInfo ? (
                 <motion.div 
@@ -898,26 +857,26 @@ const Submit = () => {
                   className="space-y-3"
                 >
                   {/* Authority Badge */}
-                  <div className={`flex items-center justify-between p-4 rounded-xl border ${getConfidenceColor(authorityInfo.confidence).bg} ${getConfidenceColor(authorityInfo.confidence).border}`}>
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-[#BAE6FD] bg-[#F0F9FF]">
                     <div className="flex items-center space-x-3">
                       <span className="text-2xl">
                         {AUTHORITY_TYPES.find(a => a.value === authorityInfo.authorityType)?.icon || '🏛️'}
                       </span>
                       <div>
-                        <p className="font-bold text-white text-sm">{authorityInfo.authorityBody}</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="font-bold text-[#0F172A] text-sm">{authorityInfo.authorityBody}</p>
+                        <p className="text-xs text-[#6B7280]">
                           {authorityInfo.authorityTitle} • {authorityInfo.displayAddress}
                         </p>
                       </div>
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-bold ${getConfidenceColor(authorityInfo.confidence).bg} ${getConfidenceColor(authorityInfo.confidence).text} border ${getConfidenceColor(authorityInfo.confidence).border}`}>
+                    <div className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white text-[#0284C7] border border-[#BAE6FD]">
                       {authorityInfo.confidence}% Confidence
                     </div>
                   </div>
 
                   {/* Manual Override */}
                   <div className="flex items-center space-x-3">
-                    <span className="text-xs text-gray-500 whitespace-nowrap">Not correct? Override:</span>
+                    <span className="text-xs text-[#6B7280] whitespace-nowrap">Not correct? Override:</span>
                     <div className="flex space-x-2 flex-1">
                       {AUTHORITY_TYPES.map(({ value, label, icon }) => (
                         <button
@@ -926,8 +885,8 @@ const Submit = () => {
                           onClick={() => handleAuthorityOverride(value)}
                           className={`flex-1 flex items-center justify-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all border ${
                             authorityOverride === value
-                              ? 'bg-purple-500/20 border-purple-500/50 text-purple-300 shadow-lg shadow-purple-500/10'
-                              : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
+                              ? 'bg-[#0284C7] border-[#0284C7] text-white shadow-sm'
+                              : 'bg-white border-[#E5E7EB] text-[#4B5563] hover:bg-[#F9FAFB]'
                           }`}
                         >
                           <span>{icon}</span>
@@ -936,16 +895,9 @@ const Submit = () => {
                       ))}
                     </div>
                   </div>
-
-                  {authorityInfo.confidence < 70 && (
-                    <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 flex items-center space-x-2">
-                      <AlertCircle className="w-4 h-4 text-orange-400 shrink-0" />
-                      <p className="text-xs text-orange-300">Low confidence detection. Please verify the authority type above.</p>
-                    </div>
-                  )}
                 </motion.div>
               ) : (
-                <div className="glass-panel p-4 rounded-xl border border-white/10 text-gray-500 text-sm">
+                <div className="p-4 rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] text-[#6B7280] text-xs">
                   Location needed to detect authority. Please enable location access.
                 </div>
               )}
@@ -953,15 +905,13 @@ const Submit = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Left Column: Metadata & Map */}
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div>
-                  {/* EXIF Location Detection Badge */}
                   <LocationDetector
                     status={exifStatus}
                     source={exifSource}
                     address={exifAddress}
                     onManualSelect={() => {
-                      // Reset to browser location
                       if (location.lat && location.lng) {
                         setMapCenter({ lat: location.lat, lng: location.lng });
                         setMarkerPos({ lat: location.lat, lng: location.lng });
@@ -973,15 +923,14 @@ const Submit = () => {
                     }}
                   />
 
-                  <label className="block text-sm font-semibold text-gray-400 mb-2 mt-4 flex items-center space-x-2 uppercase tracking-wider">
-                    <MapPin className="w-4 h-4 text-purple-400" />
+                  <label className="block text-xs font-bold text-[#6B7280] mb-2 mt-4 flex items-center space-x-1.5 uppercase tracking-wider">
+                    <MapPin className="w-3.5 h-3.5 text-[#0284C7]" />
                     <span>Exact Location</span>
                   </label>
-                  <div className="glass-panel p-2 rounded-2xl border-white/5 mb-2 overflow-hidden relative">
+                  <div className="p-1.5 rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB] mb-2 overflow-hidden relative shadow-sm">
                     {!isLoaded ? (
-                      <div className="h-[300px] w-full flex items-center justify-center bg-white/5"><Loader /></div>
+                      <div className="h-[280px] w-full flex items-center justify-center bg-white"><Loader /></div>
                     ) : (
-                      <div style={{ filter: 'invert(90%) hue-rotate(180deg)', WebkitFilter: 'invert(90%) hue-rotate(180deg)' }}>
                       <GoogleMap
                         mapContainerStyle={mapContainerStyle}
                         center={mapCenter}
@@ -991,29 +940,28 @@ const Submit = () => {
                       >
                         {markerPos && mapInstance && <AdvancedMarker map={mapInstance} position={markerPos} draggable={true} onDragEnd={onMarkerDragEnd} />}
                       </GoogleMap>
-                      </div>
                     )}
-                    <div className="absolute top-4 left-4 right-4 bg-gray-900/80 backdrop-blur-md p-3 rounded-xl border border-white/10 text-sm shadow-xl flex items-start space-x-2">
-                       <MapPin className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-                       <span className="flex-1 font-medium">{authorityInfo?.displayAddress || location.address || "Drag marker to adjust location"}</span>
+                    <div className="absolute top-4 left-4 right-4 bg-white/95 backdrop-blur-md p-2.5 rounded-xl border border-[#E5E7EB] text-xs shadow-md flex items-start space-x-2">
+                       <MapPin className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
+                       <span className="flex-1 font-medium text-[#0F172A]">{authorityInfo?.displayAddress || location.address || "Drag marker to adjust location"}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-400 mb-2">Problem Type</label>
+                    <label className="block text-xs font-semibold text-[#4B5563] mb-1.5">Problem Type</label>
                     <input 
                       type="text" required
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-semibold"
+                      className="w-full bg-white border border-[#D1D5DB] rounded-xl px-3.5 py-2.5 text-sm text-[#0F172A] focus:outline-none focus:border-[#0284C7] focus:ring-1 focus:ring-[#0284C7] transition-all font-medium"
                       value={formData.problemType}
                       onChange={(e) => handleProblemTypeChange(e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-400 mb-2">Severity</label>
+                    <label className="block text-xs font-semibold text-[#4B5563] mb-1.5">Severity</label>
                     <select 
-                      className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-semibold"
+                      className="w-full bg-white border border-[#D1D5DB] rounded-xl px-3.5 py-2.5 text-sm text-[#0F172A] focus:outline-none focus:border-[#0284C7] focus:ring-1 focus:ring-[#0284C7] transition-all font-medium"
                       value={formData.severity}
                       onChange={(e) => setFormData({...formData, severity: e.target.value})}
                     >
@@ -1025,13 +973,13 @@ const Submit = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-400 mb-2 flex items-center space-x-2">
-                    <Building2 className="w-4 h-4 text-green-400" />
+                  <label className="block text-xs font-semibold text-[#4B5563] mb-1.5 flex items-center space-x-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-[#16A34A]" />
                     <span>Suggested Department</span>
                   </label>
                   <input 
                     type="text"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                    className="w-full bg-white border border-[#D1D5DB] rounded-xl px-3.5 py-2.5 text-sm text-[#0F172A] focus:outline-none focus:border-[#0284C7] focus:ring-1 focus:ring-[#0284C7]"
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                   />
@@ -1039,43 +987,41 @@ const Submit = () => {
               </div>
 
               {/* Right Column: Formal Letter + Language */}
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div className="flex justify-between items-center mb-[-0.5rem]">
-                  <label className="block text-sm font-semibold text-gray-400 flex items-center space-x-2 uppercase tracking-wider">
-                    <FileText className="w-4 h-4 text-purple-400" />
+                  <label className="block text-xs font-bold text-[#6B7280] flex items-center space-x-1.5 uppercase tracking-wider">
+                    <FileText className="w-3.5 h-3.5 text-[#0284C7]" />
                     <span>Formal Complaint</span>
                   </label>
                   <button 
                     type="button" 
                     onClick={downloadPDF}
-                    className="flex items-center space-x-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 px-4 py-2 rounded-lg text-xs font-bold transition-all border border-purple-500/20 hover:border-purple-500/40"
+                    className="flex items-center space-x-1.5 bg-[#F0F9FF] hover:bg-[#E0F2FE] px-3 py-1.5 rounded-lg text-xs font-semibold text-[#0284C7] transition-all border border-[#BAE6FD]"
                   >
-                    <Download className="w-3.5 h-3.5" />
+                    <Download className="w-3 h-3" />
                     <span>Download PDF</span>
                   </button>
                 </div>
 
                 {/* English Letter */}
-                <div className="bg-black/40 text-gray-200 p-6 rounded-xl border border-white/10 shadow-inner overflow-hidden relative">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
-                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-3">English Document</p>
+                <div className="bg-[#F9FAFB] text-[#1E293B] p-5 rounded-xl border border-[#E5E7EB] border-l-4 border-l-[#0284C7] shadow-sm relative">
+                  <p className="text-[11px] text-[#6B7280] font-bold uppercase tracking-wider mb-2">English Document</p>
                   <textarea
                     value={formData.formalLetter || ""}
                     onChange={(e) => setFormData({...formData, formalLetter: e.target.value})}
-                    rows="10"
-                    className="w-full bg-transparent border-none focus:ring-0 text-sm font-medium resize-y leading-relaxed focus:outline-none"
-                    style={{ color: '#e5e7eb' }}
+                    rows="9"
+                    className="w-full bg-transparent border-none focus:ring-0 text-sm font-normal resize-y leading-relaxed text-[#1E293B] focus:outline-none"
                   />
                 </div>
 
                 {/* Language Selector */}
                 <div className="flex items-center space-x-3">
-                  <Globe className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <span className="text-xs text-gray-400 whitespace-nowrap">Translate to:</span>
+                  <Globe className="w-4 h-4 text-[#0284C7] shrink-0" />
+                  <span className="text-xs text-[#6B7280] whitespace-nowrap">Translate to:</span>
                   <select
                     value={selectedLanguage}
                     onChange={(e) => handleTranslate(e.target.value)}
-                    className="flex-1 bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
+                    className="flex-1 bg-white border border-[#D1D5DB] rounded-lg px-3 py-2 text-xs text-[#0F172A] focus:outline-none focus:border-[#0284C7] transition-all"
                   >
                     {LANGUAGES.map(lang => (
                       <option key={lang.code} value={lang.code}>
@@ -1092,23 +1038,21 @@ const Submit = () => {
                     animate={{ opacity: 1, height: 'auto' }}
                     className="overflow-hidden"
                   >
-                    <div className="bg-black/40 text-gray-200 p-6 rounded-xl border border-white/10 shadow-inner overflow-hidden relative">
-                      <div className="absolute top-0 left-0 w-1 h-full bg-orange-500"></div>
-                      <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-3">
+                    <div className="bg-[#F9FAFB] text-[#1E293B] p-5 rounded-xl border border-[#E5E7EB] border-l-4 border-l-[#F97316] shadow-sm relative">
+                      <p className="text-[11px] text-[#6B7280] font-bold uppercase tracking-wider mb-2">
                         {LANGUAGES.find(l => l.code === selectedLanguage)?.nativeName || ''} Document
                       </p>
                       {translating ? (
-                        <div className="flex items-center space-x-3 py-8 justify-center">
-                          <div className="w-5 h-5 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
-                          <span className="text-gray-500 text-sm">Translating to {LANGUAGES.find(l => l.code === selectedLanguage)?.name}...</span>
+                        <div className="flex items-center space-x-2 py-6 justify-center">
+                          <div className="w-4 h-4 border-2 border-[#0284C7] border-t-transparent rounded-full animate-spin"></div>
+                          <span className="text-[#6B7280] text-xs">Translating to {LANGUAGES.find(l => l.code === selectedLanguage)?.name}...</span>
                         </div>
                       ) : (
                         <textarea
                           value={translatedLetter}
                           onChange={(e) => setTranslatedLetter(e.target.value)}
-                          rows="8"
-                          className="w-full bg-transparent border-none focus:ring-0 text-sm font-medium resize-y leading-relaxed focus:outline-none"
-                          style={{ color: '#e5e7eb' }}
+                          rows="7"
+                          className="w-full bg-transparent border-none focus:ring-0 text-sm font-normal resize-y leading-relaxed text-[#1E293B] focus:outline-none"
                         />
                       )}
                     </div>
@@ -1120,12 +1064,10 @@ const Submit = () => {
             <motion.button 
               type="submit"
               disabled={isSubmitting}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className={`w-full py-5 rounded-2xl text-lg font-bold flex justify-center text-white mt-8 transition-all ${
-                isSubmitting ? 'bg-gray-600' : 
-                duplicateWarning ? 'bg-gradient-to-r from-amber-600 to-orange-600 shadow-xl shadow-amber-600/20 hover:shadow-amber-600/40' 
-                : 'bg-gradient-to-r from-purple-500 to-pink-600 shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.5)]'
+              whileHover={{ scale: 1.005 }}
+              whileTap={{ scale: 0.995 }}
+              className={`w-full py-4 rounded-xl text-base font-semibold flex justify-center text-white mt-8 transition-all shadow-sm ${
+                isSubmitting ? 'bg-[#9CA3AF]' : 'bg-[#0284C7] hover:bg-[#0369A1]'
               }`}
             >
               {isSubmitting ? 'Submitting to Authority...' : duplicateWarning ? 'Submit New Complaint' : 'Submit Official Complaint'}
@@ -1138,7 +1080,6 @@ const Submit = () => {
               similarComplaints={duplicateResults}
               onSubmitAnyway={() => {
                 setShowDuplicateModal(false);
-                // Trigger form submit programmatically
                 const fakeEvent = { preventDefault: () => {} };
                 handleSubmit(fakeEvent);
               }}
@@ -1151,126 +1092,39 @@ const Submit = () => {
         {step === 4 && (
           <motion.div
             key="success"
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className="glass-premium p-12 rounded-3xl max-w-xl mx-auto text-center relative overflow-hidden"
+            className="bg-white p-8 sm:p-12 rounded-2xl max-w-xl mx-auto text-center border border-[#E5E7EB] shadow-sm relative"
           >
-            {/* Animated Background Effects */}
-            <div className="absolute inset-0 overflow-hidden">
-              <motion.div 
-                className="absolute top-0 right-0 w-96 h-96 bg-green-500/20 rounded-full blur-[100px]"
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  opacity: [0.3, 0.5, 0.3]
-                }}
-                transition={{ duration: 4, repeat: Infinity }}
-              />
-              <motion.div 
-                className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/20 rounded-full blur-[80px]"
-                animate={{ 
-                  scale: [1, 1.3, 1],
-                  opacity: [0.2, 0.4, 0.2]
-                }}
-                transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-              />
+            {/* Success Icon */}
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#F0FDF4] border border-[#BBF7D0] flex items-center justify-center">
+              <CheckCircle2 className="w-9 h-9 text-[#16A34A]" />
             </div>
 
-            {/* Floating Particles */}
-            {[...Array(6)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-2 h-2 bg-green-400 rounded-full"
-                style={{
-                  left: `${20 + i * 15}%`,
-                  top: '50%',
-                }}
-                animate={{
-                  y: [-100, -200, -100],
-                  x: [0, (i % 2 === 0 ? 30 : -30), 0],
-                  opacity: [0, 1, 0],
-                  scale: [0, 1, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  delay: i * 0.3,
-                }}
-              />
-            ))}
+            <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-[#0F172A]">
+              Complaint Submitted!
+            </h2>
             
-            {/* Success Icon */}
-            <motion.div 
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
-              className="relative w-28 h-28 mx-auto mb-8"
-            >
-              <motion.div 
-                className="absolute inset-0 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full"
-                animate={{ 
-                  boxShadow: [
-                    '0 0 30px rgba(74,222,128,0.3)', 
-                    '0 0 60px rgba(74,222,128,0.5)', 
-                    '0 0 30px rgba(74,222,128,0.3)'
-                  ] 
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <CheckCircle2 className="w-14 h-14 text-white" />
-              </div>
-              {/* Ring effect */}
-              <motion.div
-                className="absolute inset-0 rounded-full border-2 border-green-400/30"
-                animate={{ scale: [1, 1.3, 1.5], opacity: [0.5, 0.2, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              />
-            </motion.div>
-
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-4xl font-extrabold mb-4 text-white"
-            >
-              Submitted!
-            </motion.h2>
-            
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-lg text-gray-300 font-medium mb-6"
-            >
+            <p className="text-sm text-[#4B5563] mb-6">
               Thank you for helping improve your city 🙌
-            </motion.p>
+            </p>
             
             {authorityInfo && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6 text-left"
-              >
-                <p className="text-xs text-gray-400 mb-1">Complaint addressed to</p>
-                <p className="text-sm font-bold text-white flex items-center space-x-2">
+              <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-3.5 mb-5 text-left">
+                <p className="text-[11px] text-[#6B7280] mb-0.5">Complaint addressed to</p>
+                <p className="text-sm font-semibold text-[#0F172A] flex items-center space-x-2">
                   <span>{AUTHORITY_TYPES.find(a => a.value === authorityInfo.authorityType)?.icon}</span>
                   <span>{authorityInfo.authorityBody}</span>
                 </p>
-              </motion.div>
+              </div>
             )}
 
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="bg-white/5 border border-white/10 rounded-2xl p-6 text-left mb-8"
-            >
-              <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
-                <span className="text-gray-400 font-medium">Complaint ID</span>
-                <div className="flex items-center bg-[#0f172a] border border-white/10 rounded-lg overflow-hidden shadow-inner">
-                  <div className="px-4 py-2 font-mono font-bold text-white tracking-wider select-all">
+            <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-5 text-left mb-6">
+              <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3 mb-3">
+                <span className="text-xs text-[#6B7280] font-medium">Complaint ID</span>
+                <div className="flex items-center bg-white border border-[#E5E7EB] rounded-lg overflow-hidden shadow-sm">
+                  <div className="px-3 py-1.5 font-mono font-bold text-xs text-[#0F172A] select-all">
                     #{submittedId}
                   </div>
                   <button 
@@ -1278,68 +1132,46 @@ const Submit = () => {
                     onClick={() => {
                       try {
                         copyToClipboard('#' + submittedId);
-                        toast.success('Complaint ID copied to clipboard!', { position: 'bottom-center' });
+                        toast.success('Complaint ID copied to clipboard!');
                         setCopied(true);
                         setTimeout(() => setCopied(false), 2000);
                       } catch (err) {
-                        console.error('Failed to copy', err);
-                        toast.error('Failed to copy. Please select the text manually.');
+                        toast.error('Failed to copy. Please select text manually.');
                       }
                     }}
-                    className="px-3 py-2 bg-blue-500/20 hover:bg-blue-500/40 transition-colors flex items-center justify-center border-l border-white/10 cursor-pointer"
+                    className="px-2.5 py-1.5 bg-[#F0F9FF] hover:bg-[#E0F2FE] transition-colors flex items-center justify-center border-l border-[#E5E7EB] cursor-pointer"
                     title="Copy to clipboard"
                   >
                     {copied ? (
-                      <Check className="w-4 h-4 text-green-400" />
+                      <Check className="w-3.5 h-3.5 text-[#16A34A]" />
                     ) : (
-                      <Copy className="w-4 h-4 text-blue-400" />
+                      <Copy className="w-3.5 h-3.5 text-[#0284C7]" />
                     )}
                   </button>
                 </div>
               </div>
-              <div className="flex items-start space-x-3 text-sm">
-                <MapPin className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
-                <span className="text-gray-300 leading-relaxed font-medium">{authorityInfo?.displayAddress || location.address || 'User Specified Location'}</span>
+              <div className="flex items-start space-x-2 text-xs">
+                <MapPin className="w-4 h-4 text-[#0284C7] shrink-0 mt-0.5" />
+                <span className="text-[#4B5563] leading-relaxed">{authorityInfo?.displayAddress || location.address || 'User Specified Location'}</span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="flex space-x-4"
-            >
-              <MagneticButton strength={0.15} className="flex-1">
-                <motion.button 
-                  onClick={() => navigate('/dashboard')} 
-                  className="w-full py-4 px-6 rounded-xl font-bold bg-white/10 hover:bg-white/20 text-white transition-all border border-white/10 relative overflow-hidden group"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <span className="relative z-10">View Dashboard</span>
-                </motion.button>
-              </MagneticButton>
+            <div className="flex space-x-3">
+              <button 
+                onClick={() => navigate('/dashboard')} 
+                className="flex-1 py-3 px-4 rounded-xl font-semibold text-sm bg-white hover:bg-[#F9FAFB] text-[#334155] transition-all border border-[#D1D5DB] shadow-sm"
+              >
+                View Dashboard
+              </button>
               
-              <MagneticButton strength={0.15} className="flex-1">
-                <motion.button 
-                  onClick={() => navigate('/my-complaints')} 
-                  className="w-full py-4 px-6 rounded-xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white transition-all relative overflow-hidden group"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-500"
-                    initial={{ x: '100%' }}
-                    whileHover={{ x: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <span className="relative z-10 flex items-center justify-center gap-2">
-                    Track Status
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </span>
-                </motion.button>
-              </MagneticButton>
-            </motion.div>
+              <button 
+                onClick={() => navigate('/my-complaints')} 
+                className="flex-1 py-3 px-4 rounded-xl font-semibold text-sm bg-[#0284C7] hover:bg-[#0369A1] text-white transition-all shadow-sm flex items-center justify-center gap-1.5"
+              >
+                Track Status
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

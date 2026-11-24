@@ -3,52 +3,52 @@ import { useNavigate } from 'react-router-dom';
 import { ThumbsUp, MapPin, Clock, TrendingUp, ExternalLink, Edit } from 'lucide-react';
 import StatusTracker from './StatusTracker';
 
-const severityConfig = {
-  High: { 
-    bg: 'bg-red-500/10', 
-    text: 'text-red-400', 
-    border: 'border-red-500/30',
-    glow: 'group-hover:shadow-red-500/20',
-    gradient: 'from-red-500/20 to-red-600/10'
-  },
-  Medium: { 
-    bg: 'bg-yellow-500/10', 
-    text: 'text-yellow-400', 
-    border: 'border-yellow-500/30',
-    glow: 'group-hover:shadow-yellow-500/20',
-    gradient: 'from-yellow-500/20 to-yellow-600/10'
-  },
-  Low: { 
-    bg: 'bg-green-500/10', 
-    text: 'text-green-400', 
-    border: 'border-green-500/30',
-    glow: 'group-hover:shadow-green-500/20',
-    gradient: 'from-green-500/20 to-green-600/10'
-  },
+const categoryColors = {
+  pothole: { label: 'Pothole', color: 'text-orange-600 bg-orange-50 border-orange-200' },
+  garbage: { label: 'Garbage', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
+  streetlight: { label: 'Streetlight', color: 'text-amber-600 bg-amber-50 border-amber-200' },
+  'broken streetlight': { label: 'Streetlight', color: 'text-amber-600 bg-amber-50 border-amber-200' },
+  water: { label: 'Water Leakage', color: 'text-sky-600 bg-sky-50 border-sky-200' },
+  drainage: { label: 'Drainage', color: 'text-purple-600 bg-purple-50 border-purple-200' },
 };
 
 const statusConfig = {
   'Pending': { 
-    icon: '⏳', 
-    bg: 'bg-yellow-500/20', 
-    text: 'text-yellow-300',
-    border: 'border-yellow-500/30',
-    pulse: true
+    label: 'Submitted',
+    badge: 'bg-[#EFF6FF] text-[#0284C7] border-[#BAE6FD]',
+    dot: 'bg-[#0284C7]',
+  },
+  'Submitted': { 
+    label: 'Submitted',
+    badge: 'bg-[#EFF6FF] text-[#0284C7] border-[#BAE6FD]',
+    dot: 'bg-[#0284C7]',
+  },
+  'Under Review': { 
+    label: 'Under Review',
+    badge: 'bg-[#F5F3FF] text-[#7C3AED] border-[#DDD6FE]',
+    dot: 'bg-[#7C3AED]',
   },
   'In Progress': { 
-    icon: '�', 
-    bg: 'bg-blue-500/20', 
-    text: 'text-blue-300',
-    border: 'border-blue-500/30',
-    pulse: true
+    label: 'In Progress',
+    badge: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
+    dot: 'bg-[#D97706]',
   },
   'Resolved': { 
-    icon: '✅', 
-    bg: 'bg-green-500/20', 
-    text: 'text-green-300',
-    border: 'border-green-500/30',
-    pulse: false
+    label: 'Resolved',
+    badge: 'bg-[#F0FDF4] text-[#16A34A] border-[#BBF7D0]',
+    dot: 'bg-[#16A34A]',
   },
+  'Rejected': { 
+    label: 'Rejected',
+    badge: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
+    dot: 'bg-[#DC2626]',
+  },
+};
+
+const severityBadges = {
+  High: 'bg-rose-50 text-rose-700 border-rose-200',
+  Medium: 'bg-amber-50 text-amber-700 border-amber-200',
+  Low: 'bg-slate-50 text-slate-600 border-slate-200',
 };
 
 const ComplaintCard = ({ complaint, onAddIssue, onEdit }) => {
@@ -57,121 +57,109 @@ const ComplaintCard = ({ complaint, onAddIssue, onEdit }) => {
   const displayAddress = complaint.locationAddress || 
     (complaint.location && Array.isArray(complaint.location)
       ? `${complaint.location[0]?.toFixed?.(2) || '—'}, ${complaint.location[1]?.toFixed?.(2) || '—'}`
-      : '—');
+      : 'Location details available');
 
   const activeStatus = statusConfig[complaint.status] || statusConfig['Pending'];
-  const severityStyle = severityConfig[complaint.severity] || severityConfig.Medium;
+  const pTypeKey = (complaint.problemType || '').toLowerCase();
+  const categoryInfo = categoryColors[pTypeKey] || { label: complaint.problemType || 'Issue', color: 'text-sky-700 bg-sky-50 border-sky-200' };
 
   return (
     <motion.div
       onClick={() => navigate(`/details/${complaint.id || complaint._id}`)}
-      className="relative group cursor-pointer h-full flex flex-col"
-      whileHover={{ scale: 1.02 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      className="bg-white rounded-xl border border-[#E5E7EB] shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer h-full flex flex-col overflow-hidden group hover:border-[#BAE6FD]"
+      whileHover={{ y: -3 }}
+      transition={{ duration: 0.2 }}
     >
-      {/* Glow Effect */}
-      <div className={`absolute -inset-0.5 bg-gradient-to-r ${severityStyle.gradient} rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-500`} />
-      
-      <div className="relative flex-1 h-full glass-premium flex flex-col overflow-hidden rounded-3xl border border-white/10 group-hover:border-white/20 transition-all duration-300">
-        {/* Image Section */}
-        <div className="relative h-52 overflow-hidden shrink-0">
-          <motion.img
+      {/* Image Section */}
+      <div className="relative h-48 overflow-hidden bg-[#F3F4F6] shrink-0 border-b border-[#E5E7EB]">
+        {complaint.imageUrl ? (
+          <img
             src={complaint.imageUrl}
             alt={complaint.problemType}
-            className="w-full h-full object-cover"
-            whileHover={{ scale: 1.1 }}
-            transition={{ duration: 0.6 }}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
-          
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F19] via-[#0B0F19]/50 to-transparent" />
-          
-          {/* Status Badge */}
-          <div className="absolute top-4 right-4">
-            <motion.span 
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full border backdrop-blur-md ${activeStatus.bg} ${activeStatus.text} ${activeStatus.border}`}
-              animate={activeStatus.pulse ? { scale: [1, 1.05, 1] } : {}}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <span>{activeStatus.icon}</span>
-              <span>{complaint.status || 'Pending'}</span>
-            </motion.span>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-[#9CA3AF] bg-[#F8FAFC]">
+            No image available
           </div>
-          
-          {/* Bottom Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-4">
-            <div className="flex items-end justify-between">
-              <div className="flex-1">
-                <motion.span 
-                  className={`inline-block px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md border backdrop-blur-sm mb-2 ${severityStyle.bg} ${severityStyle.text} ${severityStyle.border}`}
-                >
-                  {complaint.severity} Priority
-                </motion.span>
-                <h3 className="text-xl font-bold text-white leading-tight group-hover:text-gradient transition-all">
-                  {complaint.problemType}
-                </h3>
-              </div>
-              
-              {/* View Icon */}
-              <motion.div
-                className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                whileHover={{ scale: 1.1 }}
-              >
-                <ExternalLink className="w-5 h-5 text-white" />
-              </motion.div>
-            </div>
+        )}
+
+        {/* Top Badges */}
+        <div className="absolute top-3 inset-x-3 flex items-center justify-between">
+          <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border shadow-2xs backdrop-blur-xs flex items-center gap-1.5 ${activeStatus.badge}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${activeStatus.dot}`} />
+            {activeStatus.label}
+          </span>
+
+          {complaint.severity && (
+            <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-md border shadow-2xs ${severityBadges[complaint.severity] || severityBadges.Medium}`}>
+              {complaint.severity}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="p-4 flex-1 flex flex-col justify-between">
+        <div>
+          {/* Category Tag & Title */}
+          <div className="flex items-center justify-between mb-1.5">
+            <span className={`px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded-md border ${categoryInfo.color}`}>
+              {categoryInfo.label}
+            </span>
+            <span className="text-[11px] font-mono text-[#6B7280]">
+              #{String(complaint.id || complaint._id).slice(-6).toUpperCase()}
+            </span>
+          </div>
+
+          <h3 className="text-base font-bold text-[#0F172A] leading-snug mb-2 group-hover:text-[#0284C7] transition-colors line-clamp-1">
+            {complaint.problemType || 'Civic Issue'}
+          </h3>
+
+          <p className="text-xs text-[#4B5563] line-clamp-2 mb-3">
+            {complaint.description || 'Citizen reported issue requiring department inspection and action.'}
+          </p>
+
+          {/* Stepper */}
+          <div className="mb-3 pt-1">
+            <StatusTracker status={complaint.status} compact />
           </div>
         </div>
-        
-        {/* Content Section */}
-        <div className="p-5 flex-1 flex flex-col justify-between">
-          <div>
-            {/* Status Tracker */}
-            <div className="mb-4">
-              <StatusTracker status={complaint.status} compact />
+
+        {/* Card Footer */}
+        <div className="pt-3 border-t border-[#F3F4F6] mt-2">
+          <div className="flex items-center justify-between text-xs text-[#6B7280]">
+            <div className="flex items-center gap-1 max-w-[140px] truncate" title={displayAddress}>
+              <MapPin className="w-3.5 h-3.5 text-[#0284C7] shrink-0" />
+              <span className="truncate">{displayAddress}</span>
             </div>
-            
-            {/* Footer Info */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-4 text-xs text-gray-400">
-                <motion.div 
-                  className="flex items-center gap-1.5 hover:text-blue-400 transition-colors"
-                  whileHover={{ x: 2 }}
-                >
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span className="max-w-[100px] truncate">{displayAddress}</span>
-                </motion.div>
-                
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>{new Date(complaint.createdAt).toLocaleDateString()}</span>
-                </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-[#9CA3AF]" />
+                <span>{new Date(complaint.createdAt).toLocaleDateString()}</span>
               </div>
-              
-              {/* Upvotes */}
-              <motion.div 
-                className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 group-hover:border-blue-500/30 group-hover:bg-blue-500/10 transition-all"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <ThumbsUp className="w-3.5 h-3.5 text-blue-400" />
-                <span className="font-bold text-white text-xs">{complaint.upvotes || 0}</span>
-              </motion.div>
+
+              {/* Upvote Pill */}
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F0F9FF] border border-[#BAE6FD] text-[#0284C7] font-semibold text-[11px]">
+                <ThumbsUp className="w-3 h-3" />
+                <span>{complaint.upvotes || 0}</span>
+              </div>
             </div>
           </div>
 
-          {/* User Actions */}
+          {/* User action buttons if present */}
           {(onAddIssue || onEdit) && (
-            <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between gap-2">
+            <div className="mt-3 pt-2.5 border-t border-[#F3F4F6] flex items-center justify-between gap-2">
               {onEdit && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onEdit(complaint);
                   }}
-                  className="flex-1 flex justify-center items-center gap-2 px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg text-xs font-bold transition-colors border border-blue-500/20"
+                  className="flex-1 flex justify-center items-center gap-1.5 px-2.5 py-1.5 bg-white hover:bg-[#F8FAFC] text-[#334155] rounded-lg text-xs font-semibold transition-colors border border-[#E5E7EB]"
                 >
-                  <Edit className="w-4 h-4" />
+                  <Edit className="w-3.5 h-3.5 text-[#0284C7]" />
                   Edit
                 </button>
               )}
@@ -181,18 +169,15 @@ const ComplaintCard = ({ complaint, onAddIssue, onEdit }) => {
                     e.stopPropagation();
                     onAddIssue(complaint);
                   }}
-                  className="flex-1 flex justify-center items-center gap-2 px-3 py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-lg text-xs font-bold transition-colors border border-purple-500/20"
+                  className="flex-1 flex justify-center items-center gap-1.5 px-2.5 py-1.5 bg-[#F0F9FF] hover:bg-[#E0F2FE] text-[#0284C7] rounded-lg text-xs font-semibold transition-colors border border-[#BAE6FD]"
                 >
-                  <TrendingUp className="w-4 h-4" />
+                  <TrendingUp className="w-3.5 h-3.5" />
                   Add Issue
                 </button>
               )}
             </div>
           )}
         </div>
-        
-        {/* Hover Gradient Overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-t ${severityStyle.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
       </div>
     </motion.div>
   );

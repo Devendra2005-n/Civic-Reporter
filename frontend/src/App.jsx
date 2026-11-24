@@ -68,7 +68,7 @@ function App() {
     <Router>
       <AuthProvider>
         <SmoothScroll>
-          <div className="relative min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)] font-sans selection:bg-sky-500/30 overflow-x-hidden">
+          <div className="relative min-h-screen bg-[#F9FAFB] text-[#334155] font-sans selection:bg-[#E0F2FE] selection:text-[#0284C7] overflow-x-hidden">
             
             <Navbar />
             <AIChatbot />

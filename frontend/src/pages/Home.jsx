@@ -158,24 +158,24 @@ const Home = () => {
           {/* Badge with Glow */}
           <motion.div variants={itemVariants} className="inline-block mb-6 mt-16">
             <motion.span
-              className="bg-sky-500/10 px-5 py-2.5 text-sm font-semibold rounded-full text-sky-300 border border-sky-500/30 inline-flex items-center gap-2"
+              className="bg-[#F0F9FF] px-5 py-2.5 text-sm font-semibold rounded-full text-[#0284C7] border border-[#BAE6FD] inline-flex items-center gap-2 shadow-sm"
               whileHover={{ scale: 1.05 }}
               transition={{ type: 'spring', stiffness: 400 }}
             >
-              <Sparkles className="w-4 h-4 text-sky-500" />
+              <Sparkles className="w-4 h-4 text-[#0284C7]" />
               Pytorch Model-Powered Civic Reporting
             </motion.span>
           </motion.div>
 
           {/* Main Heading with Typewriter */}
           <motion.div variants={itemVariants} className="mb-6">
-            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-[#0F172A]">
               <span className="block mb-2">{titleText}</span>
-              <span className="block text-gradient relative inline-block">
+              <span className="block text-[#0284C7] relative inline-block">
                 {subtitleText}
                 {showCursor && (
                   <motion.span
-                    className="absolute -right-1 top-0 w-1 h-full bg-sky-500"
+                    className="absolute -right-1 top-0 w-1 h-full bg-[#0284C7]"
                     animate={{ opacity: [1, 0] }}
                     transition={{ duration: 0.5, repeat: Infinity }}
                   />
@@ -187,11 +187,11 @@ const Home = () => {
           {/* Subtitle */}
           <motion.p
             variants={itemVariants}
-            className="text-lg sm:text-xl md:text-2xl text-[var(--color-text-secondary)] max-w-3xl mx-auto mb-10 leading-relaxed font-medium"
+            className="text-lg sm:text-xl md:text-2xl text-[#4B5563] max-w-3xl mx-auto mb-10 leading-relaxed font-normal"
           >
             Empowering citizens to build better cities.
-            <strong className="text-sky-400"> Snap a photo</strong> of civic issues,
-            and our <strong className="text-sky-400">Model</strong> will automatically
+            <strong className="text-[#0284C7] font-semibold"> Snap a photo</strong> of civic issues,
+            and our <strong className="text-[#0284C7] font-semibold">Model</strong> will automatically
             classify, localize, and analyze them.
           </motion.p>
 
@@ -204,16 +204,10 @@ const Home = () => {
               <MagneticButton strength={0.2}>
                 <motion.button
                   onClick={() => navigate('/submit')}
-                  className="relative group px-8 py-4 bg-sky-500 text-white font-bold rounded-xl border border-sky-400 hover:bg-sky-400 shadow-md overflow-hidden"
+                  className="relative group px-8 py-4 bg-[#0284C7] text-white font-semibold rounded-xl hover:bg-[#0369A1] shadow-sm transition-all"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-500 to-blue-600"
-                    initial={{ x: '100%' }}
-                    whileHover={{ x: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
                   <span className="relative flex items-center gap-3">
                     <Camera className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                     <span>Report an Issue</span>
@@ -226,12 +220,12 @@ const Home = () => {
             <MagneticButton strength={0.15}>
               <motion.button
                 onClick={() => navigate('/dashboard')}
-                className="group px-8 py-4 bg-[var(--color-surface-strong)] text-[var(--color-text-primary)] font-bold rounded-xl border border-[var(--color-border-strong)] hover:border-sky-500 hover:text-sky-400 shadow-sm transition-all"
+                className="group px-8 py-4 bg-white text-[#334155] font-semibold rounded-xl border border-[#E5E7EB] hover:border-[#BAE6FD] hover:text-[#0284C7] hover:bg-[#F0F9FF] shadow-sm transition-all"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <span className="flex items-center gap-3">
-                  <Map className="w-5 h-5 text-sky-500" />
+                  <Map className="w-5 h-5 text-[#0284C7]" />
                   <span>View Dashboard</span>
                 </span>
               </motion.button>
@@ -252,10 +246,10 @@ const Home = () => {
                 transition={{ delay: 2 + index * 0.2 }}
               >
                 <div className="flex items-center justify-center gap-2 mb-1">
-                  <stat.icon className="w-5 h-5 text-sky-500" />
-                  <span className="text-3xl md:text-4xl font-bold text-sky-400 stat-counter">{stat.value}</span>
+                  <stat.icon className="w-5 h-5 text-[#0284C7]" />
+                  <span className="text-3xl md:text-4xl font-extrabold text-[#0F172A]">{stat.value}</span>
                 </div>
-                <p className="text-sm font-medium text-slate-500">{stat.label}</p>
+                <p className="text-sm font-medium text-[#6B7280]">{stat.label}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -267,9 +261,9 @@ const Home = () => {
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          <div className="w-6 h-10 border-2 border-white/20 rounded-full flex justify-center pt-2">
+          <div className="w-6 h-10 border-2 border-[#D1D5DB] rounded-full flex justify-center pt-2">
             <motion.div
-              className="w-1.5 h-1.5 bg-white/60 rounded-full"
+              className="w-1.5 h-1.5 bg-[#9CA3AF] rounded-full"
               animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
@@ -279,7 +273,7 @@ const Home = () => {
 
       {/* Features Section with Parallax */}
       <ParallaxSection offset={30}>
-        <div className="max-w-7xl mx-auto px-6 py-24">
+        <div className="max-w-7xl mx-auto px-6 py-20">
           <motion.div
             className="text-center mb-16"
             initial={{ opacity: 0, y: 30 }}
@@ -287,9 +281,11 @@ const Home = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-blue-400 font-semibold text-sm tracking-wider uppercase">How It Works</span>
-            <h2 className="text-4xl md:text-5xl font-bold mt-3">
-              Three Steps to <span className="text-gradient">Better Cities</span>
+            <span className="text-[#0284C7] font-semibold text-xs tracking-wider uppercase bg-[#F0F9FF] border border-[#BAE6FD] px-3 py-1 rounded-full">
+              How It Works
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold mt-4 text-[#0F172A]">
+              Three Steps to <span className="text-[#0284C7]">Better Cities</span>
             </h2>
           </motion.div>
 
@@ -300,7 +296,7 @@ const Home = () => {
                 step: '01',
                 title: 'Snap a Photo',
                 desc: 'Capture any civic issue clearly. Our Model recognizes potholes, broken lights, garbage, and more.',
-                color: 'blue',
+                color: 'sky',
                 delay: 0
               },
               {
@@ -308,7 +304,7 @@ const Home = () => {
                 step: '02',
                 title: 'AI Auto-Fills',
                 desc: 'Advanced AI generates formal complaints, extracts severity levels, and translates to local languages.',
-                color: 'purple',
+                color: 'sky',
                 delay: 0.2
               },
               {
@@ -316,7 +312,7 @@ const Home = () => {
                 step: '03',
                 title: 'Track & Resolve',
                 desc: 'Monitor progress on the live city map, upvote urgent issues, and celebrate resolutions.',
-                color: 'green',
+                color: 'sky',
                 delay: 0.4
               }
             ].map((feature, index) => (
@@ -324,31 +320,31 @@ const Home = () => {
                 key={feature.step}
                 className="gsap-step-card"
               >
-                <div className={`bg-[#0B0F19] p-8 rounded-3xl h-full relative overflow-hidden group border border-white/5 hover:border-${feature.color}-500/30 transition-all duration-500 flex flex-col`}>
-                  {/* Colored Top Accent Line */}
-                  <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-${feature.color}-500 to-${feature.color}-400 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out`} />
+                <div className="bg-white p-8 rounded-2xl h-full relative overflow-hidden group border border-[#E5E7EB] hover:border-[#BAE6FD] hover:shadow-md transition-all duration-300 flex flex-col shadow-sm">
+                  {/* Blue Top Accent Line on hover */}
+                  <div className="absolute top-0 left-0 w-full h-1 bg-[#0284C7] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out" />
                   
-                  {/* Perfectly placed Watermark Step Number */}
-                  <div className={`absolute right-6 bottom-4 text-7xl font-black text-${feature.color}-500/5 pointer-events-none group-hover:text-${feature.color}-500/10 transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-2`}>
+                  {/* Subtle Watermark Step Number */}
+                  <div className="absolute right-6 bottom-4 text-7xl font-black text-[#F3F4F6] pointer-events-none group-hover:text-[#E0F2FE] transition-all duration-300 select-none">
                     {feature.step}
                   </div>
 
                   <div className="relative z-10 flex-1 flex flex-col">
                     {/* Header row: Icon + Step */}
                     <div className="flex items-center justify-between mb-8">
-                      <div className={`w-14 h-14 rounded-2xl bg-${feature.color}-500/10 flex items-center justify-center border border-${feature.color}-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500`}>
-                        <feature.icon className={`w-6 h-6 text-${feature.color}-400`} />
+                      <div className="w-12 h-12 rounded-xl bg-[#F0F9FF] flex items-center justify-center border border-[#BAE6FD] text-[#0284C7]">
+                        <feature.icon className="w-6 h-6 text-[#0284C7]" />
                       </div>
-                      <span className={`text-xs font-bold tracking-widest text-${feature.color}-500/50 uppercase`}>
+                      <span className="text-xs font-semibold tracking-wider text-[#6B7280] uppercase">
                         Step {feature.step}
                       </span>
                     </div>
 
                     <div className="mt-2">
-                      <h3 className={`text-xl font-bold mb-3 text-white group-hover:text-${feature.color}-400 transition-colors duration-300`}>
+                      <h3 className="text-lg font-bold mb-2 text-[#0F172A] group-hover:text-[#0284C7] transition-colors duration-200">
                         {feature.title}
                       </h3>
-                      <p className="text-gray-400 leading-relaxed text-sm">
+                      <p className="text-[#4B5563] leading-relaxed text-sm">
                         {feature.desc}
                       </p>
                     </div>
@@ -361,29 +357,29 @@ const Home = () => {
       </ParallaxSection>
 
       {/* Tech Stack / Features Grid */}
-      <div className="max-w-7xl mx-auto px-6 py-24">
+      <div className="max-w-7xl mx-auto px-6 py-16">
         <motion.div
-          className="glass-premium rounded-3xl p-8 md:p-12 relative overflow-hidden"
+          className="bg-white rounded-2xl p-8 md:p-12 relative overflow-hidden border border-[#E5E7EB] shadow-sm"
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          {/* Background Decoration */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-transparent" />
-
           <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Powered by <span className="text-gradient">Pytorch Model</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#0284C7] bg-[#F0F9FF] px-3 py-1 rounded-full border border-[#BAE6FD]">
+                Machine Intelligence
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold mt-4 mb-4 text-[#0F172A]">
+                Powered by <span className="text-[#0284C7]">Pytorch Model</span>
               </h2>
-              <p className="text-gray-400 mb-8 text-lg">
+              <p className="text-[#4B5563] mb-8 text-base leading-relaxed">
                 Our platform leverages state-of-the-art machine learning models
                 to automatically detect, classify, and prioritize civic issues
                 with unprecedented accuracy.
               </p>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {[
                   { label: 'Computer Vision', desc: 'YOLO-based object detection', icon: Sparkles },
                   { label: 'Natural Language', desc: 'GPT-powered letter generation', icon: FileText },
@@ -391,19 +387,18 @@ const Home = () => {
                 ].map((item, i) => (
                   <motion.div
                     key={item.label}
-                    className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10"
+                    className="flex items-center gap-4 p-4 rounded-xl bg-[#F9FAFB] border border-[#E5E7EB] hover:border-[#BAE6FD] hover:bg-[#F0F9FF]/50 transition-colors"
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.1 }}
-                    whileHover={{ x: 10, backgroundColor: 'rgba(255,255,255,0.08)' }}
                   >
-                    <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                      <item.icon className="w-5 h-5 text-blue-400" />
+                    <div className="w-10 h-10 rounded-lg bg-[#E0F2FE] flex items-center justify-center shrink-0">
+                      <item.icon className="w-5 h-5 text-[#0284C7]" />
                     </div>
                     <div>
-                      <p className="font-semibold">{item.label}</p>
-                      <p className="text-sm text-gray-500">{item.desc}</p>
+                      <p className="font-semibold text-sm text-[#0F172A]">{item.label}</p>
+                      <p className="text-xs text-[#6B7280]">{item.desc}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -414,11 +409,11 @@ const Home = () => {
             <div className="relative h-64 md:h-96 w-full flex items-center justify-center mt-8 md:mt-0">
               <FloatingElement delay={0} duration={8}>
                 <motion.div
-                  className="w-48 h-48 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-3xl border border-white/10 backdrop-blur-sm flex items-center justify-center relative z-10"
+                  className="w-48 h-48 bg-[#F0F9FF] rounded-3xl border border-[#BAE6FD] shadow-sm flex items-center justify-center relative z-10"
                   style={{ transform: 'rotateY(15deg) rotateX(-10deg)' }}
                   whileHover={{ scale: 1.05 }}
                 >
-                  <Activity className="w-16 h-16 text-blue-400" />
+                  <Activity className="w-16 h-16 text-[#0284C7]" />
                 </motion.div>
               </FloatingElement>
 
@@ -427,7 +422,7 @@ const Home = () => {
                 {[0, 120, 240].map((deg, i) => (
                   <motion.div
                     key={deg}
-                    className="absolute w-4 h-4 bg-blue-400 rounded-full"
+                    className="absolute w-3 h-3 bg-[#38BDF8] rounded-full shadow-sm"
                     animate={{
                       x: [0, Math.cos((deg * Math.PI) / 180) * 120, 0],
                       y: [0, Math.sin((deg * Math.PI) / 180) * 120, 0],
