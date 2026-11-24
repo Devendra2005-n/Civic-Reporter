@@ -8,7 +8,8 @@ import ComplaintCard from '../components/ComplaintCard';
 import { 
   Filter, Layers, Clock, CheckCircle2, AlertTriangle, 
   Map as MapIcon, Plus, Shield, ArrowRight, Activity, 
-  CheckCircle, Hourglass, AlertCircle 
+  CheckCircle, Hourglass, AlertCircle, PhoneCall, BarChart2, 
+  Lightbulb, Trash2, Droplets, ChevronRight, Building2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -93,6 +94,19 @@ const Dashboard = () => {
   const inProgressCount = complaints.filter(c => c.status === 'In Progress').length;
   const underReviewCount = complaints.filter(c => c.status === 'Pending' || c.status === 'Submitted' || c.status === 'Under Review').length;
   const highPriorityCount = complaints.filter(c => c.severity === 'High' && c.status !== 'Resolved').length;
+
+  // Category breakdown calculation
+  const getCategoryCount = (keyword) => {
+    return complaints.filter(c => {
+      const type = (c.problemType || '').toLowerCase();
+      return type.includes(keyword);
+    }).length;
+  };
+
+  const potholeCount = getCategoryCount('pothole');
+  const streetlightCount = getCategoryCount('streetlight') || getCategoryCount('light');
+  const garbageCount = getCategoryCount('garbage') || getCategoryCount('waste');
+  const waterCount = getCategoryCount('water') || getCategoryCount('leak') || getCategoryCount('drain');
 
   const onMapLoad = useCallback((map) => {
     if (filtered.length > 0 && window.google) {
@@ -219,8 +233,8 @@ const Dashboard = () => {
       {/* Main Grid: Interactive Map + Recent Complaints */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Left Column: Live Map */}
-        <div className="lg:col-span-1 space-y-4">
+        {/* Left Column: Live Map & Ward Widgets */}
+        <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-24 lg:self-start">
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-4 shadow-xs">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
@@ -298,6 +312,89 @@ const Dashboard = () => {
             <p className="text-[11px] text-[#6B7280] mt-2.5 text-center">
               Click any pin on the map to preview report details.
             </p>
+          </div>
+
+          {/* Card: Issue Category Breakdown */}
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-4 shadow-xs">
+            <div className="flex items-center justify-between mb-3.5">
+              <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
+                <BarChart2 className="w-4 h-4 text-[#0284C7]" />
+                <span>Issue Breakdown</span>
+              </h3>
+              <span className="text-[11px] font-semibold text-[#0284C7] bg-[#F0F9FF] border border-[#BAE6FD] px-2 py-0.5 rounded-full">
+                {totalCount} Total
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {[
+                { name: 'Roads & Potholes', count: potholeCount, color: 'bg-[#F97316]', text: 'text-[#F97316]', icon: AlertTriangle },
+                { name: 'Streetlights', count: streetlightCount, color: 'bg-[#D97706]', text: 'text-[#D97706]', icon: Lightbulb },
+                { name: 'Waste & Sanitation', count: garbageCount, color: 'bg-[#16A34A]', text: 'text-[#16A34A]', icon: Trash2 },
+                { name: 'Water & Drainage', count: waterCount, color: 'bg-[#0284C7]', text: 'text-[#0284C7]', icon: Droplets },
+              ].map((cat) => {
+                const pct = totalCount > 0 ? Math.round((cat.count / totalCount) * 100) : 0;
+                return (
+                  <div key={cat.name} className="text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-[#4B5563] flex items-center gap-1.5">
+                        <cat.icon className={`w-3.5 h-3.5 ${cat.text}`} />
+                        {cat.name}
+                      </span>
+                      <span className="font-semibold text-[#0F172A]">
+                        {cat.count} <span className="text-[#9CA3AF] font-normal">({pct}%)</span>
+                      </span>
+                    </div>
+                    <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full ${cat.color} transition-all duration-500`} 
+                        style={{ width: `${Math.max(pct, cat.count > 0 ? 5 : 0)}%` }} 
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Card: Municipal Helpdesk & Response SLA */}
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-4 shadow-xs">
+            <div className="flex items-center justify-between mb-2.5">
+              <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-[#0284C7]" />
+                <span>Municipal Ward Desk</span>
+              </h3>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]">
+                Active
+              </span>
+            </div>
+
+            <p className="text-xs text-[#4B5563] leading-relaxed mb-3">
+              Direct municipal routing is active. Standard high-priority resolution turnaround is <strong>under 48 hours</strong>.
+            </p>
+
+            <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 space-y-2 mb-3 text-xs">
+              <div className="flex items-center justify-between text-[#334155]">
+                <span className="text-[#6B7280] flex items-center gap-1.5">
+                  <PhoneCall className="w-3.5 h-3.5 text-[#0284C7]" /> Civic Helpline:
+                </span>
+                <span className="font-mono font-bold text-[#0F172A]">1800-123-2484</span>
+              </div>
+              <div className="flex items-center justify-between text-[#334155]">
+                <span className="text-[#6B7280] flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 text-[#DC2626]" /> Emergency Services:
+                </span>
+                <span className="font-mono font-bold text-[#DC2626]">112</span>
+              </div>
+            </div>
+
+            <Link
+              to="/submit"
+              className="w-full py-2 px-3 rounded-lg bg-[#F0F9FF] hover:bg-[#E0F2FE] text-[#0284C7] border border-[#BAE6FD] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <span>File a New Grievance</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
         </div>
 
