@@ -189,7 +189,7 @@ const Submit = () => {
     }
   };
 
-  const handleUpload = async (uploadedFile, url) => {
+  const handleUpload = async (uploadedFile, url, geotagData = null) => {
     if (!uploadedFile) return;
     setFile(uploadedFile);
     setPreview(url);
@@ -212,92 +212,119 @@ const Submit = () => {
         } catch {}
       }
 
-      // ✅ EXIF LOCATION EXTRACTION — CLIENT-SIDE FIRST (most reliable on mobile)
-      // Parse EXIF directly from the File object in the browser.
-      // This is critical because mobile browsers may strip EXIF during HTTP upload.
-      setExifStatus('detecting');
-      const exifPromise = (async () => {
-        try {
-          // Step 1: Try client-side EXIF parsing (instant, works on mobile)
-          console.log('📍 Attempting client-side EXIF parse...');
-          const exif = await exifr.parse(uploadedFile, {
-            gps: true,
-            tiff: true,
-            xmp: true,
-            iptc: true,
-          }).catch(() => null);
+      // If geotag camera provided location, use it directly
+      if (geotagData && geotagData.lat != null && geotagData.lng != null) {
+        const lat = geotagData.lat;
+        const lng = geotagData.lng;
+        console.log(`✅ GEOTAG CAMERA GPS found: ${lat}, ${lng}`);
 
-          if (exif) {
-            console.log('📍 Client EXIF keys:', Object.keys(exif).join(', '));
-          }
+        const address = {
+          state: geotagData.state || '',
+          district: geotagData.district || '',
+          city: geotagData.city || '',
+          area: geotagData.street || '',
+          fullAddress: geotagData.fullAddress || `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+        };
 
-          // Check for GPS coordinates in client-side EXIF
-          if (exif && exif.latitude != null && exif.longitude != null) {
-            const lat = exif.latitude;
-            const lng = exif.longitude;
-            console.log(`✅ CLIENT-SIDE EXIF GPS found: ${lat}, ${lng}`);
+        setExifStatus('found');
+        setExifSource('EXIF_GPS');
+        setExifAddress(address);
+        setLocationSource('EXIF_GPS');
 
-            // Reverse geocode to get structured address
-            let address = { state: '', district: '', city: '', area: '', fullAddress: `${lat.toFixed(6)}, ${lng.toFixed(6)}` };
-            try {
-              const geoRes = await reverseGeocodeLocation(lat, lng);
-              address = geoRes.data;
-            } catch (geoErr) {
-              console.warn('📍 Reverse geocode failed, using coords only:', geoErr.message);
+        const newPos = { lat, lng };
+        setMapCenter(newPos);
+        setMarkerPos(newPos);
+        handleDetectAuthority(lat, lng);
+
+        toast.success('📍 Location captured from geotag photo!', { duration: 3000 });
+      } else {
+        // ✅ EXIF LOCATION EXTRACTION — CLIENT-SIDE FIRST (most reliable on mobile)
+        // Parse EXIF directly from the File object in the browser.
+        // This is critical because mobile browsers may strip EXIF during HTTP upload.
+        setExifStatus('detecting');
+        const exifPromise = (async () => {
+          try {
+            // Step 1: Try client-side EXIF parsing (instant, works on mobile)
+            console.log('📍 Attempting client-side EXIF parse...');
+            const exif = await exifr.parse(uploadedFile, {
+              gps: true,
+              tiff: true,
+              xmp: true,
+              iptc: true,
+            }).catch(() => null);
+
+            if (exif) {
+              console.log('📍 Client EXIF keys:', Object.keys(exif).join(', '));
             }
 
-            setExifStatus('found');
-            setExifSource('EXIF_GPS');
-            setExifAddress(address);
-            setLocationSource('EXIF_GPS');
+            // Check for GPS coordinates in client-side EXIF
+            if (exif && exif.latitude != null && exif.longitude != null) {
+              const lat = exif.latitude;
+              const lng = exif.longitude;
+              console.log(`✅ CLIENT-SIDE EXIF GPS found: ${lat}, ${lng}`);
 
-            const newPos = { lat, lng };
-            setMapCenter(newPos);
-            setMarkerPos(newPos);
-            handleDetectAuthority(lat, lng);
+              // Reverse geocode to get structured address
+              let address = { state: '', district: '', city: '', area: '', fullAddress: `${lat.toFixed(6)}, ${lng.toFixed(6)}` };
+              try {
+                const geoRes = await reverseGeocodeLocation(lat, lng);
+                address = geoRes.data;
+              } catch (geoErr) {
+                console.warn('📍 Reverse geocode failed, using coords only:', geoErr.message);
+              }
 
-            toast.success('📍 Location detected from photo!', { duration: 3000 });
-            return; // Done — no need for server fallback
-          }
-
-          // Step 2: Client didn't find GPS — try server-side (checks Plus Code, Address, etc.)
-          console.log('📍 No client-side GPS, trying server extraction...');
-          try {
-            const serverRes = await extractLocationFromImage(uploadedFile);
-            const serverData = serverRes.data;
-            console.log('📍 Server EXIF result:', serverData);
-
-            if (serverData.found) {
               setExifStatus('found');
-              setExifSource(serverData.source);
-              setExifAddress(serverData.address);
-              setLocationSource(serverData.source);
+              setExifSource('EXIF_GPS');
+              setExifAddress(address);
+              setLocationSource('EXIF_GPS');
 
-              const newPos = { lat: serverData.latitude, lng: serverData.longitude };
+              const newPos = { lat, lng };
               setMapCenter(newPos);
               setMarkerPos(newPos);
-              handleDetectAuthority(serverData.latitude, serverData.longitude);
+              handleDetectAuthority(lat, lng);
 
               toast.success('📍 Location detected from photo!', { duration: 3000 });
-              return;
+              return; // Done — no need for server fallback
             }
-          } catch (serverErr) {
-            console.warn('📍 Server extraction failed:', serverErr.message);
-          }
 
-          // Step 3: Nothing found anywhere — fallback
-          setExifStatus('not_found');
-          setLocationSource('BROWSER_GPS');
-          console.log('📍 No EXIF location — using browser GPS fallback');
-        } catch (err) {
-          console.error('📍 EXIF extraction error:', err);
-          setExifStatus('error');
-          setLocationSource('BROWSER_GPS');
-        }
-      })();
+            // Step 2: Client didn't find GPS — try server-side (checks Plus Code, Address, etc.)
+            console.log('📍 No client-side GPS, trying server extraction...');
+            try {
+              const serverRes = await extractLocationFromImage(uploadedFile);
+              const serverData = serverRes.data;
+              console.log('📍 Server EXIF result:', serverData);
+
+              if (serverData.found) {
+                setExifStatus('found');
+                setExifSource(serverData.source);
+                setExifAddress(serverData.address);
+                setLocationSource(serverData.source);
+
+                const newPos = { lat: serverData.latitude, lng: serverData.longitude };
+                setMapCenter(newPos);
+                setMarkerPos(newPos);
+                handleDetectAuthority(serverData.latitude, serverData.longitude);
+
+                toast.success('📍 Location detected from photo!', { duration: 3000 });
+                return;
+              }
+            } catch (serverErr) {
+              console.warn('📍 Server extraction failed:', serverErr.message);
+            }
+
+            // Step 3: Nothing found anywhere — fallback
+            setExifStatus('not_found');
+            setLocationSource('BROWSER_GPS');
+            console.log('📍 No EXIF location — using browser GPS fallback');
+          } catch (err) {
+            console.error('📍 EXIF extraction error:', err);
+            setExifStatus('error');
+            setLocationSource('BROWSER_GPS');
+          }
+        })();
+      }
 
       // Ensure browser location is available for AI context
-      let locationAddress = location.address || '';
+      let locationAddress = geotagData?.fullAddress || location.address || '';
       if (!locationAddress && !location.loading) {
         try {
           await location.detectLocation();

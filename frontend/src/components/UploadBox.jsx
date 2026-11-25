@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { UploadCloud, Image as ImageIcon, X, Camera } from 'lucide-react';
+import { UploadCloud, Image as ImageIcon, X, Camera, MapPin } from 'lucide-react';
 import GeotagCamera from './GeotagCamera';
 
 const UploadBox = ({ onUpload }) => {
   const [dragActive, setDragActive] = useState(false);
   const [preview, setPreview] = useState(null);
+  const [geotagMeta, setGeotagMeta] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
   const inputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -20,11 +21,12 @@ const UploadBox = ({ onUpload }) => {
     }
   };
 
-  const processFile = (file) => {
+  const processFile = (file, geotagData = null) => {
     if (!file || !file.type.startsWith("image/")) return;
     const url = URL.createObjectURL(file);
     setPreview(url);
-    onUpload(file, url);
+    setGeotagMeta(geotagData);
+    onUpload(file, url, geotagData);
   };
 
   const handleDrop = (e) => {
@@ -46,9 +48,10 @@ const UploadBox = ({ onUpload }) => {
   const removeImage = (e) => {
     e.stopPropagation();
     setPreview(null);
+    setGeotagMeta(null);
     if (inputRef.current) inputRef.current.value = '';
     if (cameraInputRef.current) cameraInputRef.current.value = '';
-    onUpload(null, null);
+    onUpload(null, null, null);
   };
 
   const handleCameraCapture = (e) => {
@@ -60,9 +63,9 @@ const UploadBox = ({ onUpload }) => {
     <div className="w-full max-w-2xl mx-auto mt-8">
       {showCamera && (
         <GeotagCamera 
-          onCapture={(file) => {
+          onCapture={(file, geotagData) => {
             setShowCamera(false);
-            processFile(file);
+            processFile(file, geotagData);
           }} 
           onClose={() => setShowCamera(false)} 
         />
@@ -111,10 +114,19 @@ const UploadBox = ({ onUpload }) => {
                 alt="Preview" 
                 className="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-105"
               />
+
+              {/* Geotag Indicator Pill */}
+              {geotagMeta && (
+                <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center space-x-1.5 border border-white/20 text-white text-xs font-semibold shadow-lg pointer-events-none">
+                  <MapPin className="w-3.5 h-3.5 text-red-500" />
+                  <span>Geotagged: {geotagMeta.coordinatesText || `${geotagMeta.lat?.toFixed(4)}, ${geotagMeta.lng?.toFixed(4)}`}</span>
+                </div>
+              )}
+
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
                 <button 
                   onClick={removeImage}
-                  className="bg-red-600 text-white p-3 rounded-full hover:bg-red-700 shadow-md transform hover:scale-110 transition-all"
+                  className="bg-red-600 text-white p-3 rounded-full hover:bg-red-700 shadow-md transform hover:scale-110 transition-all cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -148,10 +160,10 @@ const UploadBox = ({ onUpload }) => {
                 <button
                   type="button"
                   onClick={handleCameraCapture}
-                  className="flex items-center space-x-2 px-4 py-2 bg-[#0284C7] text-white rounded-full hover:bg-[#0369A1] transition-all text-xs font-semibold shadow-sm"
+                  className="flex items-center space-x-2 px-4 py-2 bg-[#0284C7] text-white rounded-full hover:bg-[#0369A1] transition-all text-xs font-semibold shadow-sm cursor-pointer"
                 >
                   <Camera className="w-3.5 h-3.5" />
-                  <span>Take Photo</span>
+                  <span>Take Geotag Photo</span>
                 </button>
               </div>
             </motion.div>
