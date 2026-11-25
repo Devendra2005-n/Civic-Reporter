@@ -129,12 +129,25 @@ router.post("/analyze", async (req, res) => {
 
           const prompt = `You are a civic issue detection AI. Analyze this image and respond with JSON matching this schema:
 {
-  "problemType": "pothole" | "garbage" | "streetlight" | "drainage" | "other",
+  "problemType": "pothole" | "garbage" | "streetlight" | "drainage" | "clean_road" | "other",
   "severity": "Low" | "Medium" | "High",
   "confidence": 0.85,
   "description": "brief description",
-  "imageValidation": { "isValid": true, "reason": "reason", "detectedContent": "description" }
-}`;
+  "imageValidation": { 
+    "isValid": true, 
+    "isNoProblem": false, 
+    "reason": "reason", 
+    "detectedContent": "description" 
+  }
+}
+CRITICAL VALIDATION INSTRUCTIONS:
+1. If the photo shows a clean road, intact asphalt, functional streetlight, or well-maintained public infrastructure with NO potholes, NO garbage, and NO civic defects:
+   - Set "problemType": "clean_road"
+   - Set "imageValidation": { "isValid": false, "isNoProblem": true, "reason": "The image shows a clean road or infrastructure in good condition. There are no damages, potholes, or hazards detected.", "detectedContent": "Clean Road / Good Infrastructure Condition" }
+2. If the photo contains real civic problems (pothole, garbage, broken light, drainage overflow):
+   - Set "problemType" accordingly, "imageValidation": { "isValid": true, "isNoProblem": false, "reason": "Civic issue detected", "detectedContent": "..." }
+3. If the photo is non-civic (food, selfie, pet, indoor, random object):
+   - Set "problemType": "other", "imageValidation": { "isValid": false, "isNoProblem": false, "reason": "Invalid non-civic photo", "detectedContent": "..." }`;
 
           const result = await visionModel.generateContent({
             contents: [{
@@ -160,11 +173,21 @@ router.post("/analyze", async (req, res) => {
     }
 
     // Extract image validation result
+    const isNoProblem = parsed.problemType === 'clean_road' || parsed.isNoProblem === true || parsed.imageValidation?.isNoProblem === true;
+
     const imageValidation = parsed.imageValidation || {
-      isValid: parsed.problemType !== "other",
-      reason: `Detected ${parsed.problemType} with ${Math.round(parsed.confidence * 100)}% confidence`,
-      detectedContent: `ML Classification: ${parsed.problemType}`
+      isValid: parsed.problemType !== "other" && !isNoProblem,
+      isNoProblem,
+      reason: isNoProblem 
+        ? "The image shows a clean road in good condition. There is no civic problem or defect detected."
+        : `Detected ${parsed.problemType} with ${Math.round(parsed.confidence * 100)}% confidence`,
+      detectedContent: isNoProblem ? "Clean Road / Good Infrastructure Condition" : `ML Classification: ${parsed.problemType}`
     };
+
+    if (isNoProblem) {
+      imageValidation.isValid = false;
+      imageValidation.isNoProblem = true;
+    }
 
     // Priority calculation
     const sev = (parsed.severity || "medium").toLowerCase();

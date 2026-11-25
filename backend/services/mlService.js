@@ -122,6 +122,8 @@ export async function runOnnxInference(imageBytes) {
     problemType = 'garbage';
   }
 
+  const isNoProblem = rawProblemType === 'clean_road' || rawProblemType === 'good_road';
+
   const allProbs = {};
   classNames.forEach((name, idx) => {
     allProbs[name] = probs[idx];
@@ -132,12 +134,16 @@ export async function runOnnxInference(imageBytes) {
     rawProblemType,
     confidence: topProb,
     all_probabilities: allProbs,
+    isNoProblem,
     imageValidation: {
-      isValid: rawProblemType !== 'other',
-      reason: `ONNX Model predicted ${rawProblemType} with ${(topProb * 100).toFixed(2)}% confidence`,
-      detectedContent: `Custom ML Classification: ${rawProblemType}`,
+      isValid: !isNoProblem && rawProblemType !== 'other',
+      isNoProblem,
+      reason: isNoProblem 
+        ? `The uploaded image shows clean infrastructure in good condition (${(topProb * 100).toFixed(1)}% confidence). No damage or civic issue detected.`
+        : `ONNX Model predicted ${rawProblemType} with ${(topProb * 100).toFixed(2)}% confidence`,
+      detectedContent: isNoProblem ? 'Clean Road / Good Infrastructure Condition' : `Custom ML Classification: ${rawProblemType}`,
     },
-    severity: topProb > 0.8 ? 'High' : 'Medium',
+    severity: isNoProblem ? 'None' : (topProb > 0.8 ? 'High' : 'Medium'),
     engine: 'onnx-native',
   };
 }
@@ -164,10 +170,20 @@ export async function predictImage(imageInput) {
         if (problemType.startsWith('garbage')) {
           problemType = 'garbage';
         }
+        const isNoProblem = problemType === 'clean_road' || problemType === 'good_road' || data.isNoProblem === true;
         return {
           ...data,
           problemType,
           rawProblemType: data.problemType,
+          isNoProblem,
+          imageValidation: data.imageValidation || {
+            isValid: !isNoProblem && problemType !== 'other',
+            isNoProblem,
+            reason: isNoProblem 
+              ? 'The uploaded image shows clean infrastructure in good condition. No damage or civic issue detected.' 
+              : `External ML predicted ${problemType}`,
+            detectedContent: isNoProblem ? 'Clean Road / Good Infrastructure Condition' : `ML Classification: ${problemType}`,
+          },
           engine: 'external-microservice',
         };
       }

@@ -9,7 +9,7 @@ import {
   Camera, UploadCloud, Image as ImageIcon, RefreshCw, Eye, ArrowUpRight,
   SlidersHorizontal, CheckSquare, Square, AlertCircle, Building2,
   Briefcase, History, DownloadCloud, ArrowRight, ExternalLink, Award,
-  AlertOctagon, CheckCheck, ListFilter
+  AlertOctagon, CheckCheck, ListFilter, HardHat, Phone, Send, UserCheck, Plus, PhoneCall
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -36,7 +36,12 @@ import {
   rejectAdminRequest,
   sendComplaintEmail,
   updateUserReputation,
-  uploadImage
+  uploadImage,
+  getWorkers,
+  createWorker,
+  deleteWorker,
+  updateWorkerStatus,
+  assignWorkerToComplaint
 } from '../services/api';
 
 // Cohesive palette matching the User panel (SaaS Light Theme)
@@ -220,6 +225,27 @@ const Admin = () => {
   const resolveCameraRef = useRef(null);
   const [copiedId, setCopiedId] = useState(null);
 
+  // Field Workers & SMS Assignment State
+  const [workers, setWorkers] = useState([]);
+  const [loadingWorkers, setLoadingWorkers] = useState(false);
+  const [workerModalOpen, setWorkerModalOpen] = useState(false);
+  const [newWorkerData, setNewWorkerData] = useState({
+    name: '',
+    phone: '',
+    department: 'Roads & Potholes',
+    age: '',
+    city: '',
+  });
+  const [submittingWorker, setSubmittingWorker] = useState(false);
+  const [workerSearchQuery, setWorkerSearchQuery] = useState('');
+  const [workerFilterDept, setWorkerFilterDept] = useState('All');
+
+  // Assign Worker Modal State
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedComplaintForAssign, setSelectedComplaintForAssign] = useState(null);
+  const [selectedWorkerId, setSelectedWorkerId] = useState('');
+  const [assigningWorker, setAssigningWorker] = useState(false);
+
   const severityValue = { High: 3, Medium: 2, Low: 1 };
 
   const { isLoaded } = useJsApiLoader({
@@ -269,10 +295,104 @@ const Admin = () => {
     }
   };
 
+  const fetchWorkersData = async () => {
+    setLoadingWorkers(true);
+    try {
+      const res = await getWorkers();
+      setWorkers(res.data || []);
+    } catch (err) {
+      console.error("fetchWorkersData error:", err);
+    } finally {
+      setLoadingWorkers(false);
+    }
+  };
+
+  const handleCreateWorker = async (e) => {
+    e.preventDefault();
+    if (!newWorkerData.name || !newWorkerData.phone || !newWorkerData.city || !newWorkerData.age) {
+      toast.error("Please fill all worker details");
+      return;
+    }
+    setSubmittingWorker(true);
+    try {
+      await createWorker(newWorkerData);
+      toast.success(`Worker "${newWorkerData.name}" registered successfully!`);
+      setWorkerModalOpen(false);
+      setNewWorkerData({
+        name: '',
+        phone: '',
+        department: 'Roads & Potholes',
+        age: '',
+        city: '',
+      });
+      fetchWorkersData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to register worker");
+    } finally {
+      setSubmittingWorker(false);
+    }
+  };
+
+  const handleDeleteWorker = async (id, name) => {
+    if (!window.confirm(`Are you sure you want to remove worker "${name}"?`)) return;
+    try {
+      await deleteWorker(id);
+      toast.success("Worker removed successfully");
+      fetchWorkersData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to remove worker");
+    }
+  };
+
+  const handleStatusChangeWorker = async (id, status) => {
+    try {
+      await updateWorkerStatus(id, status);
+      toast.success(`Status updated to ${status}`);
+      fetchWorkersData();
+    } catch (err) {
+      toast.error("Failed to update status");
+    }
+  };
+
+  const handleOpenAssignModal = (complaint) => {
+    setSelectedComplaintForAssign(complaint);
+    setSelectedWorkerId('');
+    setAssignModalOpen(true);
+  };
+
+  const handleAssignWorkerSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedWorkerId || !selectedComplaintForAssign) {
+      toast.error("Please select a worker to assign");
+      return;
+    }
+    setAssigningWorker(true);
+    const complaintId = selectedComplaintForAssign.id || selectedComplaintForAssign._id;
+    try {
+      const res = await assignWorkerToComplaint(complaintId, selectedWorkerId);
+      const chosenWorker = workers.find(w => (w._id || w.id) === selectedWorkerId);
+      if (res.data?.smsResult?.success) {
+        toast.success(`Assigned to ${chosenWorker?.name || 'Worker'}! SMS alert dispatched 📱`, { duration: 6000 });
+      } else {
+        toast.error(`Assigned, but SMS failed: ${res.data?.smsResult?.message || 'Gateway error'}`, { duration: 7000 });
+      }
+      setAssignModalOpen(false);
+      setSelectedComplaintForAssign(null);
+      setSelectedWorkerId('');
+      fetchComplaints();
+      fetchWorkersData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to assign worker");
+    } finally {
+      setAssigningWorker(false);
+    }
+  };
+
   useEffect(() => {
     fetchComplaints();
     if (user) {
       fetchUsersData();
+      fetchWorkersData();
     }
   }, [user]);
 
@@ -710,6 +830,17 @@ const Admin = () => {
     return nameStr.includes(searchLower) || emailStr.includes(searchLower);
   });
 
+  // Filter workers
+  const filteredWorkers = workers.filter(w => {
+    const nameStr = String(w.name || '').toLowerCase();
+    const phoneStr = String(w.phone || '');
+    const cityStr = String(w.city || '').toLowerCase();
+    const query = workerSearchQuery.toLowerCase();
+    const matchesSearch = !query || nameStr.includes(query) || phoneStr.includes(query) || cityStr.includes(query);
+    const matchesDept = workerFilterDept === 'All' || w.department === workerFilterDept;
+    return matchesSearch && matchesDept;
+  });
+
   // Filter audit logs
   const filteredAuditLogs = auditLogs.filter(log => {
     const matchesType = auditFilter === 'All' || log.type === auditFilter;
@@ -795,6 +926,7 @@ const Admin = () => {
             <SidebarItem id="dashboard" icon={BarChart3} label="Dashboard" />
             <SidebarItem id="complaints" icon={AlertTriangle} label="Complaints" badge={complaints.length} />
             <SidebarItem id="departments" icon={Building2} label="Departments" badge={departmentStats.length} />
+            <SidebarItem id="workers" icon={HardHat} label="Field Workers" badge={workers.length} />
             <SidebarItem id="flagged" icon={Shield} label="Flagged Queue" badge={flaggedComplaints.length + spamComplaints.length} badgeVariant="danger" />
             <SidebarItem id="map" icon={Map} label="Map Clustering" />
             <SidebarItem id="users" icon={Users} label="Access & Roles" badge={adminRequests.length} badgeVariant="danger" />
@@ -1342,13 +1474,24 @@ const Admin = () => {
                                     ? 'bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]' 
                                     : c.status === 'In Progress' 
                                       ? 'bg-[#F0F9FF] text-[#0369A1] border-[#BAE6FD]' 
-                                      : 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
+                                      : c.status === 'Assigned'
+                                        ? 'bg-[#EEF2FF] text-[#4F46E5] border-[#C7D2FE]'
+                                        : 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
                                 }`}
                               >
                                 <option value="Pending" className="bg-white text-[#92400E]">Pending</option>
+                                <option value="Assigned" className="bg-white text-[#4F46E5]">Assigned</option>
                                 <option value="In Progress" className="bg-white text-[#0369A1]">In Progress</option>
                                 <option value="Resolved" className="bg-white text-[#166534]">Resolved</option>
                               </select>
+                              {c.assignedWorkerName && (
+                                <div className="mt-1">
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md" title={`Worker Phone: +91 ${c.assignedWorkerPhone}`}>
+                                    <HardHat className="w-2.5 h-2.5" />
+                                    {c.assignedWorkerName}
+                                  </span>
+                                </div>
+                              )}
                             </td>
 
                             {/* Department Info */}
@@ -1362,6 +1505,13 @@ const Admin = () => {
                             {/* Moderator Action Buttons */}
                             <td className="py-4 px-6 text-right">
                               <div className="flex items-center justify-end space-x-1.5">
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); handleOpenAssignModal(c); }} 
+                                  className="p-2 bg-[#EEF2FF] text-[#4F46E5] border border-[#C7D2FE] hover:bg-[#4F46E5] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
+                                  title={c.assignedWorkerName ? `Assigned to ${c.assignedWorkerName} (+91 ${c.assignedWorkerPhone}) - Click to Reassign` : "Assign Worker & Dispatch SMS"}
+                                >
+                                  <HardHat className="w-3.5 h-3.5" />
+                                </button>
                                 <button 
                                   onClick={(e) => { e.stopPropagation(); handleSendEmail(c); }} 
                                   className="p-2 bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0] hover:bg-[#16A34A] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
@@ -1555,6 +1705,185 @@ const Admin = () => {
                     </button>
                   </div>
                 ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB: FIELD WORKERS & SMS DISPATCH */}
+          {activeTab === 'workers' && (
+            <motion.div 
+              key="workers" 
+              initial={{ opacity: 0, y: 10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -10 }} 
+              className="space-y-6"
+            >
+              {/* Header Banner */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="p-2 bg-[#EEF2FF] text-[#4F46E5] rounded-xl border border-[#C7D2FE]">
+                      <HardHat className="w-5 h-5" />
+                    </span>
+                    <h2 className="text-xl font-extrabold text-[#0F172A] tracking-tight">Field Force & SMS Dispatch</h2>
+                  </div>
+                  <p className="text-xs text-[#64748B] mt-1">Register municipal field staff and assign complaints with instant SMS alerts directly to their mobile phones.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setWorkerModalOpen(true)}
+                    className="px-4 py-2.5 rounded-xl bg-[#4F46E5] text-white hover:bg-[#4338CA] transition font-semibold text-xs flex items-center space-x-1.5 shadow-sm cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add New Worker</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Metric Highlights */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-2xs">
+                  <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Total Staff</p>
+                  <p className="text-2xl font-extrabold text-[#0F172A] mt-1">{workers.length}</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-2xs">
+                  <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Active on Duty</p>
+                  <p className="text-2xl font-extrabold text-emerald-700 mt-1">{workers.filter(w => w.status === 'Active').length}</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-2xs">
+                  <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Assigned Tasks</p>
+                  <p className="text-2xl font-extrabold text-indigo-700 mt-1">{complaints.filter(c => c.status === 'Assigned').length}</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-2xs">
+                  <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Busy / On Task</p>
+                  <p className="text-2xl font-extrabold text-amber-700 mt-1">{workers.filter(w => w.status === 'Busy').length}</p>
+                </div>
+              </div>
+
+              {/* Search & Filter Toolbar */}
+              <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-xs">
+                <div className="relative w-full sm:w-72">
+                  <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Search by worker name, phone, city..."
+                    value={workerSearchQuery}
+                    onChange={(e) => setWorkerSearchQuery(e.target.value)}
+                    className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-9 pr-3 py-2 text-xs text-[#0F172A] focus:outline-none focus:bg-white focus:border-[#4F46E5]"
+                  />
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <select
+                    value={workerFilterDept}
+                    onChange={(e) => setWorkerFilterDept(e.target.value)}
+                    className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2 text-xs text-[#0F172A] outline-none cursor-pointer"
+                  >
+                    <option value="All">All Departments</option>
+                    <option value="Roads & Potholes">Roads & Potholes</option>
+                    <option value="Solid Waste Management">Solid Waste Management</option>
+                    <option value="Street Lighting & Electrical">Street Lighting & Electrical</option>
+                    <option value="Water & Sewage">Water & Sewage</option>
+                    <option value="Parks & Public Amenities">Parks & Public Amenities</option>
+                    <option value="General Municipal Department">General Municipal Department</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Workers Directory Table */}
+              <div className="bg-white rounded-2xl overflow-hidden border border-[#E2E8F0] shadow-xs">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] text-[11px] font-bold uppercase tracking-wider">
+                      <th className="py-3.5 px-6 font-semibold">Worker Name</th>
+                      <th className="py-3.5 px-4 font-semibold">Department</th>
+                      <th className="py-3.5 px-4 font-semibold">Mobile (SMS Dispatch)</th>
+                      <th className="py-3.5 px-4 font-semibold">Age & City</th>
+                      <th className="py-3.5 px-4 font-semibold text-center">Status</th>
+                      <th className="py-3.5 px-4 font-semibold text-center">Active Tasks</th>
+                      <th className="py-3.5 px-6 font-semibold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F1F5F9] text-xs">
+                    {loadingWorkers ? (
+                      <tr>
+                        <td colSpan="7" className="p-8 text-center text-[#94A3B8]">Loading field workers...</td>
+                      </tr>
+                    ) : filteredWorkers.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="p-10 text-center">
+                          <HardHat className="w-10 h-10 text-[#CBD5E1] mx-auto mb-2" />
+                          <p className="text-sm font-bold text-[#0F172A]">No field workers found</p>
+                          <p className="text-xs text-[#94A3B8] mt-1">Register municipal field staff to enable SMS-based task dispatch.</p>
+                          <button
+                            onClick={() => setWorkerModalOpen(true)}
+                            className="mt-4 px-4 py-2 bg-[#EEF2FF] text-[#4F46E5] hover:bg-[#4F46E5] hover:text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                          >
+                            + Register Field Worker
+                          </button>
+                        </td>
+                      </tr>
+                    ) : filteredWorkers.map((w) => (
+                      <tr key={w._id || w.id} className="hover:bg-[#F8FAFC] transition-colors">
+                        <td className="py-3.5 px-6">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 rounded-xl bg-[#EEF2FF] border border-[#C7D2FE] flex items-center justify-center text-[#4F46E5] shrink-0 font-bold text-xs">
+                              {w.name?.charAt(0)?.toUpperCase() || 'W'}
+                            </div>
+                            <div>
+                              <p className="font-bold text-[#0F172A]">{w.name}</p>
+                              <p className="text-[10px] text-[#94A3B8]">ID: #{String(w._id || w.id).slice(-5)}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-[#F0F9FF] text-[#0369A1] border border-[#BAE6FD]">
+                            {w.department}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="inline-flex items-center gap-1 font-mono text-xs text-[#0F172A] bg-[#F8FAFC] border border-[#E2E8F0] px-2.5 py-1 rounded-lg font-bold">
+                            <Phone className="w-3 h-3 text-[#16A34A]" />
+                            +91 {w.phone}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="text-[#475569] font-medium">{w.age} yrs • <span className="font-bold text-[#0F172A]">{w.city}</span></span>
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <select
+                            value={w.status || 'Active'}
+                            onChange={(e) => handleStatusChangeWorker(w._id || w.id, e.target.value)}
+                            className={`text-[10px] font-bold px-2 py-1 rounded-full outline-none border cursor-pointer ${
+                              w.status === 'Active'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : w.status === 'Busy'
+                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                  : 'bg-slate-50 text-slate-600 border-slate-200'
+                            }`}
+                          >
+                            <option value="Active">Active</option>
+                            <option value="Busy">Busy</option>
+                            <option value="On-Leave">On-Leave</option>
+                          </select>
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#EEF2FF] text-[#4F46E5] font-extrabold text-xs">
+                            {w.activeTasksCount || 0}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-6 text-right">
+                          <button
+                            onClick={() => handleDeleteWorker(w._id || w.id, w.name)}
+                            className="p-1.5 bg-[#FFF1F2] text-[#E11D48] hover:bg-[#E11D48] hover:text-white rounded-lg transition cursor-pointer"
+                            title="Remove Worker"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </motion.div>
           )}
@@ -2220,6 +2549,276 @@ const Admin = () => {
                     Close
                   </button>
                 )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal: Add New Field Worker */}
+      <AnimatePresence>
+        {workerModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 overflow-hidden"
+            >
+              <div className="flex items-center space-x-3 mb-5">
+                <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
+                  <HardHat className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-800">Register Field Worker</h3>
+                  <p className="text-xs text-slate-500">Add an on-ground technician to receive task assignments via SMS.</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleCreateWorker} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Ramesh Patil"
+                    value={newWorkerData.name}
+                    onChange={(e) => setNewWorkerData({ ...newWorkerData, name: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number (For SMS Alerts)</label>
+                  <div className="flex items-center">
+                    <span className="px-3 py-2 bg-slate-100 text-slate-600 text-xs font-medium border border-r-0 border-slate-200 rounded-l-xl">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="9876543210 (10 digits)"
+                      value={newWorkerData.phone}
+                      onChange={(e) => setNewWorkerData({ ...newWorkerData, phone: e.target.value })}
+                      className="w-full px-3.5 py-2 text-xs rounded-r-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                  </div>
+                  <span className="text-[10px] text-slate-400 mt-1 block">SMS notifications will be dispatched directly to this mobile number.</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Department</label>
+                    <select
+                      value={newWorkerData.department}
+                      onChange={(e) => setNewWorkerData({ ...newWorkerData, department: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white"
+                    >
+                      <option value="Roads & Potholes">Roads & Potholes</option>
+                      <option value="Solid Waste Management">Solid Waste</option>
+                      <option value="Electricity & Lighting">Electricity</option>
+                      <option value="Water Supply & Drainage">Water & Drainage</option>
+                      <option value="Public Transport">Public Transport</option>
+                      <option value="General Maintenance">General</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Age</label>
+                    <input
+                      type="number"
+                      min="18"
+                      max="70"
+                      required
+                      value={newWorkerData.age}
+                      onChange={(e) => setNewWorkerData({ ...newWorkerData, age: e.target.value })}
+                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">City / Jurisdiction</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Pune, Mumbai, Delhi"
+                    value={newWorkerData.city}
+                    onChange={(e) => setNewWorkerData({ ...newWorkerData, city: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                </div>
+
+                <div className="flex space-x-3 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => setWorkerModalOpen(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingWorker}
+                    className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs shadow-sm transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1.5"
+                  >
+                    {submittingWorker ? (
+                      <span>Saving...</span>
+                    ) : (
+                      <>
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Register Worker</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal: Assign Task & Dispatch SMS */}
+      <AnimatePresence>
+        {assignModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 overflow-hidden"
+            >
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                  <PhoneCall className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-800">Assign Worker & Dispatch SMS</h3>
+                  <p className="text-xs text-slate-500">Assign on-ground worker and send instant SMS alert to their phone.</p>
+                </div>
+              </div>
+
+              {selectedComplaintForAssign && (
+                <div className="mb-4 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-slate-800">
+                      #{selectedComplaintForAssign.complaintId || selectedComplaintForAssign._id?.slice(-6)}: {selectedComplaintForAssign.title}
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                      {selectedComplaintForAssign.category}
+                    </span>
+                  </div>
+                  <div className="text-slate-500 text-[11px] truncate">
+                    📍 {selectedComplaintForAssign.location?.address || 'Location coordinates specified'}
+                  </div>
+                  <div className="flex items-center space-x-3 text-[11px] text-slate-500">
+                    <span>Severity: <strong className="text-slate-700 capitalize">{selectedComplaintForAssign.severity || 'Medium'}</strong></span>
+                    <span>Status: <strong className="text-slate-700">{selectedComplaintForAssign.status}</strong></span>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Select Field Worker</label>
+                  {workers.length === 0 ? (
+                    <div className="p-3 bg-amber-50 text-amber-800 border border-amber-200 rounded-xl text-xs">
+                      No workers found. Please add field workers first in the "Field Workers" tab.
+                    </div>
+                  ) : (
+                    <select
+                      value={selectedWorkerId}
+                      onChange={(e) => setSelectedWorkerId(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white"
+                    >
+                      <option value="">-- Choose Worker to Assign --</option>
+                      {workers.map(w => (
+                        <option key={w._id} value={w._id}>
+                          {w.name} ({w.department}) - {w.city} | Active Tasks: {w.activeTasksCount || 0} [{w.status}]
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                {/* SMS Live Preview */}
+                <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-200/70 text-xs space-y-1">
+                  <div className="flex items-center justify-between text-blue-900 font-bold text-[11px]">
+                    <span className="flex items-center gap-1.5">
+                      <Send className="w-3.5 h-3.5 text-blue-600" />
+                      Live SMS Dispatch Preview
+                    </span>
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-mono">Fast2SMS</span>
+                  </div>
+                  <div className="p-2.5 bg-white rounded-lg border border-blue-100 font-mono text-[11px] text-slate-700 leading-relaxed shadow-xs">
+                    "CIVIC ALERT: New task assigned to you.<br />
+                    Issue: {selectedComplaintForAssign?.category || 'Civic Issue'} ({selectedComplaintForAssign?.severity || 'Medium'})<br />
+                    Location: {(selectedComplaintForAssign?.location?.address || 'Field Location').slice(0, 35)}...<br />
+                    Task ID: #{selectedComplaintForAssign?.complaintId || selectedComplaintForAssign?._id?.slice(-6)}<br />
+                    Please inspect and resolve urgently."
+                  </div>
+                  <p className="text-[10px] text-blue-600/80">
+                    {selectedWorkerId ? (
+                      <>SMS will be dispatched to <strong>{workers.find(w => w._id === selectedWorkerId)?.phone}</strong> ({workers.find(w => w._id === selectedWorkerId)?.name})</>
+                    ) : (
+                      'Select a worker above to dispatch SMS'
+                    )}
+                  </p>
+                </div>
+
+                <div className="flex space-x-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setAssignModalOpen(false)}
+                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!selectedWorkerId || !selectedComplaintForAssign) return;
+                      const w = workers.find(item => (item._id || item.id) === selectedWorkerId);
+                      const cleanPhone = String(w?.phone || '').replace(/[^0-9]/g, '').slice(-10);
+                      const msg = `*CIVIC ALERT: New Task Assigned*\n\n` +
+                        `👤 *Worker:* ${w?.name}\n` +
+                        `⚠️ *Issue:* ${selectedComplaintForAssign.category || selectedComplaintForAssign.title || 'Civic Issue'} (${selectedComplaintForAssign.severity || 'Medium'})\n` +
+                        `📍 *Location:* ${selectedComplaintForAssign.location?.address || 'See Portal'}\n` +
+                        `🆔 *Task ID:* #${selectedComplaintForAssign.complaintId || selectedComplaintForAssign._id?.slice(-6)}\n\n` +
+                        `Please inspect and resolve urgently.`;
+                      window.open(`https://wa.me/91${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                    }}
+                    disabled={!selectedWorkerId}
+                    className="px-3.5 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs shadow-sm transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1"
+                    title="Open in WhatsApp"
+                  >
+                    <span>WhatsApp 💬</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAssignWorkerSubmit}
+                    disabled={!selectedWorkerId || assigningWorker}
+                    className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1.5"
+                  >
+                    {assigningWorker ? (
+                      <span>Dispatching SMS...</span>
+                    ) : (
+                      <>
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Confirm & SMS 📱</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

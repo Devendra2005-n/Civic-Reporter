@@ -112,8 +112,25 @@ const complaintSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["Pending", "In Progress", "Resolved", "OPEN", "IN_PROGRESS", "ESCALATED"],
+    enum: ["Pending", "In Progress", "Resolved", "OPEN", "IN_PROGRESS", "ESCALATED", "Assigned"],
     default: "OPEN"
+  },
+  assignedWorker: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Worker',
+    default: null,
+  },
+  assignedWorkerName: {
+    type: String,
+    default: "",
+  },
+  assignedWorkerPhone: {
+    type: String,
+    default: "",
+  },
+  assignedAt: {
+    type: Date,
+    default: null,
   },
   state: { type: String },
   district: { type: String },

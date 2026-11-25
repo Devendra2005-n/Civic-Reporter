@@ -372,7 +372,11 @@ const Submit = () => {
       // ✅ IMAGE VALIDATION CHECK
       if (data.imageValidation && !data.imageValidation.isValid) {
         setImageValidation(data.imageValidation);
-        toast.error(`❌ Invalid image: ${data.imageValidation.reason}`, { duration: 6000 });
+        if (data.imageValidation.isNoProblem) {
+          toast('✨ Infrastructure in Good Condition: No damage or civic issue detected!', { icon: '🛣️', duration: 7000 });
+        } else {
+          toast.error(`❌ Invalid image: ${data.imageValidation.reason}`, { duration: 6000 });
+        }
         setStep(1);
         return;
       }
@@ -809,8 +813,25 @@ const Submit = () => {
             </motion.div>
           )}
 
-          {/* Image Validation Error Banner */}
-          {imageValidation && !imageValidation.isValid && (
+          {/* No Problem Detected (Good Condition) Banner */}
+          {imageValidation && imageValidation.isNoProblem && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-xl mx-auto mb-6 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl p-4 flex items-start space-x-3 shadow-sm"
+            >
+              <CheckCircle2 className="w-5 h-5 text-[#2563EB] shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-bold text-[#1E40AF]">No Problem Detected: Infrastructure in Good Condition</h4>
+                <p className="text-xs text-[#1D4ED8] mt-0.5">{imageValidation.reason || 'The road or infrastructure in this photo is in good, clean condition with no visible damages, potholes, or hazards.'}</p>
+                <p className="text-[11px] text-[#3B82F6] mt-1 font-medium">Status: {imageValidation.detectedContent || 'Clean Road / Good Infrastructure Condition'}</p>
+                <p className="text-xs text-[#475569] mt-2">Civic reports can only be submitted for damages or issues requiring repair (e.g. potholes, broken streetlights, or waste). Thank you for helping keep our infrastructure clean!</p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Invalid Image Error Banner */}
+          {imageValidation && !imageValidation.isValid && !imageValidation.isNoProblem && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}

@@ -1,1 +1,12 @@
-["garbage_cardboard", "garbage_glass", "garbage_metal", "garbage_paper", "garbage_plastic", "garbage_trash", "other", "pothole", "streetlight"]
+[
+  "clean_road",
+  "garbage_cardboard",
+  "garbage_glass",
+  "garbage_metal",
+  "garbage_paper",
+  "garbage_plastic",
+  "garbage_trash",
+  "other",
+  "pothole",
+  "streetlight"
+]

@@ -176,6 +176,27 @@ export const deleteComplaint = async (id) => {
   return await api.delete(`/complaints/${id}`);
 };
 
+// --- Field Workers & SMS Assignment (Admin) ---
+export const getWorkers = async (params = {}) => {
+  return await api.get('/workers', { params });
+};
+
+export const createWorker = async (workerData) => {
+  return await api.post('/workers', workerData);
+};
+
+export const updateWorkerStatus = async (workerId, status) => {
+  return await api.patch(`/workers/${workerId}/status`, { status });
+};
+
+export const deleteWorker = async (workerId) => {
+  return await api.delete(`/workers/${workerId}`);
+};
+
+export const assignWorkerToComplaint = async (complaintId, workerId) => {
+  return await api.post(`/workers/assign/${complaintId}`, { workerId });
+};
+
 // --- AI Category Validation ---
 export const validateCategory = async (imageUrl, selectedCategory) => {
   return await api.post('/ai/validate-category', { imageUrl, selectedCategory });

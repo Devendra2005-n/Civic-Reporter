@@ -33,6 +33,7 @@ import notificationRoutes from "./routes/notification.js";
 import otpRoutes from "./routes/otp.js";
 import locationRoutes from "./routes/location.js";
 import duplicateRoutes from "./routes/duplicate.js";
+import workerRoutes from "./routes/workers.js";
 
 console.log("Starting server...");
 
@@ -72,6 +73,7 @@ const routes = [
   { path: "otp", handler: otpRoutes },
   { path: "location", handler: locationRoutes },
   { path: "duplicates", handler: duplicateRoutes },
+  { path: "workers", handler: workerRoutes },
 ];
 
 routes.forEach(({ path, handler }) => {
