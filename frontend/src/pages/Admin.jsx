@@ -6,7 +6,8 @@ import {
   User, X, Users, Trash2, Shield, UserPlus, Check, XCircle, 
   BarChart3, Map, HelpCircle, Download, FileText, Sparkles,
   TrendingUp, Activity, Filter, Search, ChevronDown, MoreHorizontal, Mail, Copy,
-  Camera, UploadCloud, Image as ImageIcon
+  Camera, UploadCloud, Image as ImageIcon, RefreshCw, Eye, ArrowUpRight,
+  SlidersHorizontal, CheckSquare, AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -35,17 +36,27 @@ import {
   uploadImage
 } from '../services/api';
 
-const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
-const STATUS_COLORS = { 'Pending': '#F59E0B', 'In Progress': '#0284C7', 'Resolved': '#16A34A' };
+// Cohesive palette matching the User panel (SaaS Light Theme)
+const STATUS_COLORS = { 
+  'Pending': '#F59E0B', 
+  'In Progress': '#0284C7', 
+  'Resolved': '#16A34A' 
+};
+
+const PRIORITY_COLORS = {
+  'High': '#EF4444',
+  'Medium': '#F97316',
+  'Low': '#10B981',
+};
 
 // Animated Counter Component
-const AnimatedCounter = ({ value, duration = 2 }) => {
+const AnimatedCounter = ({ value, duration = 1.6 }) => {
   const count = useMotionValue(0);
   const rounded = useTransform(count, (latest) => Math.round(latest));
   const [displayValue, setDisplayValue] = useState(0);
 
   useEffect(() => {
-    const controls = animate(count, value, {
+    const controls = animate(count, value || 0, {
       duration,
       ease: "easeOut",
     });
@@ -59,59 +70,88 @@ const AnimatedCounter = ({ value, duration = 2 }) => {
   return <span>{displayValue.toLocaleString()}</span>;
 };
 
-// Animated Stat Card Component
-const StatCard = ({ value, label, icon: Icon, color, delay = 0 }) => {
-  const colorClasses = {
-    blue: 'from-blue-500/20 to-blue-600/10 text-blue-400',
-    orange: 'from-orange-500/20 to-orange-600/10 text-orange-400',
-    green: 'from-green-500/20 to-green-600/10 text-green-400',
-    purple: 'from-purple-500/20 to-purple-600/10 text-purple-400',
+// Modern SaaS Stat Card matching User Dashboard
+const StatCard = ({ value, label, subtext, icon: Icon, variant = 'blue', trend = null, delay = 0 }) => {
+  const themes = {
+    blue: {
+      bgIcon: 'bg-[#F0F9FF]',
+      borderIcon: 'border-[#BAE6FD]',
+      textIcon: 'text-[#0284C7]',
+      accentBadge: 'bg-[#EFF6FF] text-[#0284C7]',
+    },
+    amber: {
+      bgIcon: 'bg-[#FFFBEB]',
+      borderIcon: 'border-[#FDE68A]',
+      textIcon: 'text-[#D97706]',
+      accentBadge: 'bg-[#FFFBEB] text-[#D97706]',
+    },
+    emerald: {
+      bgIcon: 'bg-[#F0FDF4]',
+      borderIcon: 'border-[#BBF7D0]',
+      textIcon: 'text-[#16A34A]',
+      accentBadge: 'bg-[#F0FDF4] text-[#16A34A]',
+    },
+    rose: {
+      bgIcon: 'bg-[#FFF1F2]',
+      borderIcon: 'border-[#FECDD3]',
+      textIcon: 'text-[#E11D48]',
+      accentBadge: 'bg-[#FFF1F2] text-[#E11D48]',
+    },
+    indigo: {
+      bgIcon: 'bg-[#EEF2FF]',
+      borderIcon: 'border-[#C7D2FE]',
+      textIcon: 'text-[#4F46E5]',
+      accentBadge: 'bg-[#EEF2FF] text-[#4F46E5]',
+    },
+    purple: {
+      bgIcon: 'bg-[#FAF5FF]',
+      borderIcon: 'border-[#E9D5FF]',
+      textIcon: 'text-[#9333EA]',
+      accentBadge: 'bg-[#FAF5FF] text-[#9333EA]',
+    },
   };
+
+  const theme = themes[variant] || themes.blue;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.5, delay, ease: "easeOut" }}
-      whileHover={{ y: -5, scale: 1.02 }}
-      className={`bg-[#0B0F19] p-6 rounded-2xl border border-white/10 relative overflow-hidden group cursor-pointer`}
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay, ease: "easeOut" }}
+      whileHover={{ y: -3 }}
+      className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
     >
-      {/* Background gradient */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${colorClasses[color]} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-      
-      <div className="relative z-10">
-        <div className="flex items-center justify-between mb-4">
-          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClasses[color]} flex items-center justify-center`}>
-            <Icon className="w-6 h-6" />
-          </div>
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: delay + 0.2, type: "spring" }}
-            className="w-2 h-2 rounded-full bg-green-400"
-          />
+      <div className="flex items-center justify-between mb-3">
+        <div className={`w-11 h-11 rounded-xl ${theme.bgIcon} ${theme.borderIcon} border flex items-center justify-center shrink-0 transition-transform group-hover:scale-105`}>
+          <Icon className={`w-5 h-5 ${theme.textIcon}`} />
         </div>
-        <p className="text-4xl font-extrabold text-white mb-1">
+        {trend && (
+          <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${theme.accentBadge}`}>
+            {trend}
+          </span>
+        )}
+      </div>
+
+      <div>
+        <p className="text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1">
+          {label}
+        </p>
+        <p className="text-3xl font-extrabold text-[#0F172A] tracking-tight">
           <AnimatedCounter value={value} />
         </p>
-        <p className="text-sm text-gray-400 uppercase tracking-wider">{label}</p>
+        {subtext && (
+          <p className="text-xs text-[#94A3B8] mt-1 font-medium truncate">
+            {subtext}
+          </p>
+        )}
       </div>
-      
-      {/* Shine effect */}
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
-      />
     </motion.div>
   );
 };
 
-// Map details
+// Map container configuration
 const mapContainerStyle = { width: '100%', height: '100%', borderRadius: '1rem' };
 const defaultCenter = { lat: 28.6139, lng: 77.2090 };
-const darkMapFilterStyle = {
-  filter: 'invert(90%) hue-rotate(180deg)',
-  WebkitFilter: 'invert(90%) hue-rotate(180deg)',
-};
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -122,14 +162,19 @@ const Admin = () => {
   const [complaints, setComplaints] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
+  const [filterSeverity, setFilterSeverity] = useState('All');
   const [loadingComplaints, setLoadingComplaints] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Modal State
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalType, setModalType] = useState(null); // 'resolve', 'verification', 'remark'
+  const [modalType, setModalType] = useState(null); // 'resolve', 'verification', 'remark', 'letter'
   const [modalTarget, setModalTarget] = useState(null);
-  const [modalInput, setModalInput] = useState(''); // afterUrl or remark
+  const [modalInput, setModalInput] = useState('');
 
   // Users State
   const [users, setUsers] = useState([]);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
   const [adminRequests, setAdminRequests] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [selectedMapMarker, setSelectedMapMarker] = useState(null);
@@ -155,7 +200,8 @@ const Admin = () => {
     libraries: ['marker']
   });
 
-  const fetchComplaints = async () => {
+  const fetchComplaints = async (isManual = false) => {
+    if (isManual) setIsRefreshing(true);
     try {
       const res = await getComplaints();
       const sorted = res.data.sort((a, b) => {
@@ -167,11 +213,13 @@ const Admin = () => {
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
       setComplaints(sorted);
+      if (isManual) toast.success('Complaints updated');
     } catch (err) {
       console.error("fetchComplaints error:", err);
       toast.error('Failed to load complaints');
     } finally {
       setLoadingComplaints(false);
+      if (isManual) setIsRefreshing(false);
     }
   };
 
@@ -182,11 +230,10 @@ const Admin = () => {
         getUsers(),
         getAdminRequests()
       ]);
-      setUsers(usersRes.data);
-      setAdminRequests(reqsRes.data);
+      setUsers(usersRes.data || []);
+      setAdminRequests(reqsRes.data || []);
     } catch (err) {
       console.error("fetchUsersData error:", err);
-      toast.error('Failed to load users data');
     } finally {
       setLoadingUsers(false);
     }
@@ -258,7 +305,7 @@ const Admin = () => {
           verificationStatus: modalTarget.newVerification,
           adminRemarks: modalInput || `Verification status overridden to ${modalTarget.newVerification}`
         });
-        toast.success('Verification updated overrides saved.');
+        toast.success('Verification updated');
       } else if (modalType === 'remark') {
          await updateComplaint(modalTarget.id, {
            adminRemarks: modalInput
@@ -316,13 +363,12 @@ const Admin = () => {
         verificationStatus: 'Spam',
         adminRemarks: 'Marked as spam by admin'
       });
-      // Update user reputation
       if (complaint.userId && complaint.userId !== 'anonymous') {
         try {
           await updateUserReputation(complaint.userId, 'spam');
         } catch {}
       }
-      toast.success('Complaint marked as spam \u26a0\ufe0f');
+      toast.success('Complaint marked as spam ⚠️');
       fetchComplaints();
     } catch (err) {
       toast.error('Failed to mark as spam');
@@ -342,7 +388,7 @@ const Admin = () => {
           await updateUserReputation(complaint.userId, 'valid');
         } catch {}
       }
-      toast.success('Complaint verified \u2705');
+      toast.success('Complaint verified ✅');
       fetchComplaints();
     } catch (err) {
       toast.error('Failed to verify complaint');
@@ -407,11 +453,10 @@ const Admin = () => {
         toast.error('Failed to generate PDF', { id: 'pdf-toast' });
         setPrintingComplaint(null);
       });
-    }, 1000); // 1 second buffer for images to render
+    }, 1000);
   };
 
   // --- Users Actions ---
-
   const handlePromote = async (uid, name) => {
     if (!window.confirm(`Promote ${name} to Admin?`)) return;
     try { await promoteUser(uid); toast.success(`${name} is now an Admin`); fetchUsersData(); } catch (err) { toast.error("Failed"); }
@@ -436,9 +481,9 @@ const Admin = () => {
   ];
 
   const priorityCounts = [
-    { name: 'High', value: complaints.filter(c => c.severity === 'High').length },
-    { name: 'Medium', value: complaints.filter(c => c.severity === 'Medium').length },
-    { name: 'Low', value: complaints.filter(c => c.severity === 'Low').length },
+    { name: 'High', value: complaints.filter(c => c.severity === 'High').length, color: '#EF4444' },
+    { name: 'Medium', value: complaints.filter(c => c.severity === 'Medium').length, color: '#F97316' },
+    { name: 'Low', value: complaints.filter(c => c.severity === 'Low').length, color: '#10B981' },
   ];
 
   const flaggedComplaints = complaints.filter(c => 
@@ -449,246 +494,480 @@ const Admin = () => {
     c.spamStatus === 'spam' || c.verificationStatus === 'Spam'
   );
 
+  const resolvedRate = complaints.length > 0 
+    ? Math.round((statusCounts[2].value / complaints.length) * 100) 
+    : 0;
+
+  // Filter complaints
+  const filteredComplaints = complaints.filter(c => {
+    const rawIdStr = String(c.id || c._id).toLowerCase();
+    const formattedIdStr = formatComplaintId(c).toLowerCase();
+    const problemTypeStr = String(c.problemType || '').toLowerCase();
+    const searchLower = searchQuery.toLowerCase().replace('#', '');
+    const matchesSearch = rawIdStr.includes(searchLower) || formattedIdStr.includes(searchLower) || problemTypeStr.includes(searchLower);
+    const matchesStatus = filterStatus === 'All' || c.status === filterStatus;
+    const matchesSeverity = filterSeverity === 'All' || c.severity === filterSeverity;
+    return matchesSearch && matchesStatus && matchesSeverity;
+  });
+
+  // Filter users
+  const filteredUsers = users.filter(u => {
+    const nameStr = String(u.name || '').toLowerCase();
+    const emailStr = String(u.email || '').toLowerCase();
+    const searchLower = userSearchQuery.toLowerCase();
+    return nameStr.includes(searchLower) || emailStr.includes(searchLower);
+  });
 
   if (loadingComplaints) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center pt-24 text-white">
-        <motion.div
-          animate={{ 
-            scale: [1, 1.2, 1],
-            rotate: [0, 180, 360],
-            borderRadius: ["20%", "50%", "20%"]
-          }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          className="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 mb-4"
-        />
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-gray-400 text-sm"
-        >
-          Loading Admin Dashboard...
-        </motion.p>
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center pt-20 text-[#0F172A]">
+        <div className="relative">
+          <div className="w-16 h-16 rounded-2xl bg-[#0284C7]/10 border border-[#BAE6FD] flex items-center justify-center animate-pulse">
+            <ShieldCheck className="w-8 h-8 text-[#0284C7]" />
+          </div>
+        </div>
+        <p className="text-sm font-semibold text-[#64748B] mt-4">
+          Loading Administration Console...
+        </p>
       </div>
     );
   }
 
-  const SidebarItem = ({ id, icon: Icon, label, delay = 0 }) => (
-    <motion.button
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay, duration: 0.3 }}
-      onClick={() => setActiveTab(id)}
-      whileHover={{ x: 5 }}
-      whileTap={{ scale: 0.98 }}
-      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-medium relative overflow-hidden ${
-        activeTab === id 
-        ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg shadow-red-500/20' 
-        : 'text-gray-400 hover:text-white hover:bg-white/5'
-      }`}
-    >
-      {/* Active indicator bar */}
-      {activeTab === id && (
-        <motion.div
-          layoutId="activeTab"
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        />
-      )}
-      
-      <Icon className="w-5 h-5 relative z-10" />
-      <span className="relative z-10">{label}</span>
-      {id === 'users' && adminRequests.length > 0 && (
-         <motion.span 
-           initial={{ scale: 0 }}
-           animate={{ scale: 1 }}
-           className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold relative z-10"
-         >
-           {adminRequests.length}
-         </motion.span>
-      )}
-    </motion.button>
-  );
-
-  const filteredComplaints = complaints.filter(c => {
-    const rawIdStr = String(c.id || c._id).toLowerCase();
-    const formattedIdStr = formatComplaintId(c).toLowerCase();
-    const searchLower = searchQuery.toLowerCase().replace('#', '');
-    const matchesSearch = rawIdStr.includes(searchLower) || formattedIdStr.includes(searchLower);
-    const matchesStatus = filterStatus === 'All' || c.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
+  const SidebarItem = ({ id, icon: Icon, label, badge = null, badgeVariant = 'default' }) => {
+    const isActive = activeTab === id;
+    return (
+      <button
+        onClick={() => setActiveTab(id)}
+        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all font-semibold text-xs cursor-pointer group ${
+          isActive 
+            ? 'bg-[#0284C7] text-white shadow-sm' 
+            : 'text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9]'
+        }`}
+      >
+        <div className="flex items-center space-x-3">
+          <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-[#64748B]'}`} />
+          <span>{label}</span>
+        </div>
+        {badge !== null && badge > 0 && (
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+            isActive 
+              ? 'bg-white/25 text-white' 
+              : badgeVariant === 'danger' 
+                ? 'bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3]' 
+                : 'bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD]'
+          }`}>
+            {badge}
+          </span>
+        )}
+      </button>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] pt-24 px-4 max-w-[1400px] mx-auto pb-12 flex flex-col md:flex-row gap-6 relative text-[#334155]">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#334155] pt-20 px-3 sm:px-6 lg:px-8 max-w-[1520px] mx-auto pb-16 flex flex-col md:flex-row gap-6 relative">
       
       {/* Hidden Print Container for PDF */}
       <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
         {printingComplaint && <PDFReport ref={pdfRef} complaint={printingComplaint} />}
       </div>
 
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 shrink-0 space-y-2 bg-[#0B0F19] p-4 h-[calc(100vh-120px)] sticky top-24 rounded-2xl flex flex-col hidden-scrollbar overflow-y-auto">
-        <div className="pb-6 mb-2 border-b border-white/10 flex items-center space-x-3 px-2">
-           <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center border border-orange-500/30">
-              <ShieldCheck className="w-6 h-6 text-orange-400" />
-           </div>
-           <div>
-              <h2 className="font-bold text-white leading-tight">Admin System</h2>
-              <p className="text-[10px] text-gray-400 font-mono">v2.0 Advanced</p>
-           </div>
+      {/* Modern SaaS Sidebar */}
+      <aside className="w-full md:w-64 shrink-0 bg-white p-4 h-auto md:h-[calc(100vh-105px)] sticky md:top-20 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col justify-between overflow-y-auto">
+        <div>
+          {/* Header */}
+          <div className="pb-4 mb-3 border-b border-[#E2E8F0] flex items-center justify-between px-2">
+            <div className="flex items-center space-x-3">
+              <div className="w-9 h-9 rounded-xl bg-[#F0F9FF] border border-[#BAE6FD] flex items-center justify-center text-[#0284C7] shadow-xs">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="font-bold text-[#0F172A] text-sm leading-tight">Admin System</h2>
+                <div className="flex items-center space-x-1.5 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] font-semibold text-[#64748B]">v2.4 Live</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="space-y-1.5">
+            <SidebarItem id="dashboard" icon={BarChart3} label="Dashboard" />
+            <SidebarItem id="complaints" icon={AlertTriangle} label="Complaints" badge={complaints.length} />
+            <SidebarItem id="flagged" icon={Shield} label="Flagged Queue" badge={flaggedComplaints.length + spamComplaints.length} badgeVariant="danger" />
+            <SidebarItem id="map" icon={Map} label="Map Clustering" />
+            <SidebarItem id="users" icon={Users} label="Access Control" badge={adminRequests.length} badgeVariant="danger" />
+          </nav>
         </div>
 
-        <SidebarItem id="dashboard" icon={BarChart3} label="Dashboard" />
-        <SidebarItem id="complaints" icon={AlertTriangle} label="Complaints" />
-        <SidebarItem id="flagged" icon={Shield} label="Flagged" />
-        <SidebarItem id="map" icon={Map} label="Map Clustering" />
-        <SidebarItem id="users" icon={Users} label="Access Control" />
+        {/* Bottom Profile / Quick Info Card */}
+        <div className="pt-4 border-t border-[#E2E8F0] px-2 mt-4 hidden md:block">
+          <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
+            <p className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Resolution Rate</p>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-xl font-extrabold text-[#0F172A]">{resolvedRate}%</span>
+              <span className="text-xs font-semibold text-emerald-600">
+                {statusCounts[2].value} / {complaints.length}
+              </span>
+            </div>
+            <div className="w-full bg-[#E2E8F0] h-1.5 rounded-full mt-2 overflow-hidden">
+              <div 
+                className="bg-[#16A34A] h-full rounded-full transition-all duration-500"
+                style={{ width: `${resolvedRate}%` }}
+              />
+            </div>
+          </div>
+        </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 space-y-6 overflow-hidden min-h-[calc(100vh-120px)]">
+      <main className="flex-1 space-y-6 overflow-hidden min-h-[calc(100vh-105px)]">
         <AnimatePresence mode="wait">
           
-          {/* TAB: DASHBOARD */}
+          {/* TAB 1: DASHBOARD */}
           {activeTab === 'dashboard' && (
-            <motion.div key="dashboard" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <div className="mb-6"><h2 className="text-2xl font-bold text-[#0F172A] tracking-tight">Analytics Overview</h2><p className="text-sm text-[#6B7280]">Live system metrics and operational summary</p></div>
+            <motion.div 
+              key="dashboard" 
+              initial={{ opacity: 0, y: 10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -10 }} 
+              className="space-y-6"
+            >
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs">
+                <div>
+                  <h1 className="text-2xl font-bold text-[#0F172A] tracking-tight">Analytics Overview</h1>
+                  <p className="text-sm text-[#64748B] mt-0.5">Live operational telemetry, status distribution, and priority metrics</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => fetchComplaints(true)}
+                    disabled={isRefreshing}
+                    className="flex items-center space-x-2 px-3.5 py-2 bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] border border-[#E2E8F0] rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('complaints')}
+                    className="flex items-center space-x-2 px-4 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                  >
+                    <span>Manage Issues</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
               
+              {/* Stat Cards Grid (6 KPI Metrics) */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <StatCard value={complaints.length} label="Total Issues" icon={Activity} color="blue" delay={0} />
-                <StatCard value={statusCounts[0].value} label="Pending" icon={Clock} color="orange" delay={0.1} />
-                <StatCard value={statusCounts[1].value} label="In Progress" icon={TrendingUp} color="purple" delay={0.2} />
-                <StatCard value={statusCounts[2].value} label="Resolved" icon={CheckCircle2} color="green" delay={0.3} />
-                <StatCard value={flaggedComplaints.length} label="Flagged" icon={AlertTriangle} color="orange" delay={0.4} />
-                <StatCard value={spamComplaints.length} label="Spam" icon={Shield} color="purple" delay={0.5} />
+                <StatCard 
+                  value={complaints.length} 
+                  label="Total Issues" 
+                  subtext="All logged reports"
+                  icon={Activity} 
+                  variant="blue" 
+                  delay={0} 
+                />
+                <StatCard 
+                  value={statusCounts[0].value} 
+                  label="Pending" 
+                  subtext="Awaiting review"
+                  icon={Clock} 
+                  variant="amber" 
+                  trend={statusCounts[0].value > 0 ? `${statusCounts[0].value} open` : 'None'}
+                  delay={0.05} 
+                />
+                <StatCard 
+                  value={statusCounts[1].value} 
+                  label="In Progress" 
+                  subtext="Active mitigation"
+                  icon={TrendingUp} 
+                  variant="indigo" 
+                  delay={0.1} 
+                />
+                <StatCard 
+                  value={statusCounts[2].value} 
+                  label="Resolved" 
+                  subtext="Completed tickets"
+                  icon={CheckCircle2} 
+                  variant="emerald" 
+                  trend={`${resolvedRate}% rate`}
+                  delay={0.15} 
+                />
+                <StatCard 
+                  value={flaggedComplaints.length} 
+                  label="Flagged" 
+                  subtext="AI anomalies"
+                  icon={AlertTriangle} 
+                  variant="rose" 
+                  trend={flaggedComplaints.length > 0 ? 'Action needed' : 'Clean'}
+                  delay={0.2} 
+                />
+                <StatCard 
+                  value={spamComplaints.length} 
+                  label="Spam / Rejected" 
+                  subtext="Filtered complaints"
+                  icon={Shield} 
+                  variant="purple" 
+                  delay={0.25} 
+                />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-80">
-                <div className="bg-[#0B0F19] p-4 rounded-2xl border-white/10 flex flex-col">
-                   <h3 className="text-md font-bold text-gray-300 mb-2 px-2">Complaints by Status</h3>
-                   <div className="flex-1">
-                     <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={statusCounts}
-                            cx="50%" cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
-                            dataKey="value"
-                            stroke="none"
-                          >
-                            {statusCounts.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name]} />
-                            ))}
-                          </Pie>
-                          <RechartsTooltip contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '8px', color: '#0F172A' }} />
-                          <Legend />
-                        </PieChart>
-                     </ResponsiveContainer>
-                   </div>
+              {/* Charts Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* Donut Chart: Status Distribution */}
+                <div className="bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-[#0F172A]">Complaints by Status</h3>
+                      <p className="text-xs text-[#64748B]">Operational lifecycle breakdown</p>
+                    </div>
+                    <span className="text-xs font-semibold px-2.5 py-1 bg-[#F0F9FF] text-[#0284C7] rounded-full border border-[#BAE6FD]">
+                      {complaints.length} Total
+                    </span>
+                  </div>
+                  
+                  <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={statusCounts}
+                          cx="50%" 
+                          cy="50%"
+                          innerRadius={65}
+                          outerRadius={90}
+                          paddingAngle={4}
+                          dataKey="value"
+                          stroke="#FFFFFF"
+                          strokeWidth={2}
+                        >
+                          {statusCounts.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#FFFFFF', 
+                            border: '1px solid #E2E8F0', 
+                            borderRadius: '12px', 
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: '#0F172A'
+                          }} 
+                        />
+                        <Legend 
+                          verticalAlign="bottom" 
+                          iconType="circle"
+                          wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Summary Pills */}
+                  <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-[#F1F5F9]">
+                    <div className="text-center p-2 rounded-xl bg-[#FFFBEB] border border-[#FDE68A]">
+                      <p className="text-[11px] font-semibold text-[#D97706]">Pending</p>
+                      <p className="text-lg font-bold text-[#92400E]">{statusCounts[0].value}</p>
+                    </div>
+                    <div className="text-center p-2 rounded-xl bg-[#F0F9FF] border border-[#BAE6FD]">
+                      <p className="text-[11px] font-semibold text-[#0284C7]">In Progress</p>
+                      <p className="text-lg font-bold text-[#0369A1]">{statusCounts[1].value}</p>
+                    </div>
+                    <div className="text-center p-2 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0]">
+                      <p className="text-[11px] font-semibold text-[#16A34A]">Resolved</p>
+                      <p className="text-lg font-bold text-[#166534]">{statusCounts[2].value}</p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="bg-[#0B0F19] p-4 rounded-2xl border-white/10 flex flex-col">
-                   <h3 className="text-md font-bold text-gray-300 mb-2 px-2">Priority Distribution</h3>
-                   <div className="flex-1">
-                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={priorityCounts}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
-                          <XAxis dataKey="name" stroke="#6B7280" tick={{fontSize: 12}} />
-                          <YAxis stroke="#6B7280" tick={{fontSize: 12}} allowDecimals={false} />
-                          <RechartsTooltip contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '8px', color: '#0F172A' }} />
-                          <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                            {priorityCounts.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index]} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                     </ResponsiveContainer>
-                   </div>
+                {/* Bar Chart: Priority Distribution */}
+                <div className="bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-[#0F172A]">Priority Distribution</h3>
+                      <p className="text-xs text-[#64748B]">Triage breakdown by urgency</p>
+                    </div>
+                    <span className="text-xs font-semibold px-2.5 py-1 bg-[#FFF1F2] text-[#E11D48] rounded-full border border-[#FECDD3]">
+                      {priorityCounts[0].value} High Urgency
+                    </span>
+                  </div>
+
+                  <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={priorityCounts} barSize={36}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                        <XAxis 
+                          dataKey="name" 
+                          stroke="#94A3B8" 
+                          tick={{ fontSize: 12, fontWeight: 600, fill: '#64748B' }} 
+                        />
+                        <YAxis 
+                          stroke="#94A3B8" 
+                          tick={{ fontSize: 12, fill: '#64748B' }} 
+                          allowDecimals={false} 
+                        />
+                        <RechartsTooltip 
+                          cursor={{ fill: '#F8FAFC' }}
+                          contentStyle={{ 
+                            backgroundColor: '#FFFFFF', 
+                            border: '1px solid #E2E8F0', 
+                            borderRadius: '12px', 
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: '#0F172A'
+                          }} 
+                        />
+                        <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                          {priorityCounts.map((entry, index) => (
+                            <Cell key={`bar-${index}`} fill={PRIORITY_COLORS[entry.name]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Summary Pills */}
+                  <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-[#F1F5F9]">
+                    <div className="text-center p-2 rounded-xl bg-[#FFF1F2] border border-[#FECDD3]">
+                      <p className="text-[11px] font-semibold text-[#E11D48]">High</p>
+                      <p className="text-lg font-bold text-[#9F1239]">{priorityCounts[0].value}</p>
+                    </div>
+                    <div className="text-center p-2 rounded-xl bg-[#FFF7ED] border border-[#FFEDD5]">
+                      <p className="text-[11px] font-semibold text-[#EA580C]">Medium</p>
+                      <p className="text-lg font-bold text-[#9A3412]">{priorityCounts[1].value}</p>
+                    </div>
+                    <div className="text-center p-2 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0]">
+                      <p className="text-[11px] font-semibold text-[#059669]">Low</p>
+                      <p className="text-lg font-bold text-[#065F46]">{priorityCounts[2].value}</p>
+                    </div>
+                  </div>
                 </div>
+
               </div>
             </motion.div>
           )}
 
-          {/* TAB: COMPLAINTS */}
+          {/* TAB 2: COMPLAINTS MODERATION TABLE */}
           {activeTab === 'complaints' && (
-            <motion.div key="complaints" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <div className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/10">
-                 <h2 className="text-xl font-bold text-white">Complaint Moderation</h2>
-                 <p className="text-sm text-gray-400">Total: {complaints.length}</p>
-              </div>
+            <motion.div 
+              key="complaints" 
+              initial={{ opacity: 0, y: 10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -10 }} 
+              className="space-y-6"
+            >
+              {/* Header & Filter Card */}
+              <div className="bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-[#0F172A]">Complaint Moderation Center</h2>
+                    <p className="text-xs text-[#64748B]">Review incoming citizen reports, adjust resolution states, and dispatch notifications</p>
+                  </div>
+                  <div className="flex items-center space-x-2 text-xs font-semibold text-[#64748B]">
+                    <span className="px-3 py-1 bg-[#F8FAFC] rounded-full border border-[#E2E8F0]">
+                      Showing {filteredComplaints.length} of {complaints.length}
+                    </span>
+                  </div>
+                </div>
 
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm"
-              >
-                {/* Table Header with Search */}
-                <div className="p-4 border-b border-[#E5E7EB] flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-2 w-full md:w-auto">
+                {/* Search & Filter Toolbar */}
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-3 pt-3 border-t border-[#F1F5F9]">
+                  {/* Search Input */}
+                  <div className="relative w-full lg:w-80">
+                    <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input 
                       type="text"
-                      placeholder="Search by Complaint ID..."
+                      placeholder="Search by ID, Category, or User..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full md:w-64 bg-[#F9FAFB] border border-[#D1D5DB] rounded-xl px-4 py-2 text-sm text-[#0F172A] placeholder-[#9CA3AF] focus:outline-none focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/20 transition-all"
+                      className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-10 pr-4 py-2 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/20 transition-all"
                     />
                   </div>
-                  <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
-                    <Filter className="w-4 h-4 text-gray-400 shrink-0" />
+
+                  {/* Filter Pills */}
+                  <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
+                    <Filter className="w-3.5 h-3.5 text-[#94A3B8] shrink-0" />
+                    <span className="text-xs text-[#64748B] font-medium shrink-0">Status:</span>
                     {['All', 'Pending', 'In Progress', 'Resolved'].map((filter) => (
-                      <motion.button
+                      <button
                         key={filter}
                         onClick={() => setFilterStatus(filter)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className={`px-3 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${
-                          filterStatus === filter ? 'bg-[#0284C7] text-white font-semibold' : 'bg-[#F3F4F6] text-[#4B5563] hover:text-[#0F172A]'
+                        className={`px-3 py-1.5 text-xs rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                          filterStatus === filter 
+                            ? 'bg-[#0284C7] text-white shadow-xs' 
+                            : 'bg-[#F8FAFC] text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] border border-[#E2E8F0]'
                         }`}
                       >
                         {filter}
-                      </motion.button>
+                      </button>
+                    ))}
+                    <div className="h-4 w-[1px] bg-[#E2E8F0] mx-1" />
+                    <span className="text-xs text-[#64748B] font-medium shrink-0">Severity:</span>
+                    {['All', 'High', 'Medium', 'Low'].map((sev) => (
+                      <button
+                        key={sev}
+                        onClick={() => setFilterSeverity(sev)}
+                        className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition-all cursor-pointer ${
+                          filterSeverity === sev 
+                            ? 'bg-[#0F172A] text-white' 
+                            : 'bg-[#F8FAFC] text-[#64748B] hover:text-[#0F172A] border border-[#E2E8F0]'
+                        }`}
+                      >
+                        {sev}
+                      </button>
                     ))}
                   </div>
                 </div>
-                
-                <div className="overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-left border-collapse min-w-[1000px]">
+              </div>
+
+              {/* Data Table Card */}
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-xs overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[950px]">
                     <thead>
-                      <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB] text-[#4B5563] text-xs font-semibold uppercase tracking-wider">
-                        <th className="p-4 pl-6 font-semibold w-72">Issue Details</th>
-                        <th className="p-4 font-semibold w-40 text-center">AI Validation</th>
-                        <th className="p-4 font-semibold text-center">Current Status</th>
-                        <th className="p-4 font-semibold text-center">Timeline</th>
-                        <th className="p-4 pr-6 font-semibold text-right">Moderator Actions</th>
+                      <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] text-[11px] font-bold uppercase tracking-wider">
+                        <th className="py-3.5 px-6 w-80">Report Details</th>
+                        <th className="py-3.5 px-4 text-center w-36">AI Validation</th>
+                        <th className="py-3.5 px-4 text-center w-40">Status</th>
+                        <th className="py-3.5 px-4 text-center w-32">Timeline</th>
+                        <th className="py-3.5 px-6 text-right w-44">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E5E7EB]">
+                    <tbody className="divide-y divide-[#F1F5F9] text-xs">
                       {filteredComplaints.length === 0 ? (
                         <tr>
-                          <td colSpan="5" className="p-8 text-center text-gray-500">No complaints found.</td>
+                          <td colSpan="5" className="p-12 text-center text-[#94A3B8]">
+                            <AlertCircle className="w-8 h-8 text-[#94A3B8] mx-auto mb-2 opacity-50" />
+                            <p className="font-semibold text-sm text-[#0F172A]">No complaints match your criteria</p>
+                            <p className="text-xs text-[#64748B] mt-0.5">Try adjusting your search query or status filter.</p>
+                          </td>
                         </tr>
-                      ) : filteredComplaints.map((c, i) => (
-                        <motion.tr 
+                      ) : filteredComplaints.map((c) => (
+                        <tr 
                           key={c.id || c._id} 
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.05 }}
-                          whileHover={{ backgroundColor: '#F9FAFB' }}
-                          className="transition-colors group cursor-pointer"
+                          className="hover:bg-[#F8FAFC] transition-colors group cursor-pointer"
                           onClick={() => navigate(`/details/${c.id || c._id}`)}
                         >
-                          <td className="p-4 pl-6">
-                            <div className="flex items-center space-x-3">
-                              <img src={c.imageUrl} alt="Issue" className="w-12 h-12 rounded-lg object-cover border border-[#E5E7EB]" crossOrigin="anonymous"/>
-                              <div>
-                                <p className="font-bold text-sm text-[#0F172A] line-clamp-1">{c.problemType}</p>
-                                <div className="text-[10px] text-gray-500 mb-1 flex items-center gap-1">
-                                  {c.userEmail ? c.userEmail : 'No Email'} • 
+                          {/* Issue Details */}
+                          <td className="py-4 px-6">
+                            <div className="flex items-center space-x-3.5">
+                              <img 
+                                src={c.imageUrl} 
+                                alt="Issue" 
+                                className="w-12 h-12 rounded-xl object-cover border border-[#E2E8F0] shadow-2xs shrink-0" 
+                                crossOrigin="anonymous"
+                              />
+                              <div className="min-w-0">
+                                <p className="font-bold text-sm text-[#0F172A] truncate group-hover:text-[#0284C7] transition-colors">
+                                  {c.problemType || 'Civic Issue'}
+                                </p>
+                                <div className="text-[11px] text-[#64748B] flex items-center gap-1.5 mt-0.5">
+                                  <span className="truncate max-w-[140px]">{c.userEmail || c.userName || 'Anonymous'}</span>
+                                  <span>•</span>
                                   <button 
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -697,321 +976,428 @@ const Admin = () => {
                                       setCopiedId(c.id || c._id);
                                       setTimeout(() => setCopiedId(null), 2000);
                                     }}
-                                    className="flex items-center gap-1 hover:text-white transition-colors group cursor-pointer font-mono bg-[#F3F4F6] px-1.5 py-0.5 rounded border border-[#E5E7EB] text-[#334155] hover:border-[#BAE6FD]"
+                                    className="flex items-center gap-1 font-mono text-[10px] bg-[#F1F5F9] hover:bg-[#E2E8F0] px-1.5 py-0.5 rounded text-[#334155] transition-colors cursor-pointer"
                                     title="Copy ID"
                                   >
                                     #{formatComplaintId(c)}
                                     {copiedId === (c.id || c._id) ? (
-                                      <Check className="w-3 h-3 text-green-400" />
+                                      <Check className="w-2.5 h-2.5 text-emerald-600" />
                                     ) : (
-                                      <Copy className="w-3 h-3 text-gray-400 group-hover:text-white" />
+                                      <Copy className="w-2.5 h-2.5 text-[#94A3B8]" />
                                     )}
                                   </button>
                                 </div>
-                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                                  c.severity === 'High' ? 'bg-red-500/20 text-red-400' : c.severity === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'
-                                }`}>{c.severity} Priority</span>
+                                <div className="mt-1 flex items-center gap-2">
+                                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                                    c.severity === 'High' ? 'bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3]' : 
+                                    c.severity === 'Medium' ? 'bg-[#FFF7ED] text-[#EA580C] border border-[#FFEDD5]' : 
+                                    'bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]'
+                                  }`}>
+                                    {c.severity || 'Medium'}
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </td>
                           
-                          <td className="p-4 text-center">
+                          {/* AI Validation Status */}
+                          <td className="py-4 px-4 text-center">
                             <div className="flex flex-col items-center justify-center space-y-1">
-                              <span className={`text-[11px] px-2 py-1 rounded-md font-bold ${
-                                c.verificationStatus === 'Pending' ? 'bg-gray-500/20 text-gray-400' :
-                                c.verificationStatus === 'Approved manually' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                                c.verificationStatus === 'Rejected manually' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                                'bg-blue-500/20 text-blue-400'
+                              <span className={`text-[11px] px-2.5 py-1 rounded-lg font-bold ${
+                                c.verificationStatus === 'Approved manually' || c.verificationStatus === 'Verified'
+                                  ? 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]' 
+                                  : c.verificationStatus === 'Rejected manually' || c.verificationStatus === 'Rejected'
+                                    ? 'bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3]'
+                                    : 'bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0]'
                               }`}>
-                                {c.verificationStatus || 'Unknown'}
+                                {c.verificationStatus || 'Pending'}
                               </span>
-                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity mt-1">
-                                <button onClick={(e) => { e.stopPropagation(); openVerificationModal(c, 'Approved manually'); }} title="Approve" className="p-1 hover:bg-emerald-500/20 text-emerald-500 rounded"><Check className="w-3 h-3"/></button>
-                                <button onClick={(e) => { e.stopPropagation(); openVerificationModal(c, 'Rejected manually'); }} title="Reject" className="p-1 hover:bg-red-500/20 text-red-500 rounded"><X className="w-3 h-3"/></button>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); openVerificationModal(c, 'Approved manually'); }} 
+                                  title="Approve manually" 
+                                  className="p-1 hover:bg-[#F0FDF4] text-emerald-600 rounded transition cursor-pointer"
+                                >
+                                  <Check className="w-3.5 h-3.5"/>
+                                </button>
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); openVerificationModal(c, 'Rejected manually'); }} 
+                                  title="Reject manually" 
+                                  className="p-1 hover:bg-[#FFF1F2] text-rose-600 rounded transition cursor-pointer"
+                                >
+                                  <X className="w-3.5 h-3.5"/>
+                                </button>
                               </div>
                             </div>
                           </td>
 
-                          <td className="p-4 text-center">
+                          {/* Status Dropdown */}
+                          <td className="py-4 px-4 text-center">
                             <select 
-                                onClick={(e) => e.stopPropagation()}
-                                value={c.status}
-                                onChange={(e) => handleStatusChange(c.id || c._id, c.status, e.target.value)}
-                                className={`text-[11px] font-bold rounded-lg px-2 py-1 outline-none appearance-none text-center cursor-pointer ${
-                                  c.status === 'Resolved' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                                  c.status === 'In Progress' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
-                                  'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                                }`}
+                              onClick={(e) => e.stopPropagation()}
+                              value={c.status}
+                              onChange={(e) => handleStatusChange(c.id || c._id, c.status, e.target.value)}
+                              className={`text-[11px] font-bold rounded-xl px-3 py-1.5 outline-none cursor-pointer border shadow-2xs transition-all ${
+                                c.status === 'Resolved' 
+                                  ? 'bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]' 
+                                  : c.status === 'In Progress' 
+                                    ? 'bg-[#F0F9FF] text-[#0369A1] border-[#BAE6FD]' 
+                                    : 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
+                              }`}
+                            >
+                              <option value="Pending" className="bg-white text-[#92400E]">Pending</option>
+                              <option value="In Progress" className="bg-white text-[#0369A1]">In Progress</option>
+                              <option value="Resolved" className="bg-white text-[#166534]">Resolved</option>
+                            </select>
+                          </td>
+
+                          {/* Timeline / Events */}
+                          <td className="py-4 px-4 text-center">
+                            <div className="flex flex-col items-center">
+                              <span className="text-[11px] font-semibold text-[#64748B]">
+                                {c.timeline?.length || 0} Events
+                              </span>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); openRemarkModal(c); }} 
+                                className="text-[10px] text-[#0284C7] hover:text-[#0369A1] font-semibold mt-1 hover:underline cursor-pointer"
                               >
-                                <option value="Pending" className="bg-slate-900 text-orange-400">Pending</option>
-                                <option value="In Progress" className="bg-slate-900 text-blue-400">In Progress</option>
-                                <option value="Resolved" className="bg-slate-900 text-green-400">Resolved</option>
-                              </select>
-                          </td>
-
-                          <td className="p-4 text-center">
-                             <div className="flex flex-col items-center">
-                                <p className="text-[11px] text-gray-400">{c.timeline?.length || 0} Events</p>
-                                <button onClick={(e) => { e.stopPropagation(); openRemarkModal(c); }} className="text-[10px] text-indigo-400 hover:text-indigo-300 mt-1 flex items-center gap-1">+ Add Remark</button>
-                             </div>
-                          </td>
-
-                          <td className="p-4 pr-6 text-right">
-                            <div className="flex items-center justify-end space-x-2">
-                              <button onClick={(e) => { e.stopPropagation(); handleSendEmail(c); }} className="p-2 bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0] hover:bg-[#16A34A] hover:text-white rounded-lg transition-colors" title="Send Resolution Email">
-                                 <Mail className="w-4 h-4" />
-                              </button>
-                              <button onClick={(e) => { e.stopPropagation(); openLetterModal(c); }} className="p-2 bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD] hover:bg-[#0284C7] hover:text-white rounded-lg transition-colors" title="View Formal Letter">
-                                 <FileText className="w-4 h-4" />
-                              </button>
-                              <button onClick={(e) => { e.stopPropagation(); handleDeleteComplaint(c.id || c._id); }} className="p-2 bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA] hover:bg-[#DC2626] hover:text-white rounded-lg transition-colors" title="Delete">
-                                 <Trash2 className="w-4 h-4" />
+                                + Add Remark
                               </button>
                             </div>
                           </td>
 
-                        </motion.tr>
+                          {/* Moderator Action Buttons */}
+                          <td className="py-4 px-6 text-right">
+                            <div className="flex items-center justify-end space-x-1.5">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleSendEmail(c); }} 
+                                className="p-2 bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0] hover:bg-[#16A34A] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
+                                title="Send Resolution Email"
+                              >
+                                <Mail className="w-3.5 h-3.5" />
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); openLetterModal(c); }} 
+                                className="p-2 bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD] hover:bg-[#0284C7] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
+                                title="View Formal Letter"
+                              >
+                                <FileText className="w-3.5 h-3.5" />
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); downloadPDF(c); }} 
+                                className="p-2 bg-[#F8FAFC] text-[#475569] border border-[#E2E8F0] hover:bg-[#0F172A] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
+                                title="Download PDF Docket"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleDeleteComplaint(c.id || c._id); }} 
+                                className="p-2 bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3] hover:bg-[#E11D48] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
+                                title="Delete Complaint"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
                       ))}
-                      {complaints.length === 0 && (
-                        <tr><td colSpan="5" className="p-8 text-center text-gray-500">Database is empty.</td></tr>
-                      )}
                     </tbody>
                   </table>
                 </div>
-              </motion.div>
+              </div>
             </motion.div>
           )}
 
-          {/* TAB: FLAGGED COMPLAINTS (Moderation Panel) */}
+          {/* TAB 3: FLAGGED & ANOMALY QUEUE */}
           {activeTab === 'flagged' && (
-            <motion.div key="flagged" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <div className="flex justify-between items-center bg-gradient-to-r from-red-500/10 to-orange-500/10 p-4 rounded-xl border border-red-500/20">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-red-400" /> Flagged Complaints Moderation
-                </h2>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs px-3 py-1 rounded-full bg-orange-500/20 text-orange-400 font-bold border border-orange-500/30">
-                    {flaggedComplaints.length} Flagged
+            <motion.div 
+              key="flagged" 
+              initial={{ opacity: 0, y: 10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -10 }} 
+              className="space-y-6"
+            >
+              {/* Header Banner */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#FFF1F2] border border-[#FECDD3] flex items-center justify-center text-[#E11D48]">
+                    <Shield className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-[#0F172A]">AI Flagged & Anomaly Moderation</h2>
+                    <p className="text-xs text-[#64748B]">Reports with detected duplicates, distance anomalies, or low confidence scores</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs px-3 py-1 rounded-full bg-[#FFF7ED] text-[#EA580C] font-bold border border-[#FFEDD5]">
+                    {flaggedComplaints.length} Suspicious
                   </span>
-                  <span className="text-xs px-3 py-1 rounded-full bg-red-500/20 text-red-400 font-bold border border-red-500/30">
+                  <span className="text-xs px-3 py-1 rounded-full bg-[#FFF1F2] text-[#E11D48] font-bold border border-[#FECDD3]">
                     {spamComplaints.length} Spam
                   </span>
                 </div>
               </div>
 
+              {/* Moderation Cards */}
               {flaggedComplaints.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="bg-white rounded-2xl p-12 text-center border border-[#E5E7EB] shadow-sm"
-                >
-                  <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-xl font-bold text-[#0F172A] mb-2">All Clear! 🎉</h3>
-                  <p className="text-gray-400">No flagged complaints requiring moderation.</p>
-                </motion.div>
+                <div className="bg-white rounded-2xl p-12 text-center border border-[#E2E8F0] shadow-xs">
+                  <CheckCircle2 className="w-12 h-12 text-[#16A34A] mx-auto mb-3 opacity-70" />
+                  <h3 className="text-lg font-bold text-[#0F172A] mb-1">Queue Clear</h3>
+                  <p className="text-xs text-[#64748B]">No flagged complaints currently pending administrative review.</p>
+                </div>
               ) : (
                 <div className="space-y-4">
                   {flaggedComplaints.map((c, i) => (
-                    <motion.div
+                    <div
                       key={c.id || c._id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="bg-white rounded-2xl border border-[#E5E7EB] hover:border-[#BAE6FD] shadow-sm overflow-hidden cursor-pointer transition-all"
+                      className="bg-white rounded-2xl border border-[#E2E8F0] hover:border-[#BAE6FD] shadow-xs hover:shadow-md transition-all overflow-hidden p-6 cursor-pointer"
                       onClick={() => navigate(`/details/${c.id || c._id}`)}
                     >
-                      <div className="p-6">
-                        <div className="flex items-start gap-5">
-                          {/* Image */}
-                          <div className="relative w-28 h-28 rounded-xl overflow-hidden shrink-0 border border-white/10">
-                            <img src={c.imageUrl} alt="Issue" className="w-full h-full object-cover" crossOrigin="anonymous" />
-                            <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-red-500/80 backdrop-blur text-[9px] font-bold rounded text-white">
-                              FLAGGED
-                            </div>
-                          </div>
-
-                          {/* Details */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-2">
-                              <h4 className="font-bold text-[#0F172A] text-base">{c.problemType}</h4>
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                                c.severity === 'High' ? 'bg-red-500/20 text-red-400' : c.severity === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'
-                              }`}>{c.severity}</span>
-                            </div>
-
-                            <p className="text-xs text-gray-400 mb-3 line-clamp-2">{c.description}</p>
-
-                            {/* Flag Reason */}
-                            <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 mb-3">
-                              <p className="text-xs font-bold text-red-400 uppercase tracking-wider mb-1">⚠️ Flag Reason</p>
-                              <p className="text-sm text-red-200">{c.flagReason || 'No reason specified'}</p>
-                            </div>
-
-                            {/* Validation Details Grid */}
-                            <div className="grid grid-cols-3 gap-3 text-xs">
-                              {/* Image Validation */}
-                              <div className={`p-2 rounded-lg border ${
-                                c.imageValidation?.isValid === false
-                                  ? 'bg-red-500/10 border-red-500/20'
-                                  : 'bg-green-500/10 border-green-500/20'
-                              }`}>
-                                <p className="font-bold text-gray-400 mb-1">Image Valid</p>
-                                <p className={`font-bold ${c.imageValidation?.isValid === false ? 'text-red-400' : 'text-green-400'}`}>
-                                  {c.imageValidation?.isValid === false ? '❌ No' : '✅ Yes'}
-                                </p>
-                              </div>
-
-                              {/* Location Verified */}
-                              <div className={`p-2 rounded-lg border ${
-                                c.locationVerified
-                                  ? 'bg-green-500/10 border-green-500/20'
-                                  : 'bg-orange-500/10 border-orange-500/20'
-                              }`}>
-                                <p className="font-bold text-gray-400 mb-1">Location</p>
-                                <p className={`font-bold ${c.locationVerified ? 'text-green-400' : 'text-orange-400'}`}>
-                                  {c.locationVerified ? '✅ Verified' : `⚠️ ${c.locationDistance || 0}km away`}
-                                </p>
-                              </div>
-
-                              {/* Category Match */}
-                              <div className={`p-2 rounded-lg border ${
-                                c.categoryMatch?.matches === false
-                                  ? 'bg-red-500/10 border-red-500/20'
-                                  : 'bg-green-500/10 border-green-500/20'
-                              }`}>
-                                <p className="font-bold text-gray-400 mb-1">Category</p>
-                                <p className={`font-bold ${c.categoryMatch?.matches === false ? 'text-red-400' : 'text-green-400'}`}>
-                                  {c.categoryMatch?.matches === false ? '❌ Mismatch' : '✅ Match'}
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* User Info */}
-                            <div className="flex items-center gap-2 mt-3 text-xs text-gray-500">
-                              <User className="w-3 h-3" />
-                              <span>{c.userName || 'Anonymous'}</span>
-                              <span>•</span>
-                              <span>{c.userEmail || 'No email'}</span>
-                              <span>•</span>
-                              <span>{new Date(c.createdAt).toLocaleDateString()}</span>
-                            </div>
+                      <div className="flex flex-col md:flex-row items-start gap-5">
+                        {/* Image Preview */}
+                        <div className="relative w-32 h-32 rounded-xl overflow-hidden shrink-0 border border-[#E2E8F0]">
+                          <img src={c.imageUrl} alt="Issue" className="w-full h-full object-cover" crossOrigin="anonymous" />
+                          <div className="absolute top-1.5 left-1.5 px-2 py-0.5 bg-rose-600/90 backdrop-blur text-[9px] font-bold rounded text-white shadow-xs">
+                            FLAGGED
                           </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex items-center gap-3 mt-5 pt-4 border-t border-white/10">
-                          <motion.button
-                            onClick={(e) => { e.stopPropagation(); handleApproveComplaint(c); }}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white border border-green-500/30 transition-all font-bold text-sm"
-                          >
-                            <Check className="w-4 h-4" /> Accept
-                          </motion.button>
-                          
-                          <motion.button
-                            onClick={(e) => { e.stopPropagation(); handleRejectComplaint(c); }}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-orange-500/10 text-orange-400 hover:bg-orange-500 hover:text-white border border-orange-500/30 transition-all font-bold text-sm"
-                          >
-                            <XCircle className="w-4 h-4" /> Reject
-                          </motion.button>
-                          
-                          <motion.button
-                            onClick={(e) => { e.stopPropagation(); handleMarkSpam(c); }}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/30 transition-all font-bold text-sm"
-                          >
-                            <AlertTriangle className="w-4 h-4" /> Mark Spam
-                          </motion.button>
+                        {/* Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-bold text-[#0F172A] text-base">{c.problemType}</h4>
+                            <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold ${
+                              c.severity === 'High' ? 'bg-[#FFF1F2] text-[#E11D48]' : 'bg-[#FFF7ED] text-[#EA580C]'
+                            }`}>
+                              {c.severity} Priority
+                            </span>
+                          </div>
 
-                          <motion.button
-                            onClick={(e) => { e.stopPropagation(); handleDeleteComplaint(c.id || c._id); }}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="py-3 px-4 rounded-xl bg-white/5 text-gray-400 hover:bg-red-500/20 hover:text-red-400 border border-white/10 transition-all"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </motion.button>
+                          <p className="text-xs text-[#64748B] mb-3 line-clamp-2">{c.description}</p>
+
+                          {/* Flag Reason Callout */}
+                          <div className="bg-[#FFF1F2] border border-[#FECDD3] rounded-xl px-3.5 py-2.5 mb-3">
+                            <p className="text-[10px] font-bold text-[#9F1239] uppercase tracking-wider mb-0.5">⚠️ Anomaly Reason</p>
+                            <p className="text-xs font-semibold text-[#E11D48]">{c.flagReason || 'Flagged by automated heuristic detection'}</p>
+                          </div>
+
+                          {/* Validation Checks */}
+                          <div className="grid grid-cols-3 gap-3 text-xs mb-3">
+                            <div className="p-2.5 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC]">
+                              <p className="text-[10px] font-semibold text-[#64748B] mb-0.5">Image Authenticity</p>
+                              <p className={`font-bold ${c.imageValidation?.isValid === false ? 'text-[#E11D48]' : 'text-[#16A34A]'}`}>
+                                {c.imageValidation?.isValid === false ? '❌ Flagged' : '✅ Verified'}
+                              </p>
+                            </div>
+                            <div className="p-2.5 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC]">
+                              <p className="text-[10px] font-semibold text-[#64748B] mb-0.5">Location Radius</p>
+                              <p className={`font-bold ${c.locationVerified ? 'text-[#16A34A]' : 'text-[#EA580C]'}`}>
+                                {c.locationVerified ? '✅ In Bounds' : `⚠️ ${c.locationDistance || 0}km away`}
+                              </p>
+                            </div>
+                            <div className="p-2.5 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC]">
+                              <p className="text-[10px] font-semibold text-[#64748B] mb-0.5">Category Match</p>
+                              <p className={`font-bold ${c.categoryMatch?.matches === false ? 'text-[#E11D48]' : 'text-[#16A34A]'}`}>
+                                {c.categoryMatch?.matches === false ? '❌ Mismatch' : '✅ Consistent'}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Metadata */}
+                          <div className="flex items-center gap-2 text-[11px] text-[#94A3B8]">
+                            <User className="w-3 h-3" />
+                            <span>{c.userName || 'Anonymous'}</span>
+                            <span>•</span>
+                            <span>{c.userEmail || 'No email provided'}</span>
+                            <span>•</span>
+                            <span>{new Date(c.createdAt).toLocaleDateString()}</span>
+                          </div>
                         </div>
                       </div>
-                    </motion.div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-3 mt-5 pt-4 border-t border-[#F1F5F9]">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleApproveComplaint(c); }}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#F0FDF4] text-[#16A34A] hover:bg-[#16A34A] hover:text-white border border-[#BBF7D0] transition-all font-semibold text-xs cursor-pointer shadow-2xs"
+                        >
+                          <Check className="w-3.5 h-3.5" /> Accept Issue
+                        </button>
+                        
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleRejectComplaint(c); }}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#FFFBEB] text-[#D97706] hover:bg-[#D97706] hover:text-white border border-[#FDE68A] transition-all font-semibold text-xs cursor-pointer shadow-2xs"
+                        >
+                          <XCircle className="w-3.5 h-3.5" /> Reject
+                        </button>
+                        
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleMarkSpam(c); }}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#FFF1F2] text-[#E11D48] hover:bg-[#E11D48] hover:text-white border border-[#FECDD3] transition-all font-semibold text-xs cursor-pointer shadow-2xs"
+                        >
+                          <AlertTriangle className="w-3.5 h-3.5" /> Mark Spam
+                        </button>
+
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDeleteComplaint(c.id || c._id); }}
+                          className="py-2.5 px-3.5 rounded-xl bg-[#F8FAFC] text-[#64748B] hover:bg-[#FFF1F2] hover:text-[#E11D48] border border-[#E2E8F0] transition-all cursor-pointer shadow-2xs"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
             </motion.div>
           )}
 
-          {/* TAB: MAP CLUSTERING */}
+          {/* TAB 4: MAP CLUSTERING & GEOGRAPHIC VIEW */}
           {activeTab === 'map' && (
-            <motion.div key="map" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="h-full flex flex-col space-y-4">
-              <div className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/10">
-                 <h2 className="text-xl font-bold text-white flex items-center gap-2"><MapPin/> Map Validation & Clustering</h2>
+            <motion.div 
+              key="map" 
+              initial={{ opacity: 0, y: 10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -10 }} 
+              className="space-y-4 h-[calc(100vh-130px)] flex flex-col"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-xs shrink-0">
+                <div className="flex items-center space-x-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#F0F9FF] border border-[#BAE6FD] flex items-center justify-center text-[#0284C7]">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-[#0F172A]">Geographic Map Validation</h2>
+                    <p className="text-xs text-[#64748B]">Interactive geospatial pin cluster for localized incident resolution</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+                    {statusCounts[0].value} Pending
+                  </span>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD]">
+                    {statusCounts[1].value} In Progress
+                  </span>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]">
+                    {statusCounts[2].value} Resolved
+                  </span>
+                </div>
               </div>
-              <div className="flex-1 bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm relative min-h-[500px]">
-                 {!isLoaded ? (
-                   <div className="w-full h-full flex items-center justify-center bg-slate-900/50">
-                     <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                   </div>
-                 ) : (
-                   <GoogleMap
-                      mapContainerStyle={mapContainerStyle}
-                      center={defaultCenter}
-                      zoom={11}
-                      options={{ disableDefaultUI: false, mapId: 'civic_map' }}
-                      onLoad={(map) => setAdminMapInstance(map)}
-                   >
-                     {adminMapInstance && complaints.map(c => {
-                       if(!c.location || !c.location.lat) return null;
-                       return (
-                         <AdvancedMarker
-                           key={c.id || c._id}
-                           map={adminMapInstance}
-                           position={{ lat: c.location.lat, lng: c.location.lng }}
-                           onClick={() => setSelectedMapMarker(c)}
-                         />
-                       )
-                     })}
-                     {selectedMapMarker && (
-                       <InfoWindowF
-                          position={{ lat: selectedMapMarker.location.lat, lng: selectedMapMarker.location.lng }}
-                          onCloseClick={() => setSelectedMapMarker(null)}
-                       >
-                          <div className="p-2 text-black max-w-[200px]">
-                             <p className="font-bold text-sm mb-1">{selectedMapMarker.problemType}</p>
-                             <p className="text-xs text-gray-600 truncate">{selectedMapMarker.locationAddress}</p>
-                             <div className="mt-2 text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800 self-start inline-block">{selectedMapMarker.status}</div>
+
+              <div className="flex-1 bg-white rounded-2xl overflow-hidden border border-[#E2E8F0] shadow-xs relative">
+                {!isLoaded ? (
+                  <div className="w-full h-full flex items-center justify-center bg-[#F8FAFC]">
+                    <div className="w-8 h-8 border-3 border-[#0284C7] border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : (
+                  <GoogleMap
+                    mapContainerStyle={mapContainerStyle}
+                    center={defaultCenter}
+                    zoom={11}
+                    options={{ disableDefaultUI: false, mapId: 'civic_map' }}
+                    onLoad={(map) => setAdminMapInstance(map)}
+                  >
+                    {adminMapInstance && complaints.map(c => {
+                      if (!c.location || !c.location.lat) return null;
+                      return (
+                        <AdvancedMarker
+                          key={c.id || c._id}
+                          map={adminMapInstance}
+                          position={{ lat: c.location.lat, lng: c.location.lng }}
+                          onClick={() => setSelectedMapMarker(c)}
+                        />
+                      );
+                    })}
+
+                    {selectedMapMarker && (
+                      <InfoWindowF
+                        position={{ lat: selectedMapMarker.location.lat, lng: selectedMapMarker.location.lng }}
+                        onCloseClick={() => setSelectedMapMarker(null)}
+                      >
+                        <div className="p-2 max-w-[220px] text-[#0F172A]">
+                          <p className="font-bold text-sm mb-1">{selectedMapMarker.problemType}</p>
+                          <p className="text-xs text-[#64748B] line-clamp-2">{selectedMapMarker.locationAddress || 'No street details'}</p>
+                          <div className="mt-2.5 flex items-center justify-between">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              selectedMapMarker.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800' :
+                              selectedMapMarker.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                              'bg-amber-100 text-amber-800'
+                            }`}>
+                              {selectedMapMarker.status}
+                            </span>
+                            <button
+                              onClick={() => navigate(`/details/${selectedMapMarker.id || selectedMapMarker._id}`)}
+                              className="text-[10px] font-semibold text-[#0284C7] hover:underline cursor-pointer"
+                            >
+                              Inspect Details →
+                            </button>
                           </div>
-                       </InfoWindowF>
-                     )}
-                   </GoogleMap>
-                 )}
+                        </div>
+                      </InfoWindowF>
+                    )}
+                  </GoogleMap>
+                )}
               </div>
             </motion.div>
           )}
 
-          {/* TAB: USERS */}
+          {/* TAB 5: ACCESS CONTROL & USERS */}
           {activeTab === 'users' && (
-            <motion.div key="users" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              
-              <div className="mb-6"><h2 className="text-2xl font-bold text-[#0F172A] tracking-tight">User Access Management</h2><p className="text-sm text-[#6B7280]">Manage citizen roles and administrator permissions</p></div>
+            <motion.div 
+              key="users" 
+              initial={{ opacity: 0, y: 10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -10 }} 
+              className="space-y-6"
+            >
+              {/* Header */}
+              <div className="bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-[#0F172A]">User Access & Role Permissions</h2>
+                  <p className="text-xs text-[#64748B]">Manage administrative privileges, approve elevated access requests, and review citizens</p>
+                </div>
+                <div className="relative w-full md:w-64">
+                  <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Search users..."
+                    value={userSearchQuery}
+                    onChange={(e) => setUserSearchQuery(e.target.value)}
+                    className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-9 pr-3 py-1.5 text-xs text-[#0F172A] focus:outline-none focus:bg-white focus:border-[#0284C7]"
+                  />
+                </div>
+              </div>
 
+              {/* Pending Admin Requests Section */}
               {adminRequests.length > 0 && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 mb-6">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center"><Shield className="w-4 h-4 text-red-500 mr-2" /> Pending Admin Requests</h3>
-                  <div className="grid gap-4 md:grid-cols-3">
+                <div className="bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-6">
+                  <h3 className="text-sm font-bold text-[#9F1239] mb-3 flex items-center">
+                    <Shield className="w-4 h-4 text-[#E11D48] mr-2" /> 
+                    Pending Admin Elevation Requests ({adminRequests.length})
+                  </h3>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {adminRequests.map((req) => (
-                      <div key={req.id} className="bg-[#0B0F19] p-4 rounded-xl flex items-center justify-between border-red-500/20">
-                        <div>
-                          <p className="font-bold text-white text-sm">{req.name}</p>
-                          <p className="text-xs text-gray-400">{req.email}</p>
+                      <div key={req.id} className="bg-white p-4 rounded-xl flex items-center justify-between border border-[#FECDD3] shadow-2xs">
+                        <div className="min-w-0 pr-2">
+                          <p className="font-bold text-[#0F172A] text-xs truncate">{req.name}</p>
+                          <p className="text-[11px] text-[#64748B] truncate">{req.email}</p>
                         </div>
-                        <div className="flex space-x-1">
-                          <button onClick={() => handleApproveRequest(req.uid, req.name)} className="p-1.5 bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white rounded"><Check className="w-4 h-4" /></button>
-                          <button onClick={() => handleRejectRequest(req.uid, req.name)} className="p-1.5 bg-gray-500/20 text-gray-400 hover:bg-gray-500 hover:text-white rounded"><XCircle className="w-4 h-4" /></button>
+                        <div className="flex space-x-1.5 shrink-0">
+                          <button 
+                            onClick={() => handleApproveRequest(req.uid, req.name)} 
+                            className="p-1.5 bg-[#F0FDF4] text-[#16A34A] hover:bg-[#16A34A] hover:text-white rounded-lg transition cursor-pointer"
+                            title="Approve Admin Access"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => handleRejectRequest(req.uid, req.name)} 
+                            className="p-1.5 bg-[#FFF1F2] text-[#E11D48] hover:bg-[#E11D48] hover:text-white rounded-lg transition cursor-pointer"
+                            title="Reject Request"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -1019,37 +1405,55 @@ const Admin = () => {
                 </div>
               )}
 
-              <div className="bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm">
+              {/* Users Directory Table */}
+              <div className="bg-white rounded-2xl overflow-hidden border border-[#E2E8F0] shadow-xs">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB] text-[#4B5563] text-xs font-semibold uppercase tracking-wider">
-                      <th className="p-4 pl-6 font-semibold">User</th>
-                      <th className="p-4 font-semibold">Role</th>
-                      <th className="p-4 font-semibold text-right pr-6">Action</th>
+                    <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] text-[11px] font-bold uppercase tracking-wider">
+                      <th className="py-3.5 px-6 font-semibold">User Details</th>
+                      <th className="py-3.5 px-4 font-semibold">Role</th>
+                      <th className="py-3.5 px-6 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {users.map((u) => (
-                      <tr key={u.id} className="hover:bg-[#F9FAFB] transition-colors">
-                        <td className="p-4 pl-6">
-                          <p className="font-bold text-[#0F172A] text-sm">{u.name || 'Anonymous User'}</p>
-                          <p className="text-xs text-gray-400">{u.email}</p>
+                  <tbody className="divide-y divide-[#F1F5F9] text-xs">
+                    {loadingUsers ? (
+                      <tr>
+                        <td colSpan="3" className="p-8 text-center text-[#94A3B8]">Loading user registry...</td>
+                      </tr>
+                    ) : filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan="3" className="p-8 text-center text-[#94A3B8]">No users found matching query.</td>
+                      </tr>
+                    ) : filteredUsers.map((u) => (
+                      <tr key={u.id} className="hover:bg-[#F8FAFC] transition-colors">
+                        <td className="py-3.5 px-6">
+                          <p className="font-bold text-[#0F172A]">{u.name || 'Anonymous User'}</p>
+                          <p className="text-[11px] text-[#64748B]">{u.email}</p>
                         </td>
-                        <td className="p-4">
-                           <span className={`inline-flex items-center space-x-1 px-2 py-1 text-[10px] font-bold rounded-md ${
-                              u.role === 'admin' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'
-                           }`}>
-                             {u.role === 'admin' ? 'Admin' : 'Citizen'}
-                           </span>
+                        <td className="py-3.5 px-4">
+                          <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
+                            u.role === 'admin' 
+                              ? 'bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3]' 
+                              : 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]'
+                          }`}>
+                            {u.role === 'admin' ? 'Administrator' : 'Citizen'}
+                          </span>
                         </td>
-                        <td className="p-4 pr-6 text-right">
+                        <td className="py-3.5 px-6 text-right">
                           {u.role === 'admin' ? (
-                            <button onClick={() => handleDemote(u.uid, u.name)} disabled={u.uid === userData?.uid} className="px-3 py-1 text-xs font-bold rounded-lg bg-white/5 text-gray-400 hover:bg-orange-500 hover:text-white disabled:opacity-50">
-                               Demote
+                            <button 
+                              onClick={() => handleDemote(u.uid, u.name)} 
+                              disabled={u.uid === userData?.uid} 
+                              className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#F8FAFC] text-[#64748B] hover:bg-[#FFF1F2] hover:text-[#E11D48] border border-[#E2E8F0] disabled:opacity-40 transition-colors cursor-pointer"
+                            >
+                              Demote
                             </button>
                           ) : (
-                            <button onClick={() => handlePromote(u.uid, u.name)} className="px-3 py-1 text-xs font-bold rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white border border-blue-500/30">
-                               Make Admin
+                            <button 
+                              onClick={() => handlePromote(u.uid, u.name)} 
+                              className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#F0F9FF] text-[#0284C7] hover:bg-[#0284C7] hover:text-white border border-[#BAE6FD] transition-colors cursor-pointer"
+                            >
+                              Make Admin
                             </button>
                           )}
                         </td>
@@ -1068,28 +1472,38 @@ const Admin = () => {
       <AnimatePresence>
         {modalOpen && (
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6"
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 sm:p-6"
             onClick={() => setModalOpen(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0, y: 10 }} 
+              animate={{ scale: 1, opacity: 1, y: 0 }} 
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
               onClick={(e) => e.stopPropagation()}
-              className={`bg-white p-7 rounded-2xl w-full ${modalType === 'letter' ? 'max-w-2xl' : 'max-w-md'} space-y-5 border border-[#E5E7EB] shadow-2xl`}
+              className={`bg-white p-6 sm:p-7 rounded-2xl w-full ${modalType === 'letter' ? 'max-w-2xl' : 'max-w-md'} space-y-5 border border-[#E2E8F0] shadow-xl`}
             >
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-[#0F172A] tracking-tight">
-                   {modalType === 'resolve' && 'Resolve Issue'}
-                   {modalType === 'verification' && 'Override Verification'}
-                   {modalType === 'remark' && 'Add Timeline Remark'}
-                   {modalType === 'letter' && 'Formal Complaint Letter'}
+              <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
+                <h3 className="text-lg font-bold text-[#0F172A] tracking-tight">
+                  {modalType === 'resolve' && 'Mark Issue as Resolved'}
+                  {modalType === 'verification' && 'Override Verification Status'}
+                  {modalType === 'remark' && 'Add Timeline Remark'}
+                  {modalType === 'letter' && 'Official Complaint Letter'}
                 </h3>
-                <button onClick={() => setModalOpen(false)} className="text-[#9CA3AF] hover:text-[#0F172A] transition-colors"><X className="w-5 h-5"/></button>
+                <button 
+                  onClick={() => setModalOpen(false)} 
+                  className="p-1 rounded-lg text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5"/>
+                </button>
               </div>
 
+              {/* RESOLVE ISSUE CONTENT */}
               {modalType === 'resolve' && (
                 <>
-                  <p className="text-sm text-gray-400">Upload or capture a photo showing the resolved issue as evidence.</p>
+                  <p className="text-xs text-[#64748B]">Attach an optional photo showing the completed civic repair or resolution as proof.</p>
                   
                   {/* Hidden file inputs */}
                   <input
@@ -1109,71 +1523,86 @@ const Admin = () => {
                   />
 
                   {resolvePreview ? (
-                    <div className="relative w-full rounded-xl overflow-hidden border border-white/10 group">
+                    <div className="relative w-full rounded-xl overflow-hidden border border-[#E2E8F0] group shadow-xs">
                       <img src={resolvePreview} alt="Evidence" className="w-full h-48 object-cover" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button
                           type="button"
                           onClick={() => { setResolveFile(null); setResolvePreview(null); }}
-                          className="bg-red-500/90 text-white p-3 rounded-full hover:bg-red-500 transition-all shadow-lg"
+                          className="bg-red-600 text-white p-2.5 rounded-full hover:bg-red-700 transition shadow cursor-pointer"
                         >
-                          <X className="w-5 h-5" />
+                          <X className="w-4 h-4" />
                         </button>
                       </div>
-                      <div className="absolute bottom-2 left-2 px-2 py-1 bg-green-500/80 backdrop-blur text-[10px] font-bold rounded text-white flex items-center gap-1">
+                      <div className="absolute bottom-2 left-2 px-2.5 py-1 bg-emerald-600/90 backdrop-blur text-[10px] font-bold rounded-full text-white flex items-center gap-1 shadow-xs">
                         <CheckCircle2 className="w-3 h-3" />
-                        Evidence Ready
+                        Evidence Attached
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center gap-4">
+                    <div className="flex flex-col items-center gap-3">
                       <div
                         onClick={() => resolveInputRef.current?.click()}
-                        className="w-full border-2 border-dashed border-white/15 hover:border-blue-400/50 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-white/5 group"
+                        className="w-full border-2 border-dashed border-[#CBD5E1] hover:border-[#0284C7] rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-[#F0F9FF]/30 group"
                       >
-                        <div className="p-3 bg-blue-500/10 rounded-full mb-3 group-hover:bg-blue-500/20 transition-colors">
-                          <UploadCloud className="w-8 h-8 text-blue-400" />
+                        <div className="p-3 bg-[#F0F9FF] rounded-xl mb-2 group-hover:scale-105 transition-transform">
+                          <UploadCloud className="w-6 h-6 text-[#0284C7]" />
                         </div>
-                        <p className="text-sm text-gray-300 font-medium">Click to browse files</p>
-                        <p className="text-xs text-gray-500 mt-1">JPG, PNG up to 10MB</p>
+                        <p className="text-xs text-[#0F172A] font-semibold">Click to upload resolved image</p>
+                        <p className="text-[11px] text-[#94A3B8] mt-0.5">JPG, PNG up to 10MB</p>
                       </div>
                       
                       <button
                         type="button"
                         onClick={() => resolveCameraRef.current?.click()}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600/20 to-purple-600/20 text-blue-300 rounded-xl border border-blue-500/30 hover:from-blue-600/30 hover:to-purple-600/30 transition-all font-semibold text-sm"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#F0F9FF] text-[#0284C7] rounded-xl border border-[#BAE6FD] hover:bg-[#E0F2FE] transition-all font-semibold text-xs cursor-pointer shadow-2xs"
                       >
-                        <Camera className="w-4 h-4" />
-                        <span>Take Photo with Camera</span>
+                        <Camera className="w-3.5 h-3.5" />
+                        <span>Snap Photo with Camera</span>
                       </button>
                     </div>
                   )}
                 </>
               )}
               
+              {/* VERIFICATION OVERRIDE CONTENT */}
               {modalType === 'verification' && (
                 <>
-                  <p className="text-sm text-gray-400">Add an optional remark for overriding status to <b>{modalTarget?.newVerification}</b>.</p>
-                  <textarea value={modalInput} onChange={(e) => setModalInput(e.target.value)} placeholder="Reason for override..." className="w-full bg-[#F9FAFB] border border-[#D1D5DB] rounded-xl px-4 py-3 text-sm text-[#0F172A] focus:outline-none focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/20 resize-none h-24" />
+                  <p className="text-xs text-[#64748B]">Provide an optional administrative reason for setting verification status to <b>{modalTarget?.newVerification}</b>.</p>
+                  <textarea 
+                    value={modalInput} 
+                    onChange={(e) => setModalInput(e.target.value)} 
+                    placeholder="Enter reason for verification override..." 
+                    className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3.5 py-2.5 text-xs text-[#0F172A] focus:outline-none focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/20 resize-none h-24" 
+                  />
                 </>
               )}
 
+              {/* REMARK CONTENT */}
               {modalType === 'remark' && (
                 <>
-                  <p className="text-sm text-gray-400">This remark will be visible in the complaint timeline and dashboard.</p>
-                  <textarea value={modalInput} onChange={(e) => setModalInput(e.target.value)} placeholder="Enter details..." className="w-full bg-[#F9FAFB] border border-[#D1D5DB] rounded-xl px-4 py-3 text-sm text-[#0F172A] focus:outline-none focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/20 resize-none h-24" />
+                  <p className="text-xs text-[#64748B]">This remark will appear in the complaint tracking timeline for citizens and officials.</p>
+                  <textarea 
+                    value={modalInput} 
+                    onChange={(e) => setModalInput(e.target.value)} 
+                    placeholder="Enter timeline update or remark..." 
+                    className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3.5 py-2.5 text-xs text-[#0F172A] focus:outline-none focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/20 resize-none h-24" 
+                  />
                 </>
               )}
 
+              {/* LETTER CONTENT */}
               {modalType === 'letter' && (
-                <div className="bg-[#F9FAFB] p-6 rounded-xl border border-[#E5E7EB] max-h-[60vh] overflow-y-auto custom-scrollbar">
-                  <div className="text-[#334155] whitespace-pre-wrap text-sm leading-relaxed font-serif">
-                    {modalTarget?.formalLetter || 'No letter was generated for this issue.'}
+                <div className="bg-[#F8FAFC] p-5 rounded-xl border border-[#E2E8F0] max-h-[55vh] overflow-y-auto">
+                  <div className="text-[#334155] whitespace-pre-wrap text-xs leading-relaxed font-serif">
+                    {modalTarget?.formalLetter || 'No official letter was generated for this issue.'}
                   </div>
                   {modalTarget?.translatedLetter && (
-                    <div className="mt-6 pt-6 border-t border-white/10">
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Translated Version ({modalTarget?.language})</p>
-                      <div className="text-[#334155] whitespace-pre-wrap text-sm leading-relaxed font-serif">
+                    <div className="mt-5 pt-5 border-t border-[#E2E8F0]">
+                      <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-2">
+                        Translated Letter ({modalTarget?.language})
+                      </p>
+                      <div className="text-[#334155] whitespace-pre-wrap text-xs leading-relaxed font-serif">
                         {modalTarget?.translatedLetter}
                       </div>
                     </div>
@@ -1181,20 +1610,29 @@ const Admin = () => {
                 </div>
               )}
 
-              <div className="flex space-x-3">
+              {/* Modal Footer Controls */}
+              <div className="flex space-x-3 pt-2">
                 {modalType !== 'letter' && (
-                  <button onClick={() => setModalOpen(false)} className="flex-1 py-2.5 rounded-xl border border-[#D1D5DB] text-sm font-semibold text-[#4B5563] hover:bg-[#F3F4F6] transition-colors">Cancel</button>
+                  <button 
+                    onClick={() => setModalOpen(false)} 
+                    className="flex-1 py-2.5 rounded-xl border border-[#CBD5E1] text-xs font-semibold text-[#475569] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
                 )}
                 {modalType !== 'letter' ? (
                   <button 
                     onClick={submitModal} 
                     disabled={resolveUploading}
-                    className={`flex-1 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-semibold text-sm shadow-sm transition-colors ${resolveUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className="flex-1 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                   >
                     {resolveUploading ? 'Uploading...' : 'Confirm'}
                   </button>
                 ) : (
-                  <button onClick={() => setModalOpen(false)} className="w-full py-2.5 rounded-xl bg-[#F3F4F6] text-[#0F172A] font-semibold text-sm hover:bg-[#E5E7EB] transition-colors">
+                  <button 
+                    onClick={() => setModalOpen(false)} 
+                    className="w-full py-2.5 rounded-xl bg-[#0F172A] text-white font-semibold text-xs hover:bg-[#1E293B] transition-colors cursor-pointer"
+                  >
                     Close
                   </button>
                 )}
