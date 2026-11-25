@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 import { 
@@ -7,7 +7,9 @@ import {
   BarChart3, Map, HelpCircle, Download, FileText, Sparkles,
   TrendingUp, Activity, Filter, Search, ChevronDown, MoreHorizontal, Mail, Copy,
   Camera, UploadCloud, Image as ImageIcon, RefreshCw, Eye, ArrowUpRight,
-  SlidersHorizontal, CheckSquare, AlertCircle
+  SlidersHorizontal, CheckSquare, Square, AlertCircle, Building2,
+  Briefcase, History, DownloadCloud, ArrowRight, ExternalLink, Award,
+  AlertOctagon, CheckCheck, ListFilter
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -21,6 +23,7 @@ import html2pdf from 'html2pdf.js';
 import PDFReport from '../components/Admin/PDFReport';
 import { copyToClipboard } from '../utils/clipboard';
 import { formatComplaintId } from '../utils/formatters';
+import { getDepartment } from '../utils/departments';
 import {
   getComplaints,
   getUsers,
@@ -47,6 +50,18 @@ const PRIORITY_COLORS = {
   'High': '#EF4444',
   'Medium': '#F97316',
   'Low': '#10B981',
+};
+
+// Department visual styling & icon metadata
+const DEPT_META = {
+  'Road & Infrastructure Department': { icon: '🛣️', bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+  'Sanitation Department': { icon: '🗑️', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  'Electricity Department': { icon: '⚡', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  'Water & Sewage Department': { icon: '💧', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  'Parks & Environment Department': { icon: '🌳', bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+  'Pollution Control Department': { icon: '🌫️', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  'Traffic & Transport Department': { icon: '🚦', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  'General Municipal Department': { icon: '🏛️', bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200' },
 };
 
 // Animated Counter Component
@@ -156,16 +171,21 @@ const defaultCenter = { lat: 28.6139, lng: 77.2090 };
 const Admin = () => {
   const navigate = useNavigate();
   const { userData } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'complaints' | 'flagged' | 'map' | 'users'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'complaints' | 'departments' | 'flagged' | 'map' | 'users' | 'audit'
   
   // Complaints State
   const [complaints, setComplaints] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterSeverity, setFilterSeverity] = useState('All');
+  const [filterDepartment, setFilterDepartment] = useState('All');
   const [loadingComplaints, setLoadingComplaints] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkActionRunning, setBulkActionRunning] = useState(false);
+
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState(null); // 'resolve', 'verification', 'remark', 'letter'
@@ -179,7 +199,12 @@ const Admin = () => {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [selectedMapMarker, setSelectedMapMarker] = useState(null);
   const [adminMapInstance, setAdminMapInstance] = useState(null);
+  const [mapHighPriorityOnly, setMapHighPriorityOnly] = useState(false);
   
+  // Audit Log State
+  const [auditFilter, setAuditFilter] = useState('All');
+  const [auditSearchQuery, setAuditSearchQuery] = useState('');
+
   // PDF Reference
   const pdfRef = useRef();
   const [printingComplaint, setPrintingComplaint] = useState(null);
@@ -456,6 +481,70 @@ const Admin = () => {
     }, 1000);
   };
 
+  // --- Bulk Selection & Operations ---
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredComplaints.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredComplaints.map(c => c.id || c._id)));
+    }
+  };
+
+  const toggleSelectOne = (id) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const handleBulkStatusChange = async (newStatus) => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`Update ${selectedIds.size} complaints to "${newStatus}"?`)) return;
+
+    setBulkActionRunning(true);
+    toast.loading(`Updating ${selectedIds.size} complaints...`, { id: 'bulk-toast' });
+    try {
+      const ids = Array.from(selectedIds);
+      await Promise.all(ids.map(id => updateComplaint(id, { status: newStatus })));
+      toast.success(`Successfully updated ${ids.length} complaints to ${newStatus}`, { id: 'bulk-toast' });
+      setSelectedIds(new Set());
+      fetchComplaints();
+    } catch (err) {
+      toast.error('Failed to update some complaints', { id: 'bulk-toast' });
+    } finally {
+      setBulkActionRunning(false);
+    }
+  };
+
+  // --- Export to CSV ---
+  const exportToCSV = (complaintList = complaints) => {
+    if (!complaintList || complaintList.length === 0) {
+      toast.error('No complaints to export');
+      return;
+    }
+    const headers = ['Complaint ID', 'Problem Type', 'Severity', 'Status', 'Verification', 'Department', 'Reporter Email', 'Created Date', 'Address'];
+    const rows = complaintList.map(c => [
+      formatComplaintId(c),
+      `"${(c.problemType || '').replace(/"/g, '""')}"`,
+      c.severity || 'Medium',
+      c.status || 'Pending',
+      c.verificationStatus || 'Unknown',
+      `"${(c.department || getDepartment(c.problemType)).replace(/"/g, '""')}"`,
+      c.userEmail || 'Anonymous',
+      new Date(c.createdAt).toLocaleDateString(),
+      `"${(c.locationAddress || '').replace(/"/g, '""')}"`
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Civic_Complaints_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success(`Exported ${complaintList.length} complaints to CSV 📊`);
+  };
+
   // --- Users Actions ---
   const handlePromote = async (uid, name) => {
     if (!window.confirm(`Promote ${name} to Admin?`)) return;
@@ -471,6 +560,16 @@ const Admin = () => {
   };
   const handleRejectRequest = async (uid, name) => {
     try { await rejectAdminRequest(uid); toast.success(`${name}'s request rejected`); fetchUsersData(); } catch (err) { toast.error('Failed'); }
+  };
+
+  const handleAdjustReputation = async (uid, action) => {
+    try {
+      await updateUserReputation(uid, action);
+      toast.success(`Reputation adjusted (${action})`);
+      fetchUsersData();
+    } catch (err) {
+      toast.error('Failed to adjust reputation');
+    }
   };
 
   // --- Analytics Data Prep ---
@@ -498,16 +597,102 @@ const Admin = () => {
     ? Math.round((statusCounts[2].value / complaints.length) * 100) 
     : 0;
 
+  // SLA Aging check: Tickets pending for more than 48 hours
+  const now = new Date().getTime();
+  const agingComplaints = complaints.filter(c => {
+    if (c.status === 'Resolved') return false;
+    const createdTime = new Date(c.createdAt).getTime();
+    return (now - createdTime) > (48 * 3600 * 1000);
+  });
+
+  // Department Aggregations
+  const departmentStats = useMemo(() => {
+    const map = {};
+    complaints.forEach(c => {
+      const dept = c.department || getDepartment(c.problemType);
+      if (!map[dept]) {
+        map[dept] = { total: 0, pending: 0, inProgress: 0, resolved: 0, high: 0 };
+      }
+      map[dept].total += 1;
+      if (c.status === 'Pending') map[dept].pending += 1;
+      if (c.status === 'In Progress') map[dept].inProgress += 1;
+      if (c.status === 'Resolved') map[dept].resolved += 1;
+      if (c.severity === 'High') map[dept].high += 1;
+    });
+
+    return Object.entries(map).map(([name, data]) => ({
+      name,
+      ...data,
+      rate: data.total > 0 ? Math.round((data.resolved / data.total) * 100) : 0,
+      meta: DEPT_META[name] || DEPT_META['General Municipal Department'],
+    })).sort((a, b) => b.total - a.total);
+  }, [complaints]);
+
+  // Chronological Audit Log of all actions across complaints
+  const auditLogs = useMemo(() => {
+    const events = [];
+    complaints.forEach(c => {
+      const ticketId = formatComplaintId(c);
+      // Timeline events
+      if (Array.isArray(c.timeline)) {
+        c.timeline.forEach(t => {
+          events.push({
+            id: `${c.id || c._id}-${t.timestamp || Math.random()}`,
+            complaintId: c.id || c._id,
+            ticketCode: `#${ticketId}`,
+            type: t.status === 'Resolved' ? 'resolve' : t.status === 'In Progress' ? 'progress' : 'status',
+            title: `Ticket #${ticketId} status updated to ${t.status || 'Updated'}`,
+            details: t.message || t.remark || 'Status lifecycle step logged',
+            timestamp: t.timestamp ? new Date(t.timestamp) : new Date(c.createdAt),
+            user: t.author || 'System Operator',
+          });
+        });
+      }
+
+      // Flagged event
+      if (c.spamStatus === 'flagged' || c.verificationStatus === 'Suspicious') {
+        events.push({
+          id: `flag-${c.id || c._id}`,
+          complaintId: c.id || c._id,
+          ticketCode: `#${ticketId}`,
+          type: 'flag',
+          title: `AI Flagged Ticket #${ticketId}`,
+          details: c.flagReason || 'Anomaly detected during verification check',
+          timestamp: new Date(c.createdAt),
+          user: 'AI Guard System',
+        });
+      }
+
+      // Resolution with proof
+      if (c.status === 'Resolved' && c.afterImageUrl) {
+        events.push({
+          id: `resolved-proof-${c.id || c._id}`,
+          complaintId: c.id || c._id,
+          ticketCode: `#${ticketId}`,
+          type: 'proof',
+          title: `Photographic Evidence Attached for #${ticketId}`,
+          details: 'Ground resolution verified and uploaded to permanent registry',
+          timestamp: new Date(c.updatedAt || c.createdAt),
+          user: 'Field Authority Officer',
+        });
+      }
+    });
+
+    return events.sort((a, b) => b.timestamp - a.timestamp);
+  }, [complaints]);
+
   // Filter complaints
   const filteredComplaints = complaints.filter(c => {
     const rawIdStr = String(c.id || c._id).toLowerCase();
     const formattedIdStr = formatComplaintId(c).toLowerCase();
     const problemTypeStr = String(c.problemType || '').toLowerCase();
+    const deptStr = String(c.department || getDepartment(c.problemType)).toLowerCase();
     const searchLower = searchQuery.toLowerCase().replace('#', '');
-    const matchesSearch = rawIdStr.includes(searchLower) || formattedIdStr.includes(searchLower) || problemTypeStr.includes(searchLower);
+    const matchesSearch = rawIdStr.includes(searchLower) || formattedIdStr.includes(searchLower) || problemTypeStr.includes(searchLower) || deptStr.includes(searchLower);
     const matchesStatus = filterStatus === 'All' || c.status === filterStatus;
     const matchesSeverity = filterSeverity === 'All' || c.severity === filterSeverity;
-    return matchesSearch && matchesStatus && matchesSeverity;
+    const matchesDept = filterDepartment === 'All' || (c.department || getDepartment(c.problemType)) === filterDepartment;
+    return matchesSearch && matchesStatus && matchesSeverity && matchesDept;
   });
 
   // Filter users
@@ -516,6 +701,14 @@ const Admin = () => {
     const emailStr = String(u.email || '').toLowerCase();
     const searchLower = userSearchQuery.toLowerCase();
     return nameStr.includes(searchLower) || emailStr.includes(searchLower);
+  });
+
+  // Filter audit logs
+  const filteredAuditLogs = auditLogs.filter(log => {
+    const matchesType = auditFilter === 'All' || log.type === auditFilter;
+    const query = auditSearchQuery.toLowerCase();
+    const matchesQuery = !query || log.ticketCode.toLowerCase().includes(query) || log.title.toLowerCase().includes(query) || log.details.toLowerCase().includes(query);
+    return matchesType && matchesQuery;
   });
 
   if (loadingComplaints) {
@@ -564,7 +757,7 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#334155] pt-20 px-3 sm:px-6 lg:px-8 max-w-[1520px] mx-auto pb-16 flex flex-col md:flex-row gap-6 relative">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#334155] pt-20 px-3 sm:px-6 lg:px-8 max-w-[1520px] mx-auto pb-24 flex flex-col md:flex-row gap-6 relative">
       
       {/* Hidden Print Container for PDF */}
       <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
@@ -594,14 +787,26 @@ const Admin = () => {
           <nav className="space-y-1.5">
             <SidebarItem id="dashboard" icon={BarChart3} label="Dashboard" />
             <SidebarItem id="complaints" icon={AlertTriangle} label="Complaints" badge={complaints.length} />
+            <SidebarItem id="departments" icon={Building2} label="Departments" badge={departmentStats.length} />
             <SidebarItem id="flagged" icon={Shield} label="Flagged Queue" badge={flaggedComplaints.length + spamComplaints.length} badgeVariant="danger" />
             <SidebarItem id="map" icon={Map} label="Map Clustering" />
-            <SidebarItem id="users" icon={Users} label="Access Control" badge={adminRequests.length} badgeVariant="danger" />
+            <SidebarItem id="users" icon={Users} label="Access & Roles" badge={adminRequests.length} badgeVariant="danger" />
+            <SidebarItem id="audit" icon={History} label="Audit Activity" />
           </nav>
         </div>
 
-        {/* Bottom Profile / Quick Info Card */}
-        <div className="pt-4 border-t border-[#E2E8F0] px-2 mt-4 hidden md:block">
+        {/* Bottom SLA & Quick Info Card */}
+        <div className="pt-4 border-t border-[#E2E8F0] px-2 mt-4 hidden md:block space-y-3">
+          {agingComplaints.length > 0 && (
+            <div className="bg-[#FFF1F2] rounded-xl p-2.5 border border-[#FECDD3] flex items-center space-x-2">
+              <AlertOctagon className="w-4 h-4 text-[#E11D48] shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold text-[#9F1239] uppercase">SLA Warning</p>
+                <p className="text-[11px] text-[#E11D48] font-semibold truncate">{agingComplaints.length} tickets &gt; 48h aging</p>
+              </div>
+            </div>
+          )}
+
           <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
             <p className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Resolution Rate</p>
             <div className="flex items-baseline justify-between mt-1">
@@ -641,9 +846,16 @@ const Admin = () => {
                 </div>
                 <div className="flex items-center gap-3">
                   <button 
+                    onClick={() => exportToCSV(complaints)}
+                    className="flex items-center space-x-2 px-3.5 py-2 bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] border border-[#E2E8F0] rounded-xl text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <DownloadCloud className="w-3.5 h-3.5 text-[#0284C7]" />
+                    <span>Export CSV</span>
+                  </button>
+                  <button 
                     onClick={() => fetchComplaints(true)}
                     disabled={isRefreshing}
-                    className="flex items-center space-x-2 px-3.5 py-2 bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] border border-[#E2E8F0] rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                    className="flex items-center space-x-2 px-3.5 py-2 bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] border border-[#E2E8F0] rounded-xl text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
                     <span>Refresh</span>
@@ -851,7 +1063,7 @@ const Admin = () => {
             </motion.div>
           )}
 
-          {/* TAB 2: COMPLAINTS MODERATION TABLE */}
+          {/* TAB 2: COMPLAINTS MODERATION TABLE WITH BULK ACTIONS */}
           {activeTab === 'complaints' && (
             <motion.div 
               key="complaints" 
@@ -865,11 +1077,19 @@ const Admin = () => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h2 className="text-xl font-bold text-[#0F172A]">Complaint Moderation Center</h2>
-                    <p className="text-xs text-[#64748B]">Review incoming citizen reports, adjust resolution states, and dispatch notifications</p>
+                    <p className="text-xs text-[#64748B]">Review incoming citizen reports, adjust resolution states, dispatch notifications, and bulk triage</p>
                   </div>
                   <div className="flex items-center space-x-2 text-xs font-semibold text-[#64748B]">
-                    <span className="px-3 py-1 bg-[#F8FAFC] rounded-full border border-[#E2E8F0]">
-                      Showing {filteredComplaints.length} of {complaints.length}
+                    <button
+                      onClick={() => exportToCSV(filteredComplaints)}
+                      className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD] hover:bg-[#E0F2FE] transition cursor-pointer"
+                      title="Export current view to CSV"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Export CSV</span>
+                    </button>
+                    <span className="px-3 py-1.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
+                      {filteredComplaints.length} of {complaints.length} issues
                     </span>
                   </div>
                 </div>
@@ -881,7 +1101,7 @@ const Admin = () => {
                     <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input 
                       type="text"
-                      placeholder="Search by ID, Category, or User..."
+                      placeholder="Search ID, Category, User, or Department..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-10 pr-4 py-2 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/20 transition-all"
@@ -922,193 +1142,417 @@ const Admin = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* Department Secondary Filter Bar */}
+                {departmentStats.length > 0 && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-[#F8FAFC]">
+                    <span className="text-[11px] font-bold text-[#64748B] shrink-0 mr-1">Dept:</span>
+                    <button
+                      onClick={() => setFilterDepartment('All')}
+                      className={`px-2.5 py-1 text-[11px] rounded-lg font-semibold shrink-0 cursor-pointer transition ${
+                        filterDepartment === 'All' 
+                          ? 'bg-[#0F172A] text-white' 
+                          : 'bg-[#F1F5F9] text-[#64748B] hover:bg-[#E2E8F0]'
+                      }`}
+                    >
+                      All Departments
+                    </button>
+                    {departmentStats.map((d) => (
+                      <button
+                        key={d.name}
+                        onClick={() => setFilterDepartment(d.name)}
+                        className={`px-2.5 py-1 text-[11px] rounded-lg font-semibold shrink-0 cursor-pointer transition flex items-center space-x-1 ${
+                          filterDepartment === d.name 
+                            ? 'bg-[#0284C7] text-white' 
+                            : 'bg-[#F1F5F9] text-[#64748B] hover:bg-[#E2E8F0]'
+                        }`}
+                      >
+                        <span>{d.meta.icon}</span>
+                        <span>{d.name.replace(' Department', '')}</span>
+                        <span className="ml-1 opacity-75">({d.total})</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Data Table Card */}
               <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-xs overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse min-w-[950px]">
+                  <table className="w-full text-left border-collapse min-w-[1000px]">
                     <thead>
                       <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] text-[11px] font-bold uppercase tracking-wider">
-                        <th className="py-3.5 px-6 w-80">Report Details</th>
+                        <th className="py-3.5 pl-6 pr-3 w-12 text-center">
+                          <button
+                            type="button"
+                            onClick={toggleSelectAll}
+                            className="text-[#64748B] hover:text-[#0F172A] cursor-pointer"
+                          >
+                            {selectedIds.size > 0 && selectedIds.size === filteredComplaints.length ? (
+                              <CheckSquare className="w-4 h-4 text-[#0284C7]" />
+                            ) : (
+                              <Square className="w-4 h-4" />
+                            )}
+                          </button>
+                        </th>
+                        <th className="py-3.5 px-4 w-80">Report Details</th>
                         <th className="py-3.5 px-4 text-center w-36">AI Validation</th>
                         <th className="py-3.5 px-4 text-center w-40">Status</th>
-                        <th className="py-3.5 px-4 text-center w-32">Timeline</th>
+                        <th className="py-3.5 px-4 text-center w-32">Department</th>
                         <th className="py-3.5 px-6 text-right w-44">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#F1F5F9] text-xs">
                       {filteredComplaints.length === 0 ? (
                         <tr>
-                          <td colSpan="5" className="p-12 text-center text-[#94A3B8]">
+                          <td colSpan="6" className="p-12 text-center text-[#94A3B8]">
                             <AlertCircle className="w-8 h-8 text-[#94A3B8] mx-auto mb-2 opacity-50" />
                             <p className="font-semibold text-sm text-[#0F172A]">No complaints match your criteria</p>
                             <p className="text-xs text-[#64748B] mt-0.5">Try adjusting your search query or status filter.</p>
                           </td>
                         </tr>
-                      ) : filteredComplaints.map((c) => (
-                        <tr 
-                          key={c.id || c._id} 
-                          className="hover:bg-[#F8FAFC] transition-colors group cursor-pointer"
-                          onClick={() => navigate(`/details/${c.id || c._id}`)}
-                        >
-                          {/* Issue Details */}
-                          <td className="py-4 px-6">
-                            <div className="flex items-center space-x-3.5">
-                              <img 
-                                src={c.imageUrl} 
-                                alt="Issue" 
-                                className="w-12 h-12 rounded-xl object-cover border border-[#E2E8F0] shadow-2xs shrink-0" 
-                                crossOrigin="anonymous"
-                              />
-                              <div className="min-w-0">
-                                <p className="font-bold text-sm text-[#0F172A] truncate group-hover:text-[#0284C7] transition-colors">
-                                  {c.problemType || 'Civic Issue'}
-                                </p>
-                                <div className="text-[11px] text-[#64748B] flex items-center gap-1.5 mt-0.5">
-                                  <span className="truncate max-w-[140px]">{c.userEmail || c.userName || 'Anonymous'}</span>
-                                  <span>•</span>
-                                  <button 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      const shortId = '#' + formatComplaintId(c);
-                                      copyToClipboard(shortId);
-                                      setCopiedId(c.id || c._id);
-                                      setTimeout(() => setCopiedId(null), 2000);
-                                    }}
-                                    className="flex items-center gap-1 font-mono text-[10px] bg-[#F1F5F9] hover:bg-[#E2E8F0] px-1.5 py-0.5 rounded text-[#334155] transition-colors cursor-pointer"
-                                    title="Copy ID"
-                                  >
-                                    #{formatComplaintId(c)}
-                                    {copiedId === (c.id || c._id) ? (
-                                      <Check className="w-2.5 h-2.5 text-emerald-600" />
-                                    ) : (
-                                      <Copy className="w-2.5 h-2.5 text-[#94A3B8]" />
+                      ) : filteredComplaints.map((c) => {
+                        const isSelected = selectedIds.has(c.id || c._id);
+                        const isAging = c.status !== 'Resolved' && (now - new Date(c.createdAt).getTime()) > (48 * 3600 * 1000);
+                        const deptName = c.department || getDepartment(c.problemType);
+                        const deptMeta = DEPT_META[deptName] || DEPT_META['General Municipal Department'];
+
+                        return (
+                          <tr 
+                            key={c.id || c._id} 
+                            className={`transition-colors group cursor-pointer ${isSelected ? 'bg-[#F0F9FF]/50' : 'hover:bg-[#F8FAFC]'}`}
+                            onClick={() => navigate(`/details/${c.id || c._id}`)}
+                          >
+                            {/* Checkbox */}
+                            <td className="py-4 pl-6 pr-3 text-center" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                onClick={() => toggleSelectOne(c.id || c._id)}
+                                className="text-[#94A3B8] hover:text-[#0F172A] cursor-pointer"
+                              >
+                                {isSelected ? (
+                                  <CheckSquare className="w-4 h-4 text-[#0284C7]" />
+                                ) : (
+                                  <Square className="w-4 h-4" />
+                                )}
+                              </button>
+                            </td>
+
+                            {/* Issue Details */}
+                            <td className="py-4 px-4">
+                              <div className="flex items-center space-x-3.5">
+                                <img 
+                                  src={c.imageUrl} 
+                                  alt="Issue" 
+                                  className="w-12 h-12 rounded-xl object-cover border border-[#E2E8F0] shadow-2xs shrink-0" 
+                                  crossOrigin="anonymous"
+                                />
+                                <div className="min-w-0">
+                                  <div className="flex items-center space-x-2">
+                                    <p className="font-bold text-sm text-[#0F172A] truncate group-hover:text-[#0284C7] transition-colors">
+                                      {c.problemType || 'Civic Issue'}
+                                    </p>
+                                    {isAging && (
+                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 font-bold border border-rose-200" title="Ticket unresolved over 48 hours">
+                                        &gt;48h
+                                      </span>
                                     )}
+                                  </div>
+                                  <div className="text-[11px] text-[#64748B] flex items-center gap-1.5 mt-0.5">
+                                    <span className="truncate max-w-[130px]">{c.userEmail || c.userName || 'Anonymous'}</span>
+                                    <span>•</span>
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const shortId = '#' + formatComplaintId(c);
+                                        copyToClipboard(shortId);
+                                        setCopiedId(c.id || c._id);
+                                        setTimeout(() => setCopiedId(null), 2000);
+                                      }}
+                                      className="flex items-center gap-1 font-mono text-[10px] bg-[#F1F5F9] hover:bg-[#E2E8F0] px-1.5 py-0.5 rounded text-[#334155] transition-colors cursor-pointer"
+                                      title="Copy ID"
+                                    >
+                                      #{formatComplaintId(c)}
+                                      {copiedId === (c.id || c._id) ? (
+                                        <Check className="w-2.5 h-2.5 text-emerald-600" />
+                                      ) : (
+                                        <Copy className="w-2.5 h-2.5 text-[#94A3B8]" />
+                                      )}
+                                    </button>
+                                  </div>
+                                  <div className="mt-1 flex items-center gap-2">
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                                      c.severity === 'High' ? 'bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3]' : 
+                                      c.severity === 'Medium' ? 'bg-[#FFF7ED] text-[#EA580C] border border-[#FFEDD5]' : 
+                                      'bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]'
+                                    }`}>
+                                      {c.severity || 'Medium'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            
+                            {/* AI Validation Status */}
+                            <td className="py-4 px-4 text-center">
+                              <div className="flex flex-col items-center justify-center space-y-1">
+                                <span className={`text-[11px] px-2.5 py-1 rounded-lg font-bold ${
+                                  c.verificationStatus === 'Approved manually' || c.verificationStatus === 'Verified'
+                                    ? 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]' 
+                                    : c.verificationStatus === 'Rejected manually' || c.verificationStatus === 'Rejected'
+                                      ? 'bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3]'
+                                      : 'bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0]'
+                                }`}>
+                                  {c.verificationStatus || 'Pending'}
+                                </span>
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); openVerificationModal(c, 'Approved manually'); }} 
+                                    title="Approve manually" 
+                                    className="p-1 hover:bg-[#F0FDF4] text-emerald-600 rounded transition cursor-pointer"
+                                  >
+                                    <Check className="w-3.5 h-3.5"/>
+                                  </button>
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); openVerificationModal(c, 'Rejected manually'); }} 
+                                    title="Reject manually" 
+                                    className="p-1 hover:bg-[#FFF1F2] text-rose-600 rounded transition cursor-pointer"
+                                  >
+                                    <X className="w-3.5 h-3.5"/>
                                   </button>
                                 </div>
-                                <div className="mt-1 flex items-center gap-2">
-                                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                                    c.severity === 'High' ? 'bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3]' : 
-                                    c.severity === 'Medium' ? 'bg-[#FFF7ED] text-[#EA580C] border border-[#FFEDD5]' : 
-                                    'bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]'
-                                  }`}>
-                                    {c.severity || 'Medium'}
-                                  </span>
-                                </div>
                               </div>
-                            </div>
-                          </td>
-                          
-                          {/* AI Validation Status */}
-                          <td className="py-4 px-4 text-center">
-                            <div className="flex flex-col items-center justify-center space-y-1">
-                              <span className={`text-[11px] px-2.5 py-1 rounded-lg font-bold ${
-                                c.verificationStatus === 'Approved manually' || c.verificationStatus === 'Verified'
-                                  ? 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]' 
-                                  : c.verificationStatus === 'Rejected manually' || c.verificationStatus === 'Rejected'
-                                    ? 'bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3]'
-                                    : 'bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0]'
-                              }`}>
-                                {c.verificationStatus || 'Pending'}
+                            </td>
+
+                            {/* Status Dropdown */}
+                            <td className="py-4 px-4 text-center">
+                              <select 
+                                onClick={(e) => e.stopPropagation()}
+                                value={c.status}
+                                onChange={(e) => handleStatusChange(c.id || c._id, c.status, e.target.value)}
+                                className={`text-[11px] font-bold rounded-xl px-3 py-1.5 outline-none cursor-pointer border shadow-2xs transition-all ${
+                                  c.status === 'Resolved' 
+                                    ? 'bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]' 
+                                    : c.status === 'In Progress' 
+                                      ? 'bg-[#F0F9FF] text-[#0369A1] border-[#BAE6FD]' 
+                                      : 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
+                                }`}
+                              >
+                                <option value="Pending" className="bg-white text-[#92400E]">Pending</option>
+                                <option value="In Progress" className="bg-white text-[#0369A1]">In Progress</option>
+                                <option value="Resolved" className="bg-white text-[#166534]">Resolved</option>
+                              </select>
+                            </td>
+
+                            {/* Department Info */}
+                            <td className="py-4 px-4 text-center">
+                              <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg ${deptMeta.bg} ${deptMeta.text} border ${deptMeta.border}`}>
+                                <span>{deptMeta.icon}</span>
+                                <span className="truncate max-w-[110px]">{deptName.replace(' Department', '')}</span>
                               </span>
-                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            </td>
+
+                            {/* Moderator Action Buttons */}
+                            <td className="py-4 px-6 text-right">
+                              <div className="flex items-center justify-end space-x-1.5">
                                 <button 
-                                  onClick={(e) => { e.stopPropagation(); openVerificationModal(c, 'Approved manually'); }} 
-                                  title="Approve manually" 
-                                  className="p-1 hover:bg-[#F0FDF4] text-emerald-600 rounded transition cursor-pointer"
+                                  onClick={(e) => { e.stopPropagation(); handleSendEmail(c); }} 
+                                  className="p-2 bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0] hover:bg-[#16A34A] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
+                                  title="Send Resolution Email"
                                 >
-                                  <Check className="w-3.5 h-3.5"/>
+                                  <Mail className="w-3.5 h-3.5" />
                                 </button>
                                 <button 
-                                  onClick={(e) => { e.stopPropagation(); openVerificationModal(c, 'Rejected manually'); }} 
-                                  title="Reject manually" 
-                                  className="p-1 hover:bg-[#FFF1F2] text-rose-600 rounded transition cursor-pointer"
+                                  onClick={(e) => { e.stopPropagation(); openLetterModal(c); }} 
+                                  className="p-2 bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD] hover:bg-[#0284C7] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
+                                  title="View Formal Letter"
                                 >
-                                  <X className="w-3.5 h-3.5"/>
+                                  <FileText className="w-3.5 h-3.5" />
+                                </button>
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); downloadPDF(c); }} 
+                                  className="p-2 bg-[#F8FAFC] text-[#475569] border border-[#E2E8F0] hover:bg-[#0F172A] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
+                                  title="Download PDF Docket"
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                </button>
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteComplaint(c.id || c._id); }} 
+                                  className="p-2 bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3] hover:bg-[#E11D48] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
+                                  title="Delete Complaint"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
-                            </div>
-                          </td>
-
-                          {/* Status Dropdown */}
-                          <td className="py-4 px-4 text-center">
-                            <select 
-                              onClick={(e) => e.stopPropagation()}
-                              value={c.status}
-                              onChange={(e) => handleStatusChange(c.id || c._id, c.status, e.target.value)}
-                              className={`text-[11px] font-bold rounded-xl px-3 py-1.5 outline-none cursor-pointer border shadow-2xs transition-all ${
-                                c.status === 'Resolved' 
-                                  ? 'bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]' 
-                                  : c.status === 'In Progress' 
-                                    ? 'bg-[#F0F9FF] text-[#0369A1] border-[#BAE6FD]' 
-                                    : 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
-                              }`}
-                            >
-                              <option value="Pending" className="bg-white text-[#92400E]">Pending</option>
-                              <option value="In Progress" className="bg-white text-[#0369A1]">In Progress</option>
-                              <option value="Resolved" className="bg-white text-[#166534]">Resolved</option>
-                            </select>
-                          </td>
-
-                          {/* Timeline / Events */}
-                          <td className="py-4 px-4 text-center">
-                            <div className="flex flex-col items-center">
-                              <span className="text-[11px] font-semibold text-[#64748B]">
-                                {c.timeline?.length || 0} Events
-                              </span>
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); openRemarkModal(c); }} 
-                                className="text-[10px] text-[#0284C7] hover:text-[#0369A1] font-semibold mt-1 hover:underline cursor-pointer"
-                              >
-                                + Add Remark
-                              </button>
-                            </div>
-                          </td>
-
-                          {/* Moderator Action Buttons */}
-                          <td className="py-4 px-6 text-right">
-                            <div className="flex items-center justify-end space-x-1.5">
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); handleSendEmail(c); }} 
-                                className="p-2 bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0] hover:bg-[#16A34A] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
-                                title="Send Resolution Email"
-                              >
-                                <Mail className="w-3.5 h-3.5" />
-                              </button>
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); openLetterModal(c); }} 
-                                className="p-2 bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD] hover:bg-[#0284C7] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
-                                title="View Formal Letter"
-                              >
-                                <FileText className="w-3.5 h-3.5" />
-                              </button>
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); downloadPDF(c); }} 
-                                className="p-2 bg-[#F8FAFC] text-[#475569] border border-[#E2E8F0] hover:bg-[#0F172A] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
-                                title="Download PDF Docket"
-                              >
-                                <Download className="w-3.5 h-3.5" />
-                              </button>
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); handleDeleteComplaint(c.id || c._id); }} 
-                                className="p-2 bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3] hover:bg-[#E11D48] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs" 
-                                title="Delete Complaint"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
               </div>
+
+              {/* Floating Bulk Actions Dock */}
+              <AnimatePresence>
+                {selectedIds.size > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 40 }}
+                    className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#0F172A] text-white px-5 py-3 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-4"
+                  >
+                    <div className="flex items-center gap-2 pr-3 border-r border-white/20">
+                      <CheckCheck className="w-4 h-4 text-sky-400" />
+                      <span className="text-xs font-bold whitespace-nowrap">
+                        {selectedIds.size} {selectedIds.size === 1 ? 'ticket' : 'tickets'} selected
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleBulkStatusChange('In Progress')}
+                        disabled={bulkActionRunning}
+                        className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 rounded-xl text-xs font-semibold transition cursor-pointer"
+                      >
+                        Set In Progress
+                      </button>
+                      <button
+                        onClick={() => handleBulkStatusChange('Resolved')}
+                        disabled={bulkActionRunning}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-semibold transition cursor-pointer"
+                      >
+                        Set Resolved
+                      </button>
+                      <button
+                        onClick={() => exportToCSV(complaints.filter(c => selectedIds.has(c.id || c._id)))}
+                        className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <Download className="w-3 h-3" />
+                        <span>Export Selected</span>
+                      </button>
+                      <button
+                        onClick={() => setSelectedIds(new Set())}
+                        className="p-1.5 text-gray-400 hover:text-white transition cursor-pointer ml-1"
+                        title="Deselect All"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
 
-          {/* TAB 3: FLAGGED & ANOMALY QUEUE */}
+          {/* TAB 3: DEPARTMENTS BREAKDOWN & WORKLOAD */}
+          {activeTab === 'departments' && (
+            <motion.div 
+              key="departments" 
+              initial={{ opacity: 0, y: 10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -10 }} 
+              className="space-y-6"
+            >
+              {/* Header */}
+              <div className="bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#F0F9FF] border border-[#BAE6FD] flex items-center justify-center text-[#0284C7]">
+                    <Building2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-[#0F172A]">Department Workload & SLA Allocation</h2>
+                    <p className="text-xs text-[#64748B]">Cross-department civic agency ticket distribution and resolution efficiency</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => exportToCSV(complaints)}
+                  className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#F8FAFC] text-[#334155] border border-[#E2E8F0] hover:bg-[#F1F5F9] text-xs font-semibold transition cursor-pointer shadow-2xs"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#0284C7]" />
+                  <span>Export Department Report</span>
+                </button>
+              </div>
+
+              {/* Department Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {departmentStats.map((d) => (
+                  <div 
+                    key={d.name}
+                    className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+                  >
+                    <div>
+                      {/* Department Title */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2.5">
+                          <span className="text-2xl">{d.meta.icon}</span>
+                          <div>
+                            <h3 className="font-bold text-sm text-[#0F172A] leading-tight">
+                              {d.name.replace(' Department', '')}
+                            </h3>
+                            <p className="text-[11px] text-[#64748B]">Municipal Branch</p>
+                          </div>
+                        </div>
+                        <span className="text-xs font-extrabold px-2.5 py-1 rounded-full bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD]">
+                          {d.total} {d.total === 1 ? 'ticket' : 'tickets'}
+                        </span>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="my-3">
+                        <div className="flex items-center justify-between text-xs mb-1 font-semibold">
+                          <span className="text-[#64748B]">Resolution Efficiency</span>
+                          <span className="text-emerald-600">{d.rate}%</span>
+                        </div>
+                        <div className="w-full bg-[#E2E8F0] h-2 rounded-full overflow-hidden flex">
+                          <div 
+                            className="bg-[#16A34A] h-full transition-all duration-500" 
+                            style={{ width: `${d.rate}%` }} 
+                            title={`Resolved: ${d.resolved}`}
+                          />
+                          <div 
+                            className="bg-[#0284C7] h-full transition-all duration-500" 
+                            style={{ width: `${d.total > 0 ? (d.inProgress / d.total) * 100 : 0}%` }} 
+                            title={`In Progress: ${d.inProgress}`}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Counts Deck */}
+                      <div className="grid grid-cols-3 gap-2 mt-4 text-center">
+                        <div className="p-2 rounded-xl bg-[#FFFBEB] border border-[#FDE68A]">
+                          <p className="text-[10px] font-bold text-[#D97706] uppercase">Pending</p>
+                          <p className="text-base font-extrabold text-[#92400E] mt-0.5">{d.pending}</p>
+                        </div>
+                        <div className="p-2 rounded-xl bg-[#F0F9FF] border border-[#BAE6FD]">
+                          <p className="text-[10px] font-bold text-[#0284C7] uppercase">Active</p>
+                          <p className="text-base font-extrabold text-[#0369A1] mt-0.5">{d.inProgress}</p>
+                        </div>
+                        <div className="p-2 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0]">
+                          <p className="text-[10px] font-bold text-[#16A34A] uppercase">Resolved</p>
+                          <p className="text-base font-extrabold text-[#166534] mt-0.5">{d.resolved}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Filter Shortcut */}
+                    <button
+                      onClick={() => {
+                        setFilterDepartment(d.name);
+                        setActiveTab('complaints');
+                      }}
+                      className="mt-5 w-full py-2.5 rounded-xl bg-[#F8FAFC] hover:bg-[#F0F9FF] text-[#0284C7] border border-[#E2E8F0] hover:border-[#BAE6FD] text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    >
+                      <span>Filter Tickets ({d.total})</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB 4: FLAGGED & ANOMALY QUEUE */}
           {activeTab === 'flagged' && (
             <motion.div 
               key="flagged" 
@@ -1147,7 +1591,7 @@ const Admin = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {flaggedComplaints.map((c, i) => (
+                  {flaggedComplaints.map((c) => (
                     <div
                       key={c.id || c._id}
                       className="bg-white rounded-2xl border border-[#E2E8F0] hover:border-[#BAE6FD] shadow-xs hover:shadow-md transition-all overflow-hidden p-6 cursor-pointer"
@@ -1253,7 +1697,7 @@ const Admin = () => {
             </motion.div>
           )}
 
-          {/* TAB 4: MAP CLUSTERING & GEOGRAPHIC VIEW */}
+          {/* TAB 5: MAP CLUSTERING & GEOGRAPHIC VIEW */}
           {activeTab === 'map' && (
             <motion.div 
               key="map" 
@@ -1273,11 +1717,18 @@ const Admin = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setMapHighPriorityOnly(!mapHighPriorityOnly)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                      mapHighPriorityOnly 
+                        ? 'bg-[#FFF1F2] text-[#E11D48] border-[#FECDD3]' 
+                        : 'bg-[#F8FAFC] text-[#64748B] border-[#E2E8F0]'
+                    }`}
+                  >
+                    {mapHighPriorityOnly ? '⚠️ High Priority Only' : 'Show All Priorities'}
+                  </button>
                   <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
                     {statusCounts[0].value} Pending
-                  </span>
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD]">
-                    {statusCounts[1].value} In Progress
                   </span>
                   <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]">
                     {statusCounts[2].value} Resolved
@@ -1298,17 +1749,19 @@ const Admin = () => {
                     options={{ disableDefaultUI: false, mapId: 'civic_map' }}
                     onLoad={(map) => setAdminMapInstance(map)}
                   >
-                    {adminMapInstance && complaints.map(c => {
-                      if (!c.location || !c.location.lat) return null;
-                      return (
-                        <AdvancedMarker
-                          key={c.id || c._id}
-                          map={adminMapInstance}
-                          position={{ lat: c.location.lat, lng: c.location.lng }}
-                          onClick={() => setSelectedMapMarker(c)}
-                        />
-                      );
-                    })}
+                    {adminMapInstance && complaints
+                      .filter(c => !mapHighPriorityOnly || c.severity === 'High')
+                      .map(c => {
+                        if (!c.location || !c.location.lat) return null;
+                        return (
+                          <AdvancedMarker
+                            key={c.id || c._id}
+                            map={adminMapInstance}
+                            position={{ lat: c.location.lat, lng: c.location.lng }}
+                            onClick={() => setSelectedMapMarker(c)}
+                          />
+                        );
+                      })}
 
                     {selectedMapMarker && (
                       <InfoWindowF
@@ -1342,7 +1795,7 @@ const Admin = () => {
             </motion.div>
           )}
 
-          {/* TAB 5: ACCESS CONTROL & USERS */}
+          {/* TAB 6: ACCESS CONTROL, REPUTATION & USERS */}
           {activeTab === 'users' && (
             <motion.div 
               key="users" 
@@ -1354,14 +1807,14 @@ const Admin = () => {
               {/* Header */}
               <div className="bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-[#0F172A]">User Access & Role Permissions</h2>
-                  <p className="text-xs text-[#64748B]">Manage administrative privileges, approve elevated access requests, and review citizens</p>
+                  <h2 className="text-xl font-bold text-[#0F172A]">User Access & Citizen Credibility</h2>
+                  <p className="text-xs text-[#64748B]">Manage administrative privileges, review elevation requests, and manage citizen reliability ratings</p>
                 </div>
                 <div className="relative w-full md:w-64">
                   <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
-                    placeholder="Search users..."
+                    placeholder="Search citizens & admins..."
                     value={userSearchQuery}
                     onChange={(e) => setUserSearchQuery(e.target.value)}
                     className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-9 pr-3 py-1.5 text-xs text-[#0F172A] focus:outline-none focus:bg-white focus:border-[#0284C7]"
@@ -1412,55 +1865,179 @@ const Admin = () => {
                     <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] text-[11px] font-bold uppercase tracking-wider">
                       <th className="py-3.5 px-6 font-semibold">User Details</th>
                       <th className="py-3.5 px-4 font-semibold">Role</th>
+                      <th className="py-3.5 px-4 font-semibold text-center">Citizen Credibility</th>
                       <th className="py-3.5 px-6 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#F1F5F9] text-xs">
                     {loadingUsers ? (
                       <tr>
-                        <td colSpan="3" className="p-8 text-center text-[#94A3B8]">Loading user registry...</td>
+                        <td colSpan="4" className="p-8 text-center text-[#94A3B8]">Loading user registry...</td>
                       </tr>
                     ) : filteredUsers.length === 0 ? (
                       <tr>
-                        <td colSpan="3" className="p-8 text-center text-[#94A3B8]">No users found matching query.</td>
+                        <td colSpan="4" className="p-8 text-center text-[#94A3B8]">No users found matching query.</td>
                       </tr>
-                    ) : filteredUsers.map((u) => (
-                      <tr key={u.id} className="hover:bg-[#F8FAFC] transition-colors">
-                        <td className="py-3.5 px-6">
-                          <p className="font-bold text-[#0F172A]">{u.name || 'Anonymous User'}</p>
-                          <p className="text-[11px] text-[#64748B]">{u.email}</p>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
-                            u.role === 'admin' 
-                              ? 'bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3]' 
-                              : 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]'
-                          }`}>
-                            {u.role === 'admin' ? 'Administrator' : 'Citizen'}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-6 text-right">
-                          {u.role === 'admin' ? (
-                            <button 
-                              onClick={() => handleDemote(u.uid, u.name)} 
-                              disabled={u.uid === userData?.uid} 
-                              className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#F8FAFC] text-[#64748B] hover:bg-[#FFF1F2] hover:text-[#E11D48] border border-[#E2E8F0] disabled:opacity-40 transition-colors cursor-pointer"
-                            >
-                              Demote
-                            </button>
-                          ) : (
-                            <button 
-                              onClick={() => handlePromote(u.uid, u.name)} 
-                              className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#F0F9FF] text-[#0284C7] hover:bg-[#0284C7] hover:text-white border border-[#BAE6FD] transition-colors cursor-pointer"
-                            >
-                              Make Admin
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    ) : filteredUsers.map((u) => {
+                      const rep = u.reputation ?? 100;
+                      const repTier = rep >= 90 ? 'Trusted Citizen ⭐' : rep >= 60 ? 'Verified' : 'Under Review ⚠️';
+                      const repColor = rep >= 90 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : rep >= 60 ? 'text-sky-700 bg-sky-50 border-sky-200' : 'text-rose-700 bg-rose-50 border-rose-200';
+
+                      return (
+                        <tr key={u.id} className="hover:bg-[#F8FAFC] transition-colors">
+                          <td className="py-3.5 px-6">
+                            <p className="font-bold text-[#0F172A]">{u.name || 'Anonymous User'}</p>
+                            <p className="text-[11px] text-[#64748B]">{u.email}</p>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
+                              u.role === 'admin' 
+                                ? 'bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3]' 
+                                : 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]'
+                            }`}>
+                              {u.role === 'admin' ? 'Administrator' : 'Citizen'}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-center">
+                            <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full border ${repColor}`}>
+                              {repTier} ({rep}pts)
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-6 text-right">
+                            <div className="flex items-center justify-end space-x-2">
+                              {u.role === 'admin' ? (
+                                <button 
+                                  onClick={() => handleDemote(u.uid, u.name)} 
+                                  disabled={u.uid === userData?.uid} 
+                                  className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#F8FAFC] text-[#64748B] hover:bg-[#FFF1F2] hover:text-[#E11D48] border border-[#E2E8F0] disabled:opacity-40 transition-colors cursor-pointer"
+                                >
+                                  Demote
+                                </button>
+                              ) : (
+                                <button 
+                                  onClick={() => handlePromote(u.uid, u.name)} 
+                                  className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#F0F9FF] text-[#0284C7] hover:bg-[#0284C7] hover:text-white border border-[#BAE6FD] transition-colors cursor-pointer"
+                                >
+                                  Make Admin
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleAdjustReputation(u.uid, 'valid')}
+                                className="px-2 py-1 text-[10px] font-bold rounded-lg bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0] hover:bg-[#16A34A] hover:text-white transition cursor-pointer"
+                                title="Boost reputation score"
+                              >
+                                +10 Rep
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB 7: AUDIT LOG & RECENT SYSTEM ACTIVITY */}
+          {activeTab === 'audit' && (
+            <motion.div 
+              key="audit" 
+              initial={{ opacity: 0, y: 10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -10 }} 
+              className="space-y-6"
+            >
+              {/* Header */}
+              <div className="bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#F0F9FF] border border-[#BAE6FD] flex items-center justify-center text-[#0284C7]">
+                    <History className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-[#0F172A]">Incident Audit Log & System Activity</h2>
+                    <p className="text-xs text-[#64748B]">Real-time chronological audit trail of complaint lifecycle transitions and administrative actions</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="relative w-full md:w-56">
+                    <Search className="w-3.5 h-3.5 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input 
+                      type="text"
+                      placeholder="Search activity..."
+                      value={auditSearchQuery}
+                      onChange={(e) => setAuditSearchQuery(e.target.value)}
+                      className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-9 pr-3 py-1.5 text-xs text-[#0F172A] focus:outline-none focus:bg-white focus:border-[#0284C7]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter Pills */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                {['All', 'resolve', 'progress', 'flag', 'proof'].map(filter => (
+                  <button
+                    key={filter}
+                    onClick={() => setAuditFilter(filter)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer capitalize ${
+                      auditFilter === filter 
+                        ? 'bg-[#0284C7] text-white' 
+                        : 'bg-white text-[#64748B] hover:text-[#0F172A] border border-[#E2E8F0]'
+                    }`}
+                  >
+                    {filter === 'All' ? 'All Activity' : filter === 'resolve' ? 'Resolutions' : filter === 'progress' ? 'Status Updates' : filter === 'flag' ? 'AI Flags' : 'Evidence Uploads'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Activity Timeline List */}
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-xs p-6">
+                {filteredAuditLogs.length === 0 ? (
+                  <div className="py-12 text-center text-[#94A3B8]">
+                    <History className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="font-semibold text-sm text-[#0F172A]">No activity entries match your filter</p>
+                  </div>
+                ) : (
+                  <div className="relative border-l-2 border-[#E2E8F0] ml-4 pl-6 space-y-6">
+                    {filteredAuditLogs.map((item) => (
+                      <div key={item.id} className="relative group">
+                        {/* Dot indicator */}
+                        <div className={`absolute -left-[31px] top-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow-xs ${
+                          item.type === 'resolve' ? 'bg-[#16A34A]' :
+                          item.type === 'flag' ? 'bg-[#E11D48]' :
+                          item.type === 'proof' ? 'bg-[#9333EA]' :
+                          'bg-[#0284C7]'
+                        }`} />
+
+                        <div className="bg-[#F8FAFC] hover:bg-[#F1F5F9] p-4 rounded-xl border border-[#E2E8F0] transition flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-xs font-bold text-[#0284C7] bg-[#F0F9FF] px-2 py-0.5 rounded border border-[#BAE6FD]">
+                                {item.ticketCode}
+                              </span>
+                              <h4 className="font-bold text-sm text-[#0F172A]">{item.title}</h4>
+                            </div>
+                            <p className="text-xs text-[#64748B] mt-1">{item.details}</p>
+                            <p className="text-[10px] text-[#94A3B8] mt-1.5 flex items-center gap-1.5">
+                              <span>Actor: <b className="text-[#475569]">{item.user}</b></span>
+                              <span>•</span>
+                              <span>{item.timestamp ? item.timestamp.toLocaleString() : 'Recent'}</span>
+                            </p>
+                          </div>
+
+                          <button
+                            onClick={() => navigate(`/details/${item.complaintId}`)}
+                            className="self-start sm:self-center px-3 py-1.5 rounded-lg bg-white hover:bg-[#0284C7] hover:text-white text-[#0284C7] border border-[#BAE6FD] text-xs font-semibold transition cursor-pointer flex items-center gap-1 shrink-0"
+                          >
+                            <span>Inspect</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
