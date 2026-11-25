@@ -44,7 +44,11 @@ const Navbar = () => {
       const res = await getNotifications();
       setNotifications(res.data);
     } catch (err) {
-      console.error(err);
+      if (err?.response?.status === 401) {
+        // Silently ignore 401 when token is missing/expired
+        return;
+      }
+      console.warn('Notifications fetch error:', err.message);
     }
   };
 

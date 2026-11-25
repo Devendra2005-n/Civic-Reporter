@@ -56,12 +56,30 @@ const useUserLocation = () => {
     } catch (err) {
       // Fallback to IP location if GPS fails
       try {
-        const ipRes = await fetch('https://ipapi.co/json/');
-        const ipData = await ipRes.json();
-        if (ipData && ipData.latitude && ipData.longitude) {
-          setLat(ipData.latitude);
-          setLng(ipData.longitude);
-          const addr = await reverseGeocode(ipData.latitude, ipData.longitude);
+        let ipLat = null;
+        let ipLng = null;
+        try {
+          const ipRes = await fetch('https://ipwho.is/', { signal: AbortSignal.timeout(3000) });
+          const ipData = await ipRes.json();
+          if (ipData && ipData.success && ipData.latitude && ipData.longitude) {
+            ipLat = ipData.latitude;
+            ipLng = ipData.longitude;
+          }
+        } catch {}
+
+        if (!ipLat) {
+          const res2 = await fetch('https://freeipapi.com/api/json', { signal: AbortSignal.timeout(3000) });
+          const d2 = await res2.json();
+          if (d2 && d2.latitude && d2.longitude) {
+            ipLat = d2.latitude;
+            ipLng = d2.longitude;
+          }
+        }
+
+        if (ipLat && ipLng) {
+          setLat(ipLat);
+          setLng(ipLng);
+          const addr = await reverseGeocode(ipLat, ipLng);
           setAddress(addr);
           return;
         }

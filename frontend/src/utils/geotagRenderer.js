@@ -103,13 +103,58 @@ export const reverseGeocodeDetails = async (lat, lng) => {
   }
 };
 
+export const fetchIPLocation = async () => {
+  try {
+    const res = await fetch('https://ipwho.is/', { signal: AbortSignal.timeout(3500) });
+    const data = await res.json();
+    if (data && data.success && data.latitude && data.longitude) {
+      return {
+        lat: data.latitude,
+        lng: data.longitude,
+        city: data.city || '',
+        region: data.region || '',
+        country: data.country || '',
+        postal: data.postal || '',
+      };
+    }
+  } catch (err) {
+    console.warn('ipwho.is fallback:', err.message);
+  }
+
+  try {
+    const res2 = await fetch('https://freeipapi.com/api/json', { signal: AbortSignal.timeout(3500) });
+    const d2 = await res2.json();
+    if (d2 && d2.latitude && d2.longitude) {
+      return {
+        lat: d2.latitude,
+        lng: d2.longitude,
+        city: d2.cityName || '',
+        region: d2.regionName || '',
+        country: d2.countryName || '',
+      };
+    }
+  } catch (err2) {
+    console.warn('freeipapi fallback:', err2.message);
+  }
+
+  return {
+    lat: 19.0760,
+    lng: 72.8777,
+    city: 'Mumbai',
+    region: 'Maharashtra',
+    country: 'India',
+  };
+};
+
 /**
  * Converts Lat/Lng to Web Mercator tile coordinates
  */
 export const latLngToTile = (lat, lng, zoom) => {
+  const safeLat = (lat != null && !isNaN(lat)) ? lat : 19.0760;
+  const safeLng = (lng != null && !isNaN(lng)) ? lng : 72.8777;
   const n = Math.pow(2, zoom);
-  const x = ((lng + 180) / 360) * n;
-  const latRad = (lat * Math.PI) / 180;
+  const x = ((safeLng + 180) / 360) * n;
+  const latRad = (safeLat * Math.PI) / 180;
   const y = ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n;
   return { x, y };
 };
@@ -118,6 +163,8 @@ export const latLngToTile = (lat, lng, zoom) => {
  * Generates an offscreen Canvas containing a Google-Maps-styled mini map with pin
  */
 export const createMiniMapCanvas = async (lat, lng, width = 160, height = 150, zoom = 16) => {
+  const safeLat = (lat != null && !isNaN(lat)) ? lat : 19.0760;
+  const safeLng = (lng != null && !isNaN(lng)) ? lng : 72.8777;
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -128,7 +175,7 @@ export const createMiniMapCanvas = async (lat, lng, width = 160, height = 150, z
   ctx.fillRect(0, 0, width, height);
 
   // Calculate center in global pixel coordinates at this zoom
-  const center = latLngToTile(lat, lng, zoom);
+  const center = latLngToTile(safeLat, safeLng, zoom);
   const cx = center.x * 256;
   const cy = center.y * 256;
 

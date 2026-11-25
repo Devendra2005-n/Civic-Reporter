@@ -198,6 +198,8 @@ const Submit = () => {
     setExifStatus('idle');
     setStep(2);
     
+    let exifPromise = Promise.resolve();
+    
     try {
       // Check reputation before proceeding
       if (userData?.uid) {
@@ -242,7 +244,7 @@ const Submit = () => {
         // Parse EXIF directly from the File object in the browser.
         // This is critical because mobile browsers may strip EXIF during HTTP upload.
         setExifStatus('detecting');
-        const exifPromise = (async () => {
+        exifPromise = (async () => {
           try {
             // Step 1: Try client-side EXIF parsing (instant, works on mobile)
             console.log('📍 Attempting client-side EXIF parse...');
