@@ -713,7 +713,7 @@ const Admin = () => {
 
   if (loadingComplaints) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center pt-20 text-[#0F172A]">
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center pt-8 text-[#0F172A]">
         <div className="relative">
           <div className="w-16 h-16 rounded-2xl bg-[#0284C7]/10 border border-[#BAE6FD] flex items-center justify-center animate-pulse">
             <ShieldCheck className="w-8 h-8 text-[#0284C7]" />
@@ -757,7 +757,7 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#334155] pt-20 px-3 sm:px-6 lg:px-8 max-w-[1520px] mx-auto pb-24 flex flex-col md:flex-row gap-6 relative">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#334155] pt-4 sm:pt-6 px-3 sm:px-6 lg:px-8 max-w-[1520px] mx-auto pb-16 flex flex-col md:flex-row gap-6 relative">
       
       {/* Hidden Print Container for PDF */}
       <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
@@ -765,10 +765,10 @@ const Admin = () => {
       </div>
 
       {/* Modern SaaS Sidebar */}
-      <aside className="w-full md:w-64 shrink-0 bg-white p-4 h-auto md:h-[calc(100vh-105px)] sticky md:top-20 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col justify-between overflow-y-auto">
+      <aside className="w-full md:w-64 shrink-0 bg-white p-4 h-fit sticky md:top-20 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col space-y-4">
         <div>
           {/* Header */}
-          <div className="pb-4 mb-3 border-b border-[#E2E8F0] flex items-center justify-between px-2">
+          <div className="pb-3 mb-2.5 border-b border-[#E2E8F0] flex items-center justify-between px-2">
             <div className="flex items-center space-x-3">
               <div className="w-9 h-9 rounded-xl bg-[#F0F9FF] border border-[#BAE6FD] flex items-center justify-center text-[#0284C7] shadow-xs">
                 <ShieldCheck className="w-5 h-5" />
@@ -784,7 +784,7 @@ const Admin = () => {
           </div>
 
           {/* Navigation Links */}
-          <nav className="space-y-1.5">
+          <nav className="space-y-1">
             <SidebarItem id="dashboard" icon={BarChart3} label="Dashboard" />
             <SidebarItem id="complaints" icon={AlertTriangle} label="Complaints" badge={complaints.length} />
             <SidebarItem id="departments" icon={Building2} label="Departments" badge={departmentStats.length} />
@@ -795,22 +795,22 @@ const Admin = () => {
           </nav>
         </div>
 
-        {/* Bottom SLA & Quick Info Card */}
-        <div className="pt-4 border-t border-[#E2E8F0] px-2 mt-4 hidden md:block space-y-3">
+        {/* Bottom SLA & Resolution Cards - seated right below Audit Activity */}
+        <div className="pt-3 border-t border-[#E2E8F0] px-1 hidden md:block space-y-2.5">
           {agingComplaints.length > 0 && (
             <div className="bg-[#FFF1F2] rounded-xl p-2.5 border border-[#FECDD3] flex items-center space-x-2">
               <AlertOctagon className="w-4 h-4 text-[#E11D48] shrink-0" />
               <div className="min-w-0">
-                <p className="text-[10px] font-bold text-[#9F1239] uppercase">SLA Warning</p>
+                <p className="text-[10px] font-bold text-[#9F1239] uppercase leading-tight">SLA Warning</p>
                 <p className="text-[11px] text-[#E11D48] font-semibold truncate">{agingComplaints.length} tickets &gt; 48h aging</p>
               </div>
             </div>
           )}
 
           <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
-            <p className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Resolution Rate</p>
+            <p className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Resolution Rate</p>
             <div className="flex items-baseline justify-between mt-1">
-              <span className="text-xl font-extrabold text-[#0F172A]">{resolvedRate}%</span>
+              <span className="text-lg font-extrabold text-[#0F172A]">{resolvedRate}%</span>
               <span className="text-xs font-semibold text-emerald-600">
                 {statusCounts[2].value} / {complaints.length}
               </span>
@@ -826,7 +826,7 @@ const Admin = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 space-y-6 overflow-hidden min-h-[calc(100vh-105px)]">
+      <main className="flex-1 space-y-6 overflow-hidden">
         <AnimatePresence mode="wait">
           
           {/* TAB 1: DASHBOARD */}
