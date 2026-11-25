@@ -38,26 +38,47 @@ const AdvancedMarker = ({ map, position, draggable, onDragEnd, onClick, icon, ti
       ...(content ? { content } : {}),
     });
 
+    const handleClick = () => {
+      if (onClick) onClick();
+    };
+
+    const handleDragEnd = () => {
+      if (onDragEnd) {
+        onDragEnd({
+          latLng: {
+            lat: () => (typeof marker.position?.lat === 'function' ? marker.position.lat() : marker.position?.lat),
+            lng: () => (typeof marker.position?.lng === 'function' ? marker.position.lng() : marker.position?.lng),
+          }
+        });
+      }
+    };
+
     if (onClick) {
-      marker.addListener('click', onClick);
+      if (marker.addEventListener) {
+        marker.addEventListener('gmp-click', handleClick);
+      } else {
+        marker.addListener('click', handleClick);
+      }
     }
 
     if (onDragEnd) {
-      marker.addListener('dragend', (e) => {
-        // AdvancedMarkerElement dragend event has the marker's position
-        onDragEnd({
-          latLng: {
-            lat: () => marker.position.lat,
-            lng: () => marker.position.lng,
-          }
-        });
-      });
+      if (marker.addEventListener) {
+        marker.addEventListener('gmp-dragend', handleDragEnd);
+      } else {
+        marker.addListener('dragend', handleDragEnd);
+      }
     }
 
     markerRef.current = marker;
 
     return () => {
       if (markerRef.current) {
+        if (onClick && markerRef.current.removeEventListener) {
+          markerRef.current.removeEventListener('gmp-click', handleClick);
+        }
+        if (onDragEnd && markerRef.current.removeEventListener) {
+          markerRef.current.removeEventListener('gmp-dragend', handleDragEnd);
+        }
         markerRef.current.map = null;
         markerRef.current = null;
       }

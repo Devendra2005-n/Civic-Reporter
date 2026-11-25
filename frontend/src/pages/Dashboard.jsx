@@ -19,6 +19,8 @@ import { useLanguage } from '../context/LanguageContext';
 
 const mapContainerStyle = { width: '100%', height: '100%', borderRadius: '12px' };
 const defaultCenter = { lat: 28.6139, lng: 77.2090 };
+const GOOGLE_MAPS_LIBRARIES = ['marker'];
+const GOOGLE_MAPS_IDS = ['civic_map'];
 
 // Animated Counter Component
 const AnimatedCounter = ({ value, duration = 1.5 }) => {
@@ -102,8 +104,8 @@ const Dashboard = () => {
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    mapIds: ['civic_map'],
-    libraries: ['marker']
+    mapIds: GOOGLE_MAPS_IDS,
+    libraries: GOOGLE_MAPS_LIBRARIES
   });
 
   useEffect(() => {

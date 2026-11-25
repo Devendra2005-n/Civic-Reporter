@@ -23,33 +23,45 @@ const api = axios.create({
 
 // Add interceptor to attach Firebase ID token to every request
 api.interceptors.request.use(async (config) => {
-  if (auth.currentUser) {
-    const token = await auth.currentUser.getIdToken();
-    config.headers.Authorization = `Bearer ${token}`;
+  try {
+    let currentUser = auth.currentUser;
+    // If auth state is still restoring on initial page load, wait for it
+    if (!currentUser && typeof auth.authStateReady === 'function') {
+      await auth.authStateReady();
+      currentUser = auth.currentUser;
+    }
+    if (currentUser) {
+      const token = await currentUser.getIdToken();
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (err) {
+    console.warn('Failed to attach auth token:', err);
   }
   return config;
 }, (error) => {
   return Promise.reject(error);
 });
 
-// Upload image to Cloudinary
-export const uploadImage = async (file) => {
+// Upload image to Cloudinary (with duplicate check by user email / userId)
+export const uploadImage = async (file, userEmail = '', userId = '') => {
   const formData = new FormData();
   formData.append('image', file);
+  if (userEmail) formData.append('userEmail', userEmail);
+  if (userId) formData.append('userId', userId);
   return api.post('/upload', formData);
 };
 
-// Analyze image with AI — now accepts userName, locationAddress, and authorityInfo
-export const analyzeImage = async (file, { userName = '', locationAddress = '', authorityInfo = null } = {}) => {
-  // First, upload to cloudinary via our endpoint
-  const uploadRes = await uploadImage(file);
-  const imageUrl = uploadRes.data.imageUrl;
+// Analyze image with AI — now accepts userName, userEmail, userId, locationAddress, and authorityInfo
+export const analyzeImage = async (file, { userName = '', userEmail = '', userId = '', locationAddress = '', authorityInfo = null } = {}) => {
+  // First, upload to cloudinary via our endpoint with duplicate check
+  const uploadRes = await uploadImage(file, userEmail, userId);
+  const { imageUrl, imageHash, imageFingerprint } = uploadRes.data;
   
   // Second, hit NVIDIA AI with the generated imageUrl + user context + authority
   const aiRes = await api.post('/ai/analyze', { imageUrl, userName, locationAddress, authorityInfo });
   
-  // Attach imageUrl to result so Submit page has it
-  return { data: { ...aiRes.data, imageUrl } };
+  // Attach imageUrl, imageHash, imageFingerprint to result so Submit page has it
+  return { data: { ...aiRes.data, imageUrl, imageHash, imageFingerprint } };
 };
 
 // AI-based duplicate detection — uses semantic similarity via embeddings

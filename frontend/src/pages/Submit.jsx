@@ -10,6 +10,7 @@ import DuplicateModal from '../components/DuplicateModal';
 import { analyzeImage, createComplaint, checkDuplicate, detectAuthority, translateLetter, checkCanSubmit, extractLocationFromImage, reverseGeocodeLocation } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { auth } from '../config/firebase';
 import useUserLocation from '../hooks/useLocation';
 import exifr from 'exifr';
 import { getDepartment } from '../utils/departments';
@@ -23,6 +24,7 @@ import { formatComplaintId } from '../utils/formatters';
 
 const mapContainerStyle = { width: '100%', height: '300px', borderRadius: '1rem', position: 'relative' };
 const defaultCenter = { lat: 28.6139, lng: 77.2090 }; // Delhi as fallback
+const GOOGLE_MAPS_IDS = ['civic_map'];
 
 // Supported Indian languages for translation
 const LANGUAGES = [
@@ -49,9 +51,13 @@ const AUTHORITY_TYPES = [
 
 const Submit = () => {
   const navigate = useNavigate();
-  const { userData } = useAuth();
+  const { user, userData } = useAuth();
   const { t } = useLanguage();
   const location = useUserLocation();
+
+  const effectiveEmail = user?.email || userData?.email || auth.currentUser?.email || '';
+  const effectiveUid = user?.uid || userData?.uid || auth.currentUser?.uid || '';
+  const effectiveName = user?.displayName || userData?.name || 'Anonymous';
 
   const [step, setStep] = useState(1);
   const [file, setFile] = useState(null);
@@ -79,6 +85,8 @@ const Submit = () => {
   const [imageValidation, setImageValidation] = useState(null);
   const [rateLimitError, setRateLimitError] = useState(null);
   const [reputationBlocked, setReputationBlocked] = useState(false);
+  const [duplicateImageError, setDuplicateImageError] = useState(null);
+  const [imageHashes, setImageHashes] = useState({ imageHash: '', imageFingerprint: '' });
 
   // Authority detection state
   const [authorityInfo, setAuthorityInfo] = useState(null);
@@ -100,10 +108,19 @@ const Submit = () => {
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    mapIds: ['civic_map'],
+    mapIds: GOOGLE_MAPS_IDS,
   });
 
   const pdfRef = useRef();
+  const bgVideoRef = useRef(null);
+
+  useEffect(() => {
+    if (bgVideoRef.current) {
+      bgVideoRef.current.defaultMuted = true;
+      bgVideoRef.current.muted = true;
+      bgVideoRef.current.play().catch(() => {});
+    }
+  }, []);
 
   // Auto-detect location on mount
   useEffect(() => {
@@ -195,6 +212,7 @@ const Submit = () => {
     setPreview(url);
     setImageValidation(null);
     setRateLimitError(null);
+    setDuplicateImageError(null);
     setExifStatus('idle');
     setStep(2);
     
@@ -202,9 +220,9 @@ const Submit = () => {
     
     try {
       // Check reputation before proceeding
-      if (userData?.uid) {
+      if (effectiveUid) {
         try {
-          const repRes = await checkCanSubmit(userData.uid);
+          const repRes = await checkCanSubmit(effectiveUid);
           if (!repRes.data.canSubmit) {
             setReputationBlocked(true);
             toast.error('Your account has been restricted due to too many invalid complaints.', { duration: 5000 });
@@ -336,12 +354,20 @@ const Submit = () => {
       }
 
       // Use the detected authority info if available
-      const userName = userData?.name || '';
-      const res = await analyzeImage(uploadedFile, { userName, locationAddress, authorityInfo });
+      const userName = effectiveName;
+      const userEmail = effectiveEmail;
+      const userId = effectiveUid;
+      const res = await analyzeImage(uploadedFile, { userName, userEmail, userId, locationAddress, authorityInfo });
       const data = res.data;
 
       setAiData(data);
       setFinalImageUrl(data.imageUrl);
+      if (data.imageHash || data.imageFingerprint) {
+        setImageHashes({
+          imageHash: data.imageHash || '',
+          imageFingerprint: data.imageFingerprint || '',
+        });
+      }
 
       // ✅ IMAGE VALIDATION CHECK
       if (data.imageValidation && !data.imageValidation.isValid) {
@@ -424,6 +450,18 @@ const Submit = () => {
       setStep(3);
     } catch (err) {
       console.error(err);
+      if (err.response?.status === 409 && err.response?.data?.duplicateImage) {
+        const dupeData = err.response.data;
+        setDuplicateImageError(dupeData);
+        setFile(null);
+        setPreview(null);
+        toast.error(dupeData.message || 'You have already submitted a complaint with this image!', {
+          duration: 7000,
+          icon: '🚫',
+        });
+        setStep(1);
+        return;
+      }
       toast.error('Error analyzing image: ' + (err.response?.data?.message || err.message));
       setStep(1);
     }
@@ -449,9 +487,11 @@ const Submit = () => {
       const dataToSubmit = {
         ...formData,
         imageUrl: finalImageUrl || preview,
-        userId: userData?.uid || '',
-        userName: userData?.name || 'Anonymous',
-        userEmail: userData?.email || '',
+        imageHash: imageHashes.imageHash || '',
+        imageFingerprint: imageHashes.imageFingerprint || '',
+        userId: effectiveUid || 'anonymous',
+        userName: effectiveName || 'Anonymous',
+        userEmail: effectiveEmail || '',
         location: {
           lat: markerPos?.lat || location.lat || 0,
           lng: markerPos?.lng || location.lng || 0,
@@ -482,7 +522,12 @@ const Submit = () => {
       setStep(4);
     } catch (err) {
       console.error(err);
-      if (err.response?.status === 429) {
+      if (err.response?.status === 409 && err.response?.data?.duplicateImage) {
+        const dupeData = err.response.data;
+        setDuplicateImageError(dupeData);
+        toast.error(dupeData.message || 'Duplicate image: You have already submitted a complaint with this image.', { duration: 6000 });
+        setStep(1);
+      } else if (err.response?.status === 429) {
         setRateLimitError(err.response.data);
         toast.error(`⛔ Rate limit: ${err.response.data.message}`, { duration: 5000 });
       } else {
@@ -533,7 +578,7 @@ const Submit = () => {
   const Stepper = () => {
     return (
       <div className="flex items-center justify-center mb-10">
-        <div className="flex items-center space-x-2 bg-white p-2 rounded-2xl border border-[#E5E7EB] shadow-sm">
+        <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-md p-2 rounded-2xl border border-[#E5E7EB] shadow-md">
           {steps.map((s, idx) => {
             const num = idx + 1;
             const isActive = step === num;
@@ -645,7 +690,25 @@ const Submit = () => {
   };
 
   return (
-    <div className="min-h-screen pt-6 sm:pt-8 px-4 sm:px-6 relative max-w-5xl mx-auto pb-20">
+    <div className="relative min-h-screen">
+      {/* Background Video */}
+      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <video
+          ref={bgVideoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        >
+          <source src="/clean.mp4" type="video/mp4" />
+          <source src="/Clean.mp4" type="video/mp4" />
+        </video>
+        {/* Subtle overlay so text and UI components remain crystal clear */}
+        <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]" />
+      </div>
+
+      <div className="min-h-screen pt-6 sm:pt-8 px-4 sm:px-6 relative z-10 max-w-5xl mx-auto pb-20">
       {/* Hidden PDF Container — always in DOM, positioned offscreen */}
       <div
         ref={pdfRef}
@@ -725,6 +788,27 @@ const Submit = () => {
           </motion.h1>
           <p className="text-[#6B7280] text-center mb-6 text-sm">{t('submit_upload_sub', 'Upload a photo, and our AI will document the rest.')}</p>
           
+          {/* Duplicate Image Error Banner */}
+          {duplicateImageError && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-xl mx-auto mb-6 bg-[#FEF2F2] border border-[#FECACA] rounded-xl p-4 flex items-start space-x-3 shadow-sm"
+            >
+              <AlertCircle className="w-5 h-5 text-[#DC2626] shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="text-sm font-bold text-[#991B1B]">Duplicate Image Rejected</h4>
+                <p className="text-xs text-[#DC2626] mt-0.5">{duplicateImageError.message}</p>
+                {duplicateImageError.existingComplaintId && (
+                  <p className="text-[11px] text-[#6B7280] mt-1.5 font-medium">
+                    You have already reported this image under your email: <span className="font-semibold text-[#0F172A]">{effectiveEmail || userData?.email || 'your account'}</span> (Complaint ID: <span className="font-mono font-semibold">#{duplicateImageError.existingComplaintId}</span>)
+                  </p>
+                )}
+                <p className="text-xs text-[#991B1B] mt-2 font-medium">Please upload a new, unique photo of the civic issue.</p>
+              </div>
+            </motion.div>
+          )}
+
           {/* Image Validation Error Banner */}
           {imageValidation && !imageValidation.isValid && (
             <motion.div
@@ -1210,6 +1294,7 @@ const Submit = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 };

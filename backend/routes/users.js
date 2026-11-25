@@ -7,14 +7,48 @@ const router = express.Router();
 // 🚀 GET ALL USERS (Admin Only)
 router.get("/", authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const usersSnapshot = await admin.firestore().collection('users').get();
-    const users = [];
-    usersSnapshot.forEach(doc => {
-      users.push({ id: doc.id, ...doc.data() });
-    });
-    
+    const userMap = new Map();
+
+    // 1. Fetch from Firebase Auth to get all registered accounts
+    try {
+      const listUsersResult = await admin.auth().listUsers(1000);
+      listUsersResult.users.forEach((u) => {
+        const isAdmin = u.customClaims?.admin === true || u.email?.toLowerCase() === 'admin@civicreporter.com';
+        userMap.set(u.uid, {
+          id: u.uid,
+          uid: u.uid,
+          name: u.displayName || u.email?.split('@')[0] || 'User',
+          email: u.email || '',
+          role: isAdmin ? 'admin' : 'citizen',
+          reputation: 100,
+          createdAt: u.metadata?.creationTime || new Date().toISOString(),
+        });
+      });
+    } catch (authErr) {
+      console.warn("Could not list users from Firebase Auth:", authErr.message);
+    }
+
+    // 2. Fetch from Firestore users collection to overlay roles, reputation, etc.
+    try {
+      const usersSnapshot = await admin.firestore().collection('users').get();
+      usersSnapshot.forEach(doc => {
+        const data = doc.data();
+        const existing = userMap.get(doc.id) || {};
+        userMap.set(doc.id, {
+          id: doc.id,
+          uid: doc.id,
+          ...existing,
+          ...data,
+        });
+      });
+    } catch (fsErr) {
+      console.warn("Could not query Firestore users:", fsErr.message);
+    }
+
+    const users = Array.from(userMap.values());
     res.json(users);
   } catch (error) {
+    console.error("GET /api/users error:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -89,15 +123,20 @@ router.post("/request-admin", authMiddleware, async (req, res) => {
 // 🚀 GET ADMIN REQUESTS (Admin Only)
 router.get("/admin-requests", authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const requestsSnapshot = await admin.firestore().collection('adminRequests').where('status', '==', 'pending').get();
     const requests = [];
-    requestsSnapshot.forEach(doc => {
-      requests.push({ id: doc.id, ...doc.data() });
-    });
+    try {
+      const requestsSnapshot = await admin.firestore().collection('adminRequests').where('status', '==', 'pending').get();
+      requestsSnapshot.forEach(doc => {
+        requests.push({ id: doc.id, ...doc.data() });
+      });
+    } catch (fsErr) {
+      console.warn("Could not query Firestore adminRequests:", fsErr.message);
+    }
     
     res.json(requests);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("GET /api/users/admin-requests error:", error);
+    res.json([]);
   }
 });
 

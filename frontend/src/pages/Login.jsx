@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -60,6 +60,15 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.defaultMuted = true;
+      videoRef.current.muted = true;
+      videoRef.current.play().catch(() => {});
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -84,12 +93,29 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-16 bg-[#F9FAFB]">
+    <div className="relative min-h-screen flex items-center justify-center px-4 py-16">
+      {/* Background Video */}
+      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        >
+          <source src="/clean1.mp4" type="video/mp4" />
+          <source src="/Clean1.mp4" type="video/mp4" />
+        </video>
+        {/* Subtle overlay so card and text remain crystal clear */}
+        <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]" />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="bg-white p-8 rounded-2xl w-full max-w-md border border-[#E5E7EB] shadow-sm text-[#0F172A]"
+        className="relative z-10 bg-white/95 backdrop-blur-md p-8 rounded-2xl w-full max-w-md border border-[#E5E7EB] shadow-xl text-[#0F172A]"
       >
         {/* Header */}
         <div className="text-center mb-6">

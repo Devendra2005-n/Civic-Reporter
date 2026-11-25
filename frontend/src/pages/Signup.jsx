@@ -80,6 +80,15 @@ const Signup = () => {
   const [otpVerifying, setOtpVerifying] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const otpRefs = useRef([]);
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.defaultMuted = true;
+      videoRef.current.muted = true;
+      videoRef.current.play().catch(() => {});
+    }
+  }, []);
 
   // Countdown timer for resend
   useEffect(() => {
@@ -200,13 +209,30 @@ const Signup = () => {
   const formatTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex flex-col justify-center items-center px-4 py-12 text-[#334155]">
+    <div className="relative min-h-screen flex flex-col justify-center items-center px-4 py-12 text-[#334155]">
+      {/* Background Video */}
+      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        >
+          <source src="/clean1.mp4" type="video/mp4" />
+          <source src="/Clean1.mp4" type="video/mp4" />
+        </video>
+        {/* Subtle overlay so card and text remain crystal clear */}
+        <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]" />
+      </div>
+
       {/* Container Card */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-2xl shadow-sm p-7 sm:p-8 relative"
+        className="relative z-10 w-full max-w-md bg-white/95 backdrop-blur-md border border-[#E5E7EB] rounded-2xl shadow-xl p-7 sm:p-8"
       >
         <AnimatePresence mode="wait">
           {/* ===================== STEP 1: REGISTRATION FORM ===================== */}

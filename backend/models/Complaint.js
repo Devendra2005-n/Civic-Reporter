@@ -6,6 +6,19 @@ const complaintSchema = new mongoose.Schema({
     required: true,
   },
 
+  // Unique hash & perceptual fingerprint of the uploaded image to prevent duplicate submissions
+  imageHash: {
+    type: String,
+    default: "",
+    index: true,
+  },
+
+  imageFingerprint: {
+    type: String,
+    default: "",
+    index: true,
+  },
+
   afterImageUrl: {
     type: String,
   },

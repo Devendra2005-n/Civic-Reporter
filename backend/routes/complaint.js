@@ -87,6 +87,8 @@ router.post("/", async (req, res) => {
 
     const {
       imageUrl,
+      imageHash,
+      imageFingerprint,
       problemType,
       severity,
       description,
@@ -110,9 +112,59 @@ router.post("/", async (req, res) => {
       embedding, // AI-generated vector for duplicate detection
     } = req.body;
 
-    // ✅ SAFE USER (no crash)
-    const safeUserId = userId || req.user?.uid || "anonymous";
+    // ✅ SAFE USER & TOKEN IDENTIFICATION
+    let effectiveEmail = (userEmail || "").trim().toLowerCase();
+    let effectiveUid = (userId || "").trim();
+
+    if ((!effectiveEmail || !effectiveUid) && req.headers.authorization?.startsWith("Bearer ")) {
+      try {
+        const token = req.headers.authorization.split("Bearer ")[1];
+        const decoded = await admin.auth().verifyIdToken(token);
+        if (!effectiveEmail && decoded.email) effectiveEmail = decoded.email.trim().toLowerCase();
+        if (!effectiveUid && decoded.uid) effectiveUid = decoded.uid;
+      } catch (authErr) {
+        console.warn("⚠️ Complaint auth token check warning:", authErr.message);
+      }
+    }
+
+    const safeUserId = effectiveUid || req.user?.uid || "anonymous";
     const safeUserName = userName || req.user?.name || "Anonymous";
+    const safeUserEmail = effectiveEmail || req.user?.email || "";
+
+    // ✅ DUPLICATE IMAGE CHECK FOR SAME USER
+    const userFilters = [];
+    if (safeUserEmail) {
+      userFilters.push({ userEmail: { $regex: new RegExp(`^${safeUserEmail}$`, "i") } });
+    }
+    if (safeUserId && safeUserId !== "anonymous") {
+      userFilters.push({ userId: safeUserId });
+    }
+
+    if (userFilters.length > 0) {
+      const matchCriteria = [];
+      if (imageHash) matchCriteria.push({ imageHash });
+      if (imageFingerprint) matchCriteria.push({ imageFingerprint });
+      if (imageUrl) matchCriteria.push({ imageUrl });
+
+      if (matchCriteria.length > 0) {
+        const existingSameImage = await Complaint.findOne({
+          $and: [
+            { $or: userFilters },
+            { $or: matchCriteria },
+          ],
+        });
+
+        if (existingSameImage) {
+          console.log(`🚫 DUPLICATE COMPLAINT BLOCKED for user ${safeUserEmail || safeUserId}! Existing: ${existingSameImage._id}`);
+          return res.status(409).json({
+            message: "You have already submitted a complaint with this exact image. Duplicate submissions are not allowed.",
+            duplicateImage: true,
+            existingComplaintId: existingSameImage._id,
+            problemType: existingSameImage.problemType,
+          });
+        }
+      }
+    }
 
     // ✅ VALIDATION
     if (!problemType || !description) {
@@ -193,6 +245,8 @@ router.post("/", async (req, res) => {
     // ✅ CREATE OBJECT
     const complaint = new Complaint({
       imageUrl: imageUrl || "",
+      imageHash: imageHash || "",
+      imageFingerprint: imageFingerprint || "",
       problemType,
       severity: severity || "medium",
       description,
@@ -200,7 +254,7 @@ router.post("/", async (req, res) => {
       formalLetter,
       userId: safeUserId,
       userName: safeUserName,
-      userEmail: userEmail || req.user?.email || "",
+      userEmail: safeUserEmail,
       department: department || "General Municipal Department",
       location: locationData,
       state: state || "",

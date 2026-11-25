@@ -72,10 +72,10 @@ const UploadBox = ({ onUpload }) => {
       )}
       <motion.div
         whileHover={{ scale: 1.005 }}
-        className={`relative bg-white rounded-2xl p-10 border-2 transition-all duration-300 ${
+        className={`relative bg-white/90 backdrop-blur-md rounded-2xl p-10 border-2 transition-all duration-300 ${
           dragActive 
-            ? "border-[#0284C7] bg-[#F0F9FF] shadow-sm" 
-            : "border-dashed border-[#D1D5DB] hover:border-[#0284C7] hover:bg-[#F0F9FF]/40 pointer-events-auto shadow-sm"
+            ? "border-[#0284C7] bg-[#F0F9FF] shadow-lg" 
+            : "border-dashed border-[#CBD5E1] hover:border-[#0284C7] hover:bg-white/95 pointer-events-auto shadow-md"
         } cursor-pointer min-h-[360px] flex flex-col items-center justify-center text-center overflow-hidden`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}

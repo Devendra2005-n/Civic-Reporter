@@ -53,6 +53,9 @@ const PRIORITY_COLORS = {
 };
 
 // Department visual styling & icon metadata
+const GOOGLE_MAPS_LIBRARIES = ['marker'];
+const GOOGLE_MAPS_IDS = ['civic_map'];
+
 const DEPT_META = {
   'Road & Infrastructure Department': { icon: '🛣️', bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
   'Sanitation Department': { icon: '🗑️', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
@@ -170,7 +173,7 @@ const defaultCenter = { lat: 28.6139, lng: 77.2090 };
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { userData } = useAuth();
+  const { user, userData } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'complaints' | 'departments' | 'flagged' | 'map' | 'users' | 'audit'
   
   // Complaints State
@@ -221,8 +224,8 @@ const Admin = () => {
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    mapIds: ['civic_map'],
-    libraries: ['marker']
+    mapIds: GOOGLE_MAPS_IDS,
+    libraries: GOOGLE_MAPS_LIBRARIES
   });
 
   const fetchComplaints = async (isManual = false) => {
@@ -258,7 +261,9 @@ const Admin = () => {
       setUsers(usersRes.data || []);
       setAdminRequests(reqsRes.data || []);
     } catch (err) {
-      console.error("fetchUsersData error:", err);
+      if (err?.response?.status !== 401) {
+        console.error("fetchUsersData error:", err);
+      }
     } finally {
       setLoadingUsers(false);
     }
@@ -266,8 +271,10 @@ const Admin = () => {
 
   useEffect(() => {
     fetchComplaints();
-    fetchUsersData();
-  }, []);
+    if (user) {
+      fetchUsersData();
+    }
+  }, [user]);
 
   // --- Complaints Actions ---
 
@@ -941,7 +948,7 @@ const Admin = () => {
                   </div>
                   
                   <div className="h-64 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height={256} minWidth={0}>
                       <PieChart>
                         <Pie
                           data={statusCounts}
@@ -1008,7 +1015,7 @@ const Admin = () => {
                   </div>
 
                   <div className="h-64 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height={256} minWidth={0}>
                       <BarChart data={priorityCounts} barSize={36}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
                         <XAxis 

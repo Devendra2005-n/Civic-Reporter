@@ -2,13 +2,18 @@ import admin from 'firebase-admin';
 import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import dotenv from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Fix gRPC TLS verification issues in local/dev environments
-// (Firestore Admin SDK uses gRPC which doesn't respect NODE_TLS_REJECT_UNAUTHORIZED)
+// Ensure .env is loaded in ESM environment
+dotenv.config({ path: join(__dirname, '..', '.env') });
+dotenv.config();
+
+// Fix TLS & gRPC verification issues in local/dev environments
 if (process.env.NODE_ENV !== 'production') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA:HIGH+RSA:HIGH+DSS';
 }
 
@@ -28,9 +33,18 @@ try {
     }
   }
 
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  }
+
+  // Use REST for Firestore in local/dev to avoid gRPC TLS/connection hangs on Windows
+  try {
+    admin.firestore().settings({ preferRest: true, ignoreUndefinedProperties: true });
+  } catch (fsErr) {
+    // Ignore if already set
+  }
 
   console.log("Firebase Admin SDK initialized ✅");
 } catch (error) {
